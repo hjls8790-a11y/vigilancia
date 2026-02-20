@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRAL DE MONITOREO - VIGILANCIA</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; background: #f0f2f5; }
+        #header { background: #1a2a3a; color: white; padding: 12px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 360px; background: #ffffff; overflow-y: auto; border-right: 1px solid #d1d9e0; padding: 15px; }
+        #map { flex: 1; z-index: 1; }
+        .rondin-item { background: #fff; margin-bottom: 15px; padding: 15px; border-radius: 10px; cursor: pointer; border: 1px solid #e1e4e8; border-left: 6px solid #2980b9; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .rondin-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: #f8fbff; }
+        .rondin-item h4 { margin: 0 0 10px 0; color: #1a2a3a; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+        .label { font-weight: bold; color: #7f8c8d; }
+        .valor { color: #2c3e50; font-weight: 600; }
+        .novedad-badge { background: #f1c40f; color: #000; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2 style="margin:0;">🛰️ CENTRAL DE INTELIGENCIA Y VIGILANCIA</h2>
+    </div>
+
+    <div id="main">
+        <div id="sidebar">
+            <h3 style="color: #2c3e50; margin-top: 0;">Historial de Recorridos</h3>
+            <div id="lista-rondines">Buscando datos en la nube...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        
+        let capaDibujo = L.layerGroup().addTo(mapa);
+
+        async function cargarHistorial() {
+            const listaDiv = document.getElementById('lista-rondines');
+            try {
+                const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                if(querySnapshot.empty) { listaDiv.innerHTML = "No hay rondines hoy."; return; }
+                
+                listaDiv.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'rondin-item';
+                    item.innerHTML = `
+                        <h4>👤 OFICIAL: ${d.oficial || 'Hugo'}</h4>
+                        <div class="info-row"><span class="label">📅 Fecha:</span> <span class="valor">${d.inicio ? d.inicio.split(',')[0] : '---'}</span></div>
+                        <div class="info-row"><span class="label">🕒 Entrada:</span> <span class="valor">${d.inicio ? d.inicio.split(',')[1] : '---'}</span></div>
+                        <div class="info-row"><span class="label">🏁 Salida:</span> <span class="valor">${d.fin ? d.fin.split(',')[1] : 'En curso'}</span></div>
+                        <div class="info-row"><span class="label">⚠️ Novedades:</span> <span class="novedad-badge">${d.reportes ? d.reportes.length : 0}</span></div>
+                    `;
+                    item.onclick = () => mostrarEnMapa(d);
+                    listaDiv.appendChild(item);
+                });
+            } catch (e) { listaDiv.innerHTML = "Error de conexión."; }
+        }
+
+        function mostrarEnMapa(datos) {
+            capaDibujo.clearLayers();
+            if (!datos.puntos_gps || datos.puntos_gps.length === 0) return;
+
+            const puntos = datos.puntos_gps.map(p => [p.lat, p.lng]);
+            
+            // 1. Dibujar línea del recorrido (Color Azul para que resalten las novedades)
+            const linea = L.polyline(puntos, {color: '#2980b9', weight: 5, opacity: 0.7}).addTo(capaDibujo);
+            
+            // 2. Marcador de INICIO (Verde) y FIN (Rojo)
+            L.circleMarker(puntos[0], {color: 'green', fillOpacity: 1, radius: 8}).addTo(capaDibujo).bindPopup("<b>INICIO DEL RONDÍN</b>");
+            L.circleMarker(puntos[puntos.length - 1], {color: 'red', fillOpacity: 1, radius: 8}).addTo(capaDibujo).bindPopup("<b>FIN DEL RONDÍN</b>");
+
+            // 3. NOVEDADES (Puntos Amarillos que se ven claro)
+            if (datos.reportes) {
+                datos.reportes.forEach(r => {
+                    // Usamos un marcador de tipo 'estrella' o círculo resaltado
+                    L.circleMarker([r.lat, r.lng], {
+                        radius: 10,
+                        fillColor: "#f1c40f",
+                        color: "#000",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(capaDibujo).bindPopup(`
+                        <div style="font-family: sans-serif; min-width: 150px;">
+                            <h3 style="margin:0; color:#d35400;">⚠️ NOVEDAD</h3>
+                            <hr>
+                            <p style="font-size:14px; margin: 10px 0;"><b>Reporte:</b> ${r.msg}</p>
+                            <p style="font-size:12px; color:#666;"><b>Hora:</b> ${r.hora}</p>
+                        </div>
+                    `);
+                });
+            }
+
+            mapa.fitBounds(linea.getBounds(), {padding: [50, 50]});
+        }
+
+        cargarHistorial();
+    </script>
+</body>
+</html>
