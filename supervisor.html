@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRAL DE MONITOREO</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; }
+        #header { background: #1a2a3a; color: white; padding: 10px; text-align: center; }
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 350px; background: #f8f9fa; overflow-y: auto; border-right: 1px solid #ccc; padding: 15px; }
+        #map { flex: 1; }
+        .rondin-card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 10px; cursor: pointer; border-left: 6px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .rondin-card:hover { background: #eef2f7; }
+        .nombre-oficial { font-weight: bold; color: #1a2a3a; font-size: 16px; display: block; margin-bottom: 5px; }
+        .info-txt { font-size: 13px; color: #555; display: block; margin: 2px 0; }
+        .novedad-count { color: #d35400; font-weight: bold; font-size: 13px; display: block; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="header"><h2>🛰️ CENTRAL DE MONITOREO</h2></div>
+
+    <div id="main">
+        <div id="sidebar">
+            <h3 style="margin-top:0">Historial de Rondines</h3>
+            <div id="lista-recorridos">Cargando...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        let capaRecorrido = L.layerGroup().addTo(mapa);
+
+        async function cargarDatos() {
+            const listaDiv = document.getElementById('lista-recorridos');
+            const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+            const snapshot = await getDocs(q);
+            listaDiv.innerHTML = "";
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const card = document.createElement('div');
+                card.className = 'rondin-card';
+                card.innerHTML = `
+                    <span class="nombre-oficial">👤 ${d.oficial}</span>
+                    <span class="info-txt">📅 <b>Fecha:</b> ${d.inicio.split(',')[0]}</span>
+                    <span class="info-txt">🕒 <b>Inicio:</b> ${d.inicio.split(',')[1] || ''}</span>
+                    <span class="info-txt">🏁 <b>Fin:</b> ${d.fin ? d.fin.split(',')[1] : '...'}</span>
+                    <span class="novedad-count">⚠️ Novedades: ${d.reportes ? d.reportes.length : 0}</span>
+                `;
+                card.onclick = () => dibujarRondin(d);
+                listaDiv.appendChild(card);
+            });
+        }
+
+        function dibujarRondin(d) {
+            capaRecorrido.clearLayers();
+            if (!d.puntos_gps || d.puntos_gps.length === 0) return;
+            const pts = d.puntos_gps.map(p => [p.lat, p.lng]);
+            const linea = L.polyline(pts, {color: 'red', weight: 5}).addTo(capaRecorrido);
+            
+            L.marker(pts[0]).addTo(capaRecorrido).bindPopup("INICIO");
+            L.marker(pts[pts.length-1]).addTo(capaRecorrido).bindPopup("FIN");
+
+            if (d.reportes) {
+                d.reportes.forEach(nov => {
+                    L.marker([nov.lat, nov.lng]).addTo(capaRecorrido)
+                     .bindPopup(`<b>NOVEDAD:</b><br>${nov.msg}<br><small>${nov.hora}</small>`);
+                });
+            }
+            mapa.fitBounds(linea.getBounds(), {padding: [40, 40]});
+        }
+        cargarDatos();
+    </script>
+</body>
+</html>
