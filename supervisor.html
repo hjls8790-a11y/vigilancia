@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRAL - Panel Supervisor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; }
+        #header { background: #1a2a3a; color: white; padding: 15px; text-align: center; }
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 350px; background: #f8f9fa; overflow-y: auto; border-right: 1px solid #ccc; padding: 15px; }
+        #map { flex: 1; }
+        .rondin-card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 10px; cursor: pointer; border: 1px solid #ddd; border-left: 8px solid #2980b9; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .rondin-card:hover { transform: scale(1.02); transition: 0.2s; background: #edf2f7; }
+        .tag-nombre { font-weight: bold; color: #2c3e50; font-size: 16px; display: block; margin-bottom: 5px; }
+        .info-txt { font-size: 13px; color: #555; margin: 2px 0; }
+        .badge-novedad { color: #e67e22; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="header"><h2>🛰️ CENTRAL DE MONITOREO DE SEGURIDAD</h2></div>
+
+    <div id="main">
+        <div id="sidebar">
+            <h3 style="margin-top:0;">Bitácora Digital</h3>
+            <div id="lista">Cargando...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        let capas = L.layerGroup().addTo(mapa);
+
+        async function cargar() {
+            const listaDiv = document.getElementById('lista');
+            const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+            const snap = await getDocs(q);
+            listaDiv.innerHTML = "";
+
+            snap.forEach(doc => {
+                const d = doc.data();
+                const card = document.createElement('div');
+                card.className = 'rondin-card';
+                card.innerHTML = `
+                    <span class="tag-nombre">👤 ${d.oficial}</span>
+                    <p class="info-txt"><b>📅 Fecha:</b> ${d.inicio.split(',')[0]}</p>
+                    <p class="info-txt"><b>🕒 Inicio:</b> ${d.inicio.split(',')[1] || ''}</p>
+                    <p class="info-txt"><b>🏁 Fin:</b> ${d.fin ? d.fin.split(',')[1] : 'En curso'}</p>
+                    <p class="info-txt badge-novedad">⚠️ Novedades: ${d.reportes ? d.reportes.length : 0}</p>
+                `;
+                card.onclick = () => dibujar(d);
+                listaDiv.appendChild(card);
+            });
+        }
+
+        function dibujar(datos) {
+            capas.clearLayers();
+            const pts = datos.puntos_gps.map(p => [p.lat, p.lng]);
+            const linea = L.polyline(pts, {color: 'red', weight: 5}).addTo(capas);
+            
+            // Inicio y fin
+            L.circleMarker(pts[0], {color: 'green', radius: 8}).addTo(capas).bindPopup("INICIO");
+            L.circleMarker(pts[pts.length-1], {color: 'black', radius: 8}).addTo(capas).bindPopup("FIN");
+
+            // MARCADORES DE NOVEDAD (Iconos azules)
+            if(datos.reportes) {
+                datos.reportes.forEach(r => {
+                    L.marker([r.lat, r.lng]).addTo(capas)
+                     .bindPopup(`<div style="width:150px;"><b>⚠️ REPORTE:</b><br>${r.msg}<br><small>${r.hora}</small></div>`);
+                });
+            }
+            mapa.fitBounds(linea.getBounds(), {padding: [30, 30]});
+        }
+        cargar();
+    </script>
+</body>
+</html>
