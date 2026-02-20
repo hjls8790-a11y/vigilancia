@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Supervisión - Vigilancia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; }
+        #header { background: #2c3e50; color: white; padding: 10px; text-align: center; }
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 350px; background: #ecf0f1; overflow-y: auto; border-right: 1px solid #bdc3c7; padding: 10px; }
+        #map { flex: 1; }
+        .rondin-item { background: white; margin-bottom: 12px; padding: 15px; border-radius: 8px; cursor: pointer; border-left: 5px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .rondin-item:hover { background: #fdfdfd; transform: scale(1.02); transition: 0.2s; }
+        .rondin-item h4 { margin: 0 0 8px 0; color: #2980b9; text-transform: uppercase; }
+        .rondin-item p { margin: 3px 0; font-size: 13px; color: #34495e; }
+        .tag-duracion { background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2>CENTRAL DE MONITOREO - HISTORIAL</h2>
+    </div>
+
+    <div id="main">
+        <div id="sidebar">
+            <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">Rondines Recientes</h3>
+            <div id="lista-rondines">Cargando bitácora...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        
+        let capaRecorrido = L.layerGroup().addTo(mapa);
+
+        async function cargarHistorial() {
+            const listaDiv = document.getElementById('lista-rondines');
+            listaDiv.innerHTML = "Actualizando...";
+
+            try {
+                const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if(querySnapshot.empty) {
+                    listaDiv.innerHTML = "No hay registros.";
+                    return;
+                }
+
+                listaDiv.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    
+                    // Calculamos duración aproximada si no viene el campo exacto
+                    let inicio = d.inicio || "N/A";
+                    let fin = d.fin || "En curso";
+                    
+                    const item = document.createElement('div');
+                    item.className = 'rondin-item';
+                    item.innerHTML = `
+                        <h4>👤 ${d.oficial || 'Hugo'}</h4>
+                        <p><b>📅 Fecha:</b> ${inicio.split(',')[0]}</p>
+                        <p><b>🕒 Inicio:</b> ${inicio.split(',')[1] || ''}</p>
+                        <p><b>🏁 Fin:</b> ${fin.split(',')[1] || ''}</p>
+                        <p><b>📍 Puntos GPS:</b> ${d.puntos_gps ? d.puntos_gps.length : 0}</p>
+                        <p><b>⚠️ Novedades:</b> ${d.reportes ? d.reportes.length : 0}</p>
+                    `;
+                    item.onclick = () => visualizarRondin(d);
+                    listaDiv.appendChild(item);
+                });
+
+            } catch (e) {
+                listaDiv.innerHTML = "Error: " + e.message;
+            }
+        }
+
+        function visualizarRondin(datos) {
+            capaRecorrido.clearLayers();
+
+            if (!datos.puntos_gps || datos.puntos_gps.length === 0) {
+                alert("Sin datos de GPS.");
+                return;
+            }
+
+            // Dibujar línea roja
+            const latlngs = datos.puntos_gps.map(p => [p.lat, p.lng]);
+            const polyline = L.polyline(latlngs, {color: '#e74c3c', weight: 6, opacity: 0.8}).addTo(capaRecorrido);
+            
+            // Puntos de inicio y fin en el mapa
+            L.marker(latlngs[0]).addTo(capaRecorrido).bindPopup("PUNTO DE INICIO");
+            L.marker(latlngs[latlngs.length - 1]).addTo(capaRecorrido).bindPopup("PUNTO FINAL");
+
+            // Dibujar Novedades
+            if (datos.reportes) {
+                datos.reportes.forEach(rep => {
+                    L.circleMarker([rep.lat, rep.lng], {color: 'blue', radius: 8})
+                     .addTo(capaRecorrido)
+                     .bindPopup(`<b>NOVEDAD:</b><br>${rep.msg}<br><small>Hora: ${rep.hora}</small>`);
+                });
+            }
+
+            mapa.fitBounds(polyline.getBounds());
+        }
+
+        cargarHistorial();
+    </script>
+</body>
+</html>
