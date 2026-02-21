@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRAL DE MONITOREO - HUGO</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; }
+        
+        /* ENCABEZADO PERSONALIZADO */
+        #header { 
+            background: #1a2a3a; 
+            color: white; 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border-bottom: 3px solid #f1c40f; /* Línea amarilla elegante */
+        }
+        
+        #header h2 { margin: 0; font-size: 20px; letter-spacing: 1px; }
+        .user-badge { background: #f1c40f; color: #1a2a3a; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 350px; background: #f8f9fa; overflow-y: auto; border-right: 1px solid #ccc; padding: 15px; }
+        #map { flex: 1; }
+        
+        .rondin-card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 10px; cursor: pointer; border-left: 6px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .rondin-card:hover { transform: scale(1.02); background: #eef2f7; }
+        .nombre-oficial { font-weight: bold; color: #1a2a3a; font-size: 16px; display: block; margin-bottom: 5px; }
+        .info-txt { font-size: 13px; color: #555; display: block; margin: 2px 0; }
+        .novedad-count { color: #d35400; font-weight: bold; font-size: 13px; display: block; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2>🛰️ CENTRAL DE MONITOREO</h2>
+        <div class="user-badge">ADMINISTRADOR: HUGO</div>
+    </div>
+
+    <div id="main">
+        <div id="sidebar">
+            <h3 style="margin-top:0; color:#2c3e50;">Bitácora de Rondines</h3>
+            <div id="lista-recorridos">Conectando a la base de datos...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        let capaRecorrido = L.layerGroup().addTo(mapa);
+
+        async function cargarDatos() {
+            const listaDiv = document.getElementById('lista-recorridos');
+            try {
+                const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+                const snapshot = await getDocs(q);
+                listaDiv.innerHTML = "";
+
+                if(snapshot.empty) {
+                    listaDiv.innerHTML = "No hay registros hoy.";
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'rondin-card';
+                    card.innerHTML = `
+                        <span class="nombre-oficial">👤 ${d.oficial}</span>
+                        <span class="info-txt">📅 <b>Fecha:</b> ${d.inicio.split(',')[0]}</span>
+                        <span class="info-txt">🕒 <b>Inicio:</b> ${d.inicio.split(',')[1] || ''}</span>
+                        <span class="info-txt">🏁 <b>Fin:</b> ${d.fin ? d.fin.split(',')[1] : 'En curso'}</span>
+                        <span class="novedad-count">⚠️ Novedades: ${d.reportes ? d.reportes.length : 0}</span>
+                    `;
+                    card.onclick = () => dibujarRondin(d);
+                    listaDiv.appendChild(card);
+                });
+            } catch (e) {
+                listaDiv.innerHTML = "Error al cargar datos.";
+            }
+        }
+
+        function dibujarRondin(d) {
+            capaRecorrido.clearLayers();
+            if (!d.puntos_gps || d.puntos_gps.length === 0) return;
+            const pts = d.puntos_gps.map(p => [p.lat, p.lng]);
+            const linea = L.polyline(pts, {color: 'red', weight: 5}).addTo(capaRecorrido);
+            
+            L.marker(pts[0]).addTo(capaRecorrido).bindPopup("INICIO RONDÍN");
+            L.marker(pts[pts.length-1]).addTo(capaRecorrido).bindPopup("FIN RONDÍN");
+
+            if (d.reportes) {
+                d.reportes.forEach(nov => {
+                    L.marker([nov.lat, nov.lng]).addTo(capaRecorrido)
+                     .bindPopup(`<b>NOVEDAD:</b><br>${nov.msg}<br><small>${nov.hora}</small>`);
+                });
+            }
+            mapa.fitBounds(linea.getBounds(), {padding: [40, 40]});
+        }
+        cargarDatos();
+    </script>
+</body>
+</html>
