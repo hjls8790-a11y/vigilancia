@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Guardia - Sistema de Vigilancia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+        #map { height: 60%; width: 100%; z-index: 1; }
+        #controls { height: 40%; background: white; padding: 20px; box-sizing: border-box; border-radius: 20px 20px 0 0; position: relative; z-index: 100; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-around; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; color: white; cursor: pointer; transition: 0.3s; }
+        .btn-start { background: #28a745; }
+        .btn-report { background: #007bff; display: none; }
+        .btn-stop { background: #dc3545; display: none; }
+        #status-bar { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 8px; z-index: 1000; font-size: 13px; }
+        
+        /* Formulario de Novedades */
+        #form-novedad { display: none; position: fixed; top: 10%; left: 5%; width: 90%; background: white; padding: 25px; border-radius: 20px; z-index: 2000; box-shadow: 0 0 40px rgba(0,0,0,0.6); box-sizing: border-box; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div id="status-bar">🛰️ Esperando GPS...</div>
+    <div id="map"></div>
+
+    <div id="form-novedad">
+        <h3 style="margin-top:0; color:#1a2a3a;">📝 Registrar Novedad</h3>
+        <input type="text" id="nota" placeholder="¿Qué encontraste?">
+        <button class="btn btn-start" onclick="guardarNovedad()">GUARDAR EN BITÁCORA</button>
+        <button class="btn" style="background:#666; margin-top:10px;" onclick="cerrarForm()">CANCELAR</button>
+    </div>
+
+    <div id="controls">
+        <button id="btnStart" class="btn btn-start" onclick="iniciar()">🚀 INICIAR RONDÍN / ENTRADA</button>
+        <button id="btnReport" class="btn btn-report" onclick="abrirForm()">⚠️ REGISTRAR NOVEDAD</button>
+        <button id="btnStop" class="btn btn-stop" onclick="finalizar()">✅ FINALIZAR Y ENVIAR</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- CAPTURA DE PARÁMETROS (Nombre y Ubicación) ---
+        const params = new URLSearchParams(window.location.search);
+        const nombreGuardia = params.get('id') || "Guardia_Sin_Nombre";
+        const ubicacionAsignada = params.get('loc') || "General"; 
+
+        let mapa = L.map('map').setView([24.8, -107.3], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        
+        let trayecto = [];
+        let novedades = [];
+        let polyline = L.polyline([], {color: '#e74c3c', weight: 6}).addTo(mapa);
+        let watchId = null;
+        let tInicio;
+
+        window.iniciar = function() {
+            tInicio = new Date();
+            document.getElementById('btnStart').style.display = 'none';
+            document.getElementById('btnReport').style.display = 'block';
+            document.getElementById('btnStop').style.display = 'block';
+            document.getElementById('status-bar').innerText = `👤 ${nombreGuardia} | 📍 ${ubicacionAsignada}`;
+            
+            watchId = navigator.geolocation.watchPosition(pos => {
+                let p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                trayecto.push(p);
+                polyline.setLatLngs(trayecto.map(x => [x.lat, x.lng]));
+                mapa.setView([p.lat, p.lng], 17);
+            }, null, { enableHighAccuracy: true });
+        };
+
+        window.abrirForm = () => document.getElementById('form-novedad').style.display = 'block';
+        window.cerrarForm = () => document.getElementById('form-novedad').style.display = 'none';
+
+        window.guardarNovedad = function() {
+            let texto = document.getElementById('nota').value || "Sin descripción";
+            navigator.geolocation.getCurrentPosition(pos => {
+                novedades.push({
+                    msg: texto,
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    hora: new Date().toLocaleTimeString()
+                });
+                L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(mapa).bindPopup(texto).openPopup();
+                cerrarForm();
+                document.getElementById('nota').value = "";
+                alert("Novedad guardada correctamente.");
+            });
+        };
+
+        window.finalizar = async function() {
+            if(!confirm("¿Deseas finalizar el registro y enviar los datos?")) return;
+            
+            navigator.geolocation.clearWatch(watchId);
+            document.getElementById('status-bar').innerText = "📤 SUBIENDO DATOS...";
+            
+            try {
+                // AQUÍ SE ENVIAN LOS DATOS CON LA MARCA DE UBICACIÓN
+                await addDoc(collection(db, "rondines"), {
+                    oficial: nombreGuardia,
+                    ubicacion: ubicacionAsignada, 
+                    inicio: tInicio.toLocaleString(),
+                    fin: new Date().toLocaleString(),
+                    puntos_gps: trayecto,
+                    reportes: novedades
+                });
+                
+                alert("✅ Reporte enviado con éxito.");
+                location.reload();
+            } catch (e) {
+                alert("❌ Error al enviar: " + e.message);
+                console.error(e);
+            }
+        };
+    </script>
+</body>
+</html>
