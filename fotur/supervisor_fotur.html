@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        const claveCorrecta = "ObraF26";
+        let intento = prompt("🔒 ACCESO RESTRINGIDO\nIngrese la contraseña de administrador:");
+        if (intento !== claveCorrecta) {
+            alert("❌ Contraseña incorrecta. Acceso denegado.");
+            window.location.href = "https://hjls8790-a11y.github.io/vigilancia/menu.html"; 
+        }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPERVISIÓN DE OBRA FOTUR</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; flex-direction: column; }
+        #header { background: #d35400; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f1c40f; }
+        .user-badge { background: #f1c40f; color: #d35400; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        #main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 360px; background: #f4f7f6; display: flex; flex-direction: column; border-right: 1px solid #ccc; }
+        #search-box { padding: 15px; background: #fff; border-bottom: 1px solid #ddd; }
+        #search-box input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        #lista-recorridos { flex: 1; overflow-y: auto; padding: 15px; }
+        #map { flex: 1; }
+        .rondin-card { background: white; margin-bottom: 12px; padding: 15px; border-radius: 10px; cursor: pointer; border-left: 6px solid #e67e22; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .rondin-card:hover { background: #fdf2e9; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2>🏗️ SUPERVISIÓN DE OBRA FOTUR</h2>
+        <div class="user-badge">ADMINISTRADOR</div>
+    </div>
+
+    <div id="main">
+        <div id="sidebar">
+            <div id="search-box">
+                <h3 style="margin:0 0 10px 0; font-size: 16px;">🔍 Filtros de Búsqueda</h3>
+                <input type="text" id="filtroNombre" placeholder="Buscar Guardia..." oninput="filtrar()">
+                <input type="date" id="filtroFecha" onchange="filtrar()">
+                <button onclick="limpiarFiltros()" style="width:100%; padding:8px; cursor:pointer; font-size:12px; background:#e0e0e0; border:none; border-radius:4px; font-weight:bold;">Limpiar Filtros</button>
+            </div>
+            <div id="lista-recorridos">Buscando reportes de Obra Fotur...</div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let mapa = L.map('map').setView([24.8, -107.3], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+        let capaRecorrido = L.layerGroup().addTo(mapa);
+        let datosOriginales = [];
+
+        async function cargarDatos() {
+            const listaDiv = document.getElementById('lista-recorridos');
+            try {
+                const q = query(collection(db, "rondines"), orderBy("inicio", "desc"));
+                const snapshot = await getDocs(q);
+                datosOriginales = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.ubicacion && data.ubicacion.toLowerCase() === "fotur") {
+                        datosOriginales.push(data);
+                    }
+                });
+
+                renderizarLista(datosOriginales);
+            } catch (e) {
+                console.error(e);
+                listaDiv.innerHTML = "Error de conexión.";
+            }
+        }
+
+        function renderizarLista(datos) {
+            const listaDiv = document.getElementById('lista-recorridos');
+            if (datos.length === 0) {
+                listaDiv.innerHTML = "📭 No hay registros de la Obra Fotur que coincidan con la búsqueda.";
+                return;
+            }
+            listaDiv.innerHTML = "";
+            datos.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'rondin-card';
+                card.innerHTML = `
+                    <b style="color:#d35400;">👤 ${d.oficial}</b>
+                    <span style="font-size:12px; display:block;">📅 Fecha: ${d.inicio.split(',')[0]}</span>
+                    <span style="font-size:12px; display:block;">🕒 Entrada: ${d.inicio.split(',')[1] || ''}</span>
+                    <span style="font-size:12px; display:block;">🏁 Salida: ${d.fin ? d.fin.split(',')[1] : 'En ruta...'}</span>
+                    <span style="font-size:12px; display:block; color:#d32f2f;">⚠️ Novedades: ${d.reportes ? d.reportes.length : 0}</span>
+                `;
+                card.onclick = () => dibujarRondin(d);
+                listaDiv.appendChild(card);
+            });
+        }
+
+        window.filtrar = function() {
+            const nombre = document.getElementById('filtroNombre').value.toLowerCase();
+            const fechaInput = document.getElementById('filtroFecha').value;
+            
+            const filtrados = datosOriginales.filter(d => {
+                const coincideNombre = d.oficial.toLowerCase().includes(nombre);
+                let coincideFecha = true;
+                
+                if (fechaInput) {
+                    const partes = fechaInput.split('-');
+                    const f1 = `${Number(partes[2])}/${Number(partes[1])}/${partes[0]}`; 
+                    const f2 = `${partes[2]}/${partes[1]}/${partes[0]}`; 
+                    coincideFecha = d.inicio.includes(f1) || d.inicio.includes(f2);
+                }
+                
+                return coincideNombre && coincideFecha;
+            });
+            
+            renderizarLista(filtrados);
+        };
+
+        window.limpiarFiltros = () => {
+            document.getElementById('filtroNombre').value = "";
+            document.getElementById('filtroFecha').value = "";
+            renderizarLista(datosOriginales);
+        };
+
+        function dibujarRondin(d) {
+            capaRecorrido.clearLayers();
+            if (!d.puntos_gps || d.puntos_gps.length === 0) return;
+            const pts = d.puntos_gps.map(p => [p.lat, p.lng]);
+            const linea = L.polyline(pts, {color: '#d35400', weight: 5}).addTo(capaRecorrido);
+            L.marker(pts[0]).addTo(capaRecorrido).bindPopup("INICIO");
+            L.marker(pts[pts.length-1]).addTo(capaRecorrido).bindPopup("FIN");
+            if (d.reportes) {
+                d.reportes.forEach(nov => {
+                    L.marker([nov.lat, nov.lng]).addTo(capaRecorrido).bindPopup(`<b>Novedad:</b><br>${nov.msg}`);
+                });
+            }
+            mapa.fitBounds(linea.getBounds(), {padding: [40, 40]});
+        }
+
+        cargarDatos();
+    </script>
+</body>
+</html>
