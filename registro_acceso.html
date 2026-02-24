@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTROL DE ACCESOS</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f7; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+        #header { background: #2c3e50; color: white; width: 100%; padding: 15px 0; text-align: center; border-bottom: 4px solid #3498db; }
+        .form-container { background: white; width: 90%; max-width: 400px; margin-top: 15px; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        
+        .tab-container { display: flex; width: 90%; max-width: 400px; margin-top: 15px; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: #ddd; cursor: pointer; font-weight: bold; border-radius: 10px 10px 0 0; }
+        .tab.active { background: white; border-bottom: 3px solid #3498db; }
+        
+        #btnGuardar { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        
+        /* Estilos para la búsqueda de salida */
+        .search-item { background: #f9f9f9; padding: 10px; border: 1px solid #eee; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-salida-rapida { background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #lista-pendientes { margin-top: 10px; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2>🚧 CONTROL DE ACCESOS</h2>
+    </div>
+
+    <div class="tab-container">
+        <div class="tab active" onclick="cambiarTab('entrada')">NUEVA ENTRADA</div>
+        <div class="tab" onclick="cambiarTab('salida')">DAR SALIDA</div>
+    </div>
+
+    <div id="panel-entrada" class="form-container">
+        <div class="input-group">
+            <label>📍 Ubicación</label>
+            <select id="ubicacion">
+                <option value="General">General</option>
+                <option value="Cardones">Cardones</option>
+                <option value="Fotur">Fotur</option>
+            </select>
+        </div>
+        <div class="input-group"><label>👤 Nombre</label><input type="text" id="nombre"></div>
+        <div class="input-group"><label>🏠 Domicilio</label><input type="text" id="domicilio"></div>
+        <div class="input-group"><label>🔢 Placas</label><input type="text" id="placas"></div>
+        <div class="input-group"><label>🚗 Marca/Color</label><input type="text" id="vehiculo" placeholder="Ej: Nissan Blanco"></div>
+        <button id="btnGuardar" onclick="registrarEntrada()">REGISTRAR ENTRADA</button>
+    </div>
+
+    <div id="panel-salida" class="form-container" style="display:none;">
+        <label style="font-weight: bold;">🔍 Buscar persona o placas adentro:</label>
+        <input type="text" id="buscarPendiente" oninput="buscarParaSalida()" placeholder="Escribe nombre o placa..." style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc;">
+        <div id="lista-pendientes">
+            <p style="text-align:center; color:gray;">Cargando personas adentro...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let personasAdentro = [];
+
+        window.cambiarTab = function(tipo) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if(tipo === 'entrada') {
+                document.getElementById('panel-entrada').style.display = 'block';
+                document.getElementById('panel-salida').style.display = 'none';
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else {
+                document.getElementById('panel-entrada').style.display = 'none';
+                document.getElementById('panel-salida').style.display = 'block';
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                cargarPersonasAdentro();
+            }
+        };
+
+        window.registrarEntrada = async function() {
+            const btn = document.getElementById('btnGuardar');
+            const data = {
+                ubicacion: document.getElementById('ubicacion').value,
+                tipo_movimiento: "ENTRADA",
+                visitante: document.getElementById('nombre').value,
+                domicilio: document.getElementById('domicilio').value,
+                vehiculo_placas: document.getElementById('placas').value,
+                vehiculo_marca: document.getElementById('vehiculo').value,
+                fecha_hora: new Date().toLocaleString('es-MX'),
+                timestamp: new Date().getTime()
+            };
+
+            if(!data.visitante) return alert("Nombre obligatorio");
+            
+            btn.disabled = true;
+            await addDoc(collection(db, "accesos"), data);
+            alert("✅ Entrada Registrada");
+            location.reload();
+        };
+
+        async function cargarPersonasAdentro() {
+            const listado = document.getElementById('lista-pendientes');
+            listado.innerHTML = "Buscando...";
+            
+            const q = query(collection(db, "accesos"), orderBy("timestamp", "desc"), limit(50));
+            const snap = await getDocs(q);
+            
+            // Lógica simple: Buscamos quienes entraron recientemente.
+            // Para un sistema real se compararía si ya tienen salida, 
+            // aquí mostraremos los últimos ingresos para dar salida rápida.
+            personasAdentro = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                if(d.tipo_movimiento === "ENTRADA") {
+                    personasAdentro.push(d);
+                }
+            });
+            renderizarPendientes(personasAdentro);
+        }
+
+        function renderizarPendientes(lista) {
+            const container = document.getElementById('lista-pendientes');
+            container.innerHTML = "";
+            lista.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "search-item";
+                div.innerHTML = `
+                    <div>
+                        <strong style="text-transform:uppercase;">${p.vehiculo_placas || 'S/N'}</strong> - ${p.visitante}<br>
+                        <small>${p.domicilio} (${p.fecha_hora.split(' ')[1]})</small>
+                    </div>
+                    <button class="btn-salida-rapida" onclick="registrarSalidaDirecta('${p.visitante}','${p.vehiculo_placas}','${p.domicilio}','${p.vehiculo_marca}')">SALIDA</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.buscarParaSalida = function() {
+            const txt = document.getElementById('buscarPendiente').value.toLowerCase();
+            const filtrados = personasAdentro.filter(p => 
+                p.visitante.toLowerCase().includes(txt) || 
+                p.vehiculo_placas.toLowerCase().includes(txt)
+            );
+            renderizarPendientes(filtrados);
+        };
+
+        window.registrarSalidaDirecta = async function(nombre, placas, dom, veh) {
+            if(!confirm(`¿Registrar salida de ${nombre}?`)) return;
+            
+            const data = {
+                ubicacion: "General",
+                tipo_movimiento: "SALIDA",
+                visitante: nombre,
+                domicilio: dom,
+                vehiculo_placas: placas,
+                vehiculo_marca: veh,
+                fecha_hora: new Date().toLocaleString('es-MX'),
+                timestamp: new Date().getTime()
+            };
+
+            await addDoc(collection(db, "accesos"), data);
+            alert("🔴 Salida Registrada con éxito");
+            cambiarTab('entrada');
+        };
+    </script>
+</body>
+</html>
