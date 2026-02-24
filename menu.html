@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CENTRAL DE MANDO - HUGO</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #1a2a3a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: white; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container { text-align: center; width: 100%; max-width: 550px; }
+        h1 { font-size: 24px; margin-bottom: 25px; border-bottom: 2px solid #f1c40f; padding-bottom: 15px; letter-spacing: 1px; }
+        
+        .card { 
+            background: #2c3e50; 
+            padding: 18px; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            border: 1px solid #3e5871; 
+            display: block; 
+            text-decoration: none; 
+            color: white; 
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover { transform: translateY(-3px); background: #34495e; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .card h2 { margin: 0 0 5px 0; font-size: 19px; display: flex; align-items: center; }
+        .card p { margin: 0; font-size: 13px; opacity: 0.8; line-height: 1.4; }
+        
+        /* Colores por Sección */
+        .card-general { border-left: 8px solid #3498db; }
+        .card-general h2 { color: #3498db; }
+
+        .card-cardones { border-left: 8px solid #27ae60; }
+        .card-cardones h2 { color: #27ae60; }
+
+        .card-fotur { border-left: 8px solid #d35400; }
+        .card-fotur h2 { color: #d35400; }
+
+        .card-accesos { border-left: 8px solid #8e44ad; }
+        .card-accesos h2 { color: #a29bfe; }
+
+        .badge { 
+            padding: 4px 10px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 10px; 
+            margin-top: 10px; 
+            display: inline-block; 
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .icon { margin-right: 10px; font-size: 22px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🛡️ SISTEMA INTEGRAL DE SEGURIDAD</h1>
+
+        <div style="text-align: left; margin-bottom: 10px; font-size: 12px; color: #f1c40f; font-weight: bold; opacity: 0.8;">
+            SUPERVISIÓN DE RONDINES (GPS)
+        </div>
+
+        <a href="supervisor.html" class="card card-general">
+            <h2><span class="icon">🌍</span> Central General</h2>
+            <p>Monitoreo global de todos los elementos y recorridos históricos.</p>
+            <div class="badge" style="background:#3498db;">ADMIN TOTAL</div>
+        </a>
+
+        <a href="cardones/supervisor_cardones.html" class="card card-cardones">
+            <h2><span class="icon">🌳</span> Club Cardones</h2>
+            <p>Vigilancia exclusiva del sector residencial y amenidades.</p>
+            <div class="badge" style="background:#27ae60;">SECTOR CARDONES</div>
+        </a>
+
+        <a href="fotur/supervisor_fotur.html" class="card card-fotur">
+            <h2><span class="icon">🏗️</span> Obra FOTUR</h2>
+            <p>Control de supervisión de obra y perímetros de construcción.</p>
+            <div class="badge" style="background:#d35400;">SECTOR FOTUR</div>
+        </a>
+
+        <div style="text-align: left; margin: 20px 0 10px 0; font-size: 12px; color: #a29bfe; font-weight: bold; opacity: 0.8;">
+            CONTROL DE ENTRADAS Y SALIDAS
+        </div>
+
+        <a href="panel_accesos.html" class="card card-accesos">
+            <h2><span class="icon">📋</span> Bitácora de Accesos</h2>
+            <p>Consulta de visitantes, vehículos, placas y domicilios visitados.</p>
+            <div class="badge" style="background:#8e44ad;">AUDITORÍA VEHICULAR</div>
+        </a>
+
+        <p style="margin-top:30px; font-size:11px; opacity:0.4;">Panel de Control Unificado v4.0 - Hugo Seguridad</p>
+    </div>
+
+</body>
+</html>
