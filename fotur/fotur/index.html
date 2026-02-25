@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RONDÍN FOTUR</title>
+    <style>
+        body { font-family: sans-serif; background: #1a2a3a; color: white; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; border-top: 8px solid #e67e22; }
+        h2 { text-align: center; color: #e67e22; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; box-sizing: border-box; }
+        .btn { border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+        #btnAccion { background: #e67e22; color: white; }
+        #btnFinalizar { background: #c0392b; color: white; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🏗️ OBRA FOTUR</h2>
+        <input type="text" id="oficial" placeholder="Nombre del Oficial">
+        <textarea id="novedad" placeholder="Novedades o Sin novedad"></textarea>
+        <button id="btnAccion" class="btn" onclick="gestionarPunto()">MARCAR PUNTO</button>
+        <button id="btnFinalizar" class="btn" onclick="finalizarRecorrido()">🏁 FINALIZAR</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const firebaseConfig = { apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", authDomain: "sistema-vigilancia-6851e.firebaseapp.com", projectId: "sistema-vigilancia-6851e", storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", messagingSenderId: "714792023462", appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let idRecorrido = localStorage.getItem('idRec_Fotur');
+        if(idRecorrido) document.getElementById('btnFinalizar').style.display = 'block';
+
+        window.gestionarPunto = async () => {
+            const oficial = document.getElementById('oficial').value;
+            if(!oficial) return alert("Escribe tu nombre");
+            if(!idRecorrido) { idRecorrido = "FOT-" + Date.now(); localStorage.setItem('idRec_Fotur', idRecorrido); }
+            
+            await addDoc(collection(db, "recorridos"), {
+                id_recorrido: idRecorrido, oficial: oficial, sector: "Fotur",
+                novedad: document.getElementById('novedad').value || "Sin novedad",
+                fecha_hora: new Date().toLocaleString('es-MX'), timestamp: Date.now(), tipo: "PUNTO"
+            });
+            document.getElementById('btnFinalizar').style.display = 'block';
+            alert("Punto Fotur Guardado");
+        };
+
+        window.finalizarRecorrido = async () => {
+            if(!confirm("¿Finalizar Rondín?")) return;
+            await addDoc(collection(db, "recorridos"), { id_recorrido: idRecorrido, oficial: document.getElementById('oficial').value, sector: "Fotur", tipo: "FIN", fecha_hora: new Date().toLocaleString('es-MX'), timestamp: Date.now() });
+            localStorage.removeItem('idRec_Fotur'); location.reload();
+        };
+    </script>
+</body>
+</html>
