@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPERVISOR GPS</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #filtros { background: #1a2a3a; color: white; padding: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        #map { height: 50vh; width: 100%; }
+        #historial { flex: 1; overflow-y: auto; padding: 15px; background: #f4f7f6; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 12px; }
+        th { background: #34495e; color: white; }
+        .img-mini { width: 50px; cursor: pointer; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="filtros">
+        <input type="date" id="fechaFiltro">
+        <input type="text" id="nombreFiltro" placeholder="Nombre Oficial">
+        <button onclick="consultar()" style="background:#27ae60; color:white; border:none; padding:10px; border-radius:5px;">🔍 VER RECORRIDOS</button>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="historial">
+        <h3>📋 Historial de Recorridos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Oficial</th>
+                    <th>Inicio / Fin</th>
+                    <th>Novedades</th>
+                    <th>Fotos</th>
+                </tr>
+            </thead>
+            <tbody id="tablaBody"></tbody>
+        </table>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const map = L.map('map').setView([23.29, -106.47], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let markers = L.layerGroup().addTo(map);
+
+        window.consultar = async () => {
+            const f = document.getElementById('fechaFiltro').value;
+            const n = document.getElementById('nombreFiltro').value.toLowerCase();
+            const snapshot = await getDocs(query(collection(db, "recorridos"), orderBy("timestamp", "asc")));
+            
+            markers.clearLayers();
+            const tabla = document.getElementById('tablaBody');
+            tabla.innerHTML = "";
+            
+            let recorridosAgrupados = {};
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                // Corrección de fecha: Convierte YYYY-MM-DD a D/M/YYYY
+                let coincide = true;
+                if(f) {
+                    const [y, m, d] = f.split('-');
+                    const fBusca = `${parseInt(d)}/${parseInt(m)}/${y}`;
+                    coincide = data.fecha_hora.includes(fBusca);
+                }
+
+                if(coincide && data.oficial.toLowerCase().includes(n)) {
+                    if(!recorridosAgrupados[data.id_recorrido]) {
+                        recorridosAgrupados[data.id_recorrido] = { puntos: [], inicio: data.fecha_hora, fin: "En curso..." };
+                    }
+                    if(data.tipo === "PUNTO") {
+                        recorridosAgrupados[data.id_recorrido].puntos.push(data);
+                        L.marker([data.latitud, data.longitud]).addTo(markers).bindPopup(`<b>${data.oficial}</b><br>${data.fecha_hora}`);
+                    } else {
+                        recorridosAgrupados[data.id_recorrido].fin = data.fecha_hora;
+                    }
+                }
+            });
+
+            Object.values(recorridosAgrupados).forEach(r => {
+                const p = r.puntos[0] || {};
+                const row = `<tr>
+                    <td>${p.oficial || '---'}</td>
+                    <td><b>In:</b> ${r.inicio}<br><b>Fn:</b> ${r.fin}</td>
+                    <td>${r.puntos.map(pt => pt.novedad).join(' | ')}</td>
+                    <td>${r.puntos.filter(pt => pt.evidencia_foto !== "NO").map(pt => `<img src="${pt.evidencia_foto}" class="img-mini" onclick="window.open(this.src)">`).join(' ')}</td>
+                </tr>`;
+                tabla.innerHTML += row;
+            });
+        };
+    </script>
+</body>
+</html>
