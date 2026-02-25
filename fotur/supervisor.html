@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MONITOR FOTUR</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f4f7f6; }
+        header { background: #2c3e50; color: white; padding: 15px; display: flex; gap: 15px; align-items: center; border-bottom: 5px solid #e67e22; }
+        #map { height: 45vh; width: 100%; z-index: 1; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+        th { background: #34495e; color: white; }
+        .img-mini { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2 style="margin:0; color:#e67e22;">🏗️ CENTRAL FOTUR</h2>
+        <input type="date" id="fechaFiltro" style="padding:8px; border-radius:4px; border:none;">
+        <input type="text" id="nombreFiltro" placeholder="Buscar Oficial..." style="padding:8px; border-radius:4px; border:none;">
+        <button onclick="consultar()" style="background:#e67e22; color:white; border:none; padding:10px 20px; font-weight:bold; cursor:pointer; border-radius:4px;">🔍 BUSCAR</button>
+    </header>
+    <div id="map"></div>
+    <div style="flex:1; overflow:auto; padding:15px;">
+        <table>
+            <thead><tr><th>Oficial</th><th>Horarios (In/Fn)</th><th>Novedades</th><th>Fotos</th></tr></thead>
+            <tbody id="tablaBody"></tbody>
+        </table>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", authDomain: "sistema-vigilancia-6851e.firebaseapp.com", projectId: "sistema-vigilancia-6851e", storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", messagingSenderId: "714792023462", appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Mapa centrado en Culiacán
+        const map = L.map('map').setView([24.809, -107.394], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let markers = L.layerGroup().addTo(map);
+
+        window.consultar = async () => {
+            const f = document.getElementById('fechaFiltro').value;
+            const n = document.getElementById('nombreFiltro').value.toLowerCase();
+            const snapshot = await getDocs(query(collection(db, "recorridos"), orderBy("timestamp", "asc")));
+            
+            markers.clearLayers(); 
+            document.getElementById('tablaBody').innerHTML = "";
+            let agrupados = {};
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                
+                // 🔒 CANDADO ESTRICTO FOTUR: Ignora lo que no sea de esta obra
+                if (d.sector !== "Fotur") return; 
+
+                let coincideF = true;
+                if(f) { const [y, m, dia] = f.split('-'); coincideF = d.fecha_hora.includes(`${parseInt(dia)}/${parseInt(m)}/${y}`); }
+
+                if(coincideF && d.oficial.toLowerCase().includes(n)) {
+                    const id = d.id_recorrido || ("FOTUR-" + d.oficial);
+                    if(!agrupados[id]) agrupados[id] = { puntos: [], inicio: d.fecha_hora, fin: "En curso", oficial: d.oficial };
+                    if(d.tipo === "FIN") agrupados[id].fin = d.fecha_hora;
+                    else {
+                        agrupados[id].puntos.push(d);
+                        if(d.latitud) L.marker([d.latitud, d.longitud]).addTo(markers).bindPopup(`<b>${d.oficial}</b><br>${d.fecha_hora}`);
+                    }
+                }
+            });
+
+            Object.values(agrupados).forEach(r => {
+                if(r.puntos.length === 0) return;
+                const row = `<tr>
+                    <td><b>${r.oficial}</b></td>
+                    <td>In: ${r.inicio}<br>Fn: ${r.fin}</td>
+                    <td>${r.puntos.map(p => p.novedad).join(' | ')}</td>
+                    <td>${r.puntos.filter(p => p.evidencia_foto && p.evidencia_foto !== "NO").map(p => `<img src="${p.evidencia_foto}" class="img-mini" onclick="window.open(this.src)">`).join(' ')}</td>
+                </tr>`;
+                document.getElementById('tablaBody').innerHTML += row;
+            });
+        };
+    </script>
+</body>
+</html>
