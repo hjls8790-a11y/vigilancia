@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RONDÍN RESIDENCIAL</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h2 { text-align: center; color: #2ecc71; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; box-sizing: border-box; font-size: 16px; }
+        #sector-label { background: #34495e; color: #2ecc71; text-align: center; font-weight: bold; padding: 10px; border: 2px solid #2ecc71; border-radius: 6px; margin-bottom: 15px; }
+        .foto-container { border: 2px dashed #3498db; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; background: #34495e; }
+        #preview { max-width: 100%; height: 150px; display: none; margin: 10px auto; border-radius: 5px; object-fit: cover; }
+        .btn { border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+        #btnAccion { background: #27ae60; color: white; }
+        #btnFinalizar { background: #e74c3c; color: white; display: none; }
+        .status { font-size: 12px; text-align: center; color: #2ecc71; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛡️ RONDÍN RESIDENCIAL</h2>
+        <div id="sector-label">📍 SECTOR: RESIDENCIAL</div>
+        
+        <label>👮‍♂️ Nombre del Oficial</label>
+        <input type="text" id="oficial" placeholder="Escribe tu nombre..." required>
+
+        <label>📝 Novedades</label>
+        <textarea id="novedad" placeholder="Escribe novedades o 'Sin novedad'"></textarea>
+
+        <div class="foto-container">
+            <label for="input_foto" style="cursor:pointer; color:#3498db; font-weight:bold;">📷 AGREGAR FOTO EVIDENCIA</label>
+            <input type="file" id="input_foto" accept="image/*" capture="environment" style="display:none;" onchange="procesarFoto(event)">
+            <img id="preview" src="">
+        </div>
+
+        <button id="btnAccion" class="btn" onclick="gestionarPunto()">INICIAR / MARCAR PUNTO</button>
+        <button id="btnFinalizar" class="btn" onclick="finalizarRecorrido()">🏁 FINALIZAR RECORRIDO</button>
+        <div id="gps-status" class="status">🛰️ Obteniendo señal GPS...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", authDomain: "sistema-vigilancia-6851e.firebaseapp.com", projectId: "sistema-vigilancia-6851e", storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", messagingSenderId: "714792023462", appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let fotoBase64 = "NO", lat = 0, lng = 0;
+        let idRecorrido = localStorage.getItem('idRecorrido');
+
+        if(idRecorrido) {
+            document.getElementById('btnFinalizar').style.display = 'block';
+            document.getElementById('btnAccion').innerText = "MARCAR OTRO PUNTO";
+        }
+
+        navigator.geolocation.watchPosition(p => {
+            lat = p.coords.latitude; lng = p.coords.longitude;
+            document.getElementById('gps-status').innerText = "📍 GPS Activo";
+        }, null, { enableHighAccuracy: true });
+
+        window.procesarFoto = (e) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(e.target.files[0]);
+            reader.onload = () => {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 600; canvas.height = (img.height * 600) / img.width;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    fotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById('preview').src = fotoBase64;
+                    document.getElementById('preview').style.display = 'block';
+                }
+            }
+        };
+
+        window.gestionarPunto = async () => {
+            const oficial = document.getElementById('oficial').value;
+            if(!oficial || lat === 0) return alert("Por favor escribe tu nombre y espera señal GPS");
+            
+            if(!idRecorrido) {
+                idRecorrido = "REC-" + Date.now();
+                localStorage.setItem('idRecorrido', idRecorrido);
+            }
+
+            const btn = document.getElementById('btnAccion');
+            btn.disabled = true; btn.innerText = "Enviando...";
+
+            try {
+                await addDoc(collection(db, "recorridos"), {
+                    id_recorrido: idRecorrido,
+                    oficial: oficial,
+                    sector: "Residencial", // <--- Cero errores: Etiqueta fija
+                    novedad: document.getElementById('novedad').value || "Sin novedad",
+                    evidencia_foto: fotoBase64,
+                    latitud: lat, longitud: lng,
+                    fecha_hora: new Date().toLocaleString('es-MX'),
+                    timestamp: Date.now(),
+                    tipo: "PUNTO"
+                });
+                document.getElementById('btnFinalizar').style.display = 'block';
+                btn.innerText = "MARCAR OTRO PUNTO";
+                btn.disabled = false;
+                alert("Punto registrado con éxito");
+                fotoBase64 = "NO"; document.getElementById('preview').style.display = 'none';
+            } catch (e) { alert("Error al guardar"); btn.disabled = false; }
+        };
+
+        window.finalizarRecorrido = async () => {
+            if(!confirm("¿Deseas finalizar el recorrido actual?")) return;
+            await addDoc(collection(db, "recorridos"), {
+                id_recorrido: idRecorrido,
+                oficial: document.getElementById('oficial').value,
+                sector: "Residencial",
+                tipo: "FIN",
+                fecha_hora: new Date().toLocaleString('es-MX'),
+                timestamp: Date.now()
+            });
+            localStorage.removeItem('idRecorrido');
+            alert("Recorrido Finalizado");
+            location.reload();
+        };
+    </script>
+</body>
+</html>
