@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RONDÍN CARDONES</title>
+    <style>
+        body { font-family: sans-serif; background: #1a2a3a; color: white; padding: 15px; margin: 0; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 12px; border-top: 8px solid #f1c40f; max-width: 400px; margin: auto; }
+        h2 { text-align: center; color: #f1c40f; margin-top: 0; }
+        .etiqueta-fija { background: #f1c40f; color: #1a2a3a; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: none; box-sizing: border-box; font-size: 16px; }
+        .btn { border: none; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        #btnAccion { background: #27ae60; color: white; }
+        #gpsStatus { text-align: center; font-size: 12px; color: #f1c40f; }
+        #preview { width: 100%; border-radius: 8px; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛡️ REGISTRO RONDÍN</h2>
+        <div class="etiqueta-fija">📍 SECTOR: CLUB CARDONES</div>
+        <input type="text" id="oficial" placeholder="Nombre del Oficial" required>
+        <textarea id="novedad" placeholder="Novedades o reportes..."></textarea>
+        
+        <input type="file" id="input_foto" accept="image/*" capture="environment" style="display:none;" onchange="verFoto(event)">
+        <button onclick="document.getElementById('input_foto').click()" style="background:#34495e; color:white; border:1px solid #f1c40f;" class="btn">📷 TOMAR FOTO</button>
+        <img id="preview">
+
+        <button id="btnAccion" class="btn" onclick="guardarDato()">GUARDAR PUNTO</button>
+        <div id="gpsStatus">Esperando GPS...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let fotoBase64 = "NO", lat = 0, lng = 0;
+
+        navigator.geolocation.watchPosition(p => { 
+            lat = p.coords.latitude; lng = p.coords.longitude; 
+            document.getElementById('gpsStatus').innerText = `📍 GPS Listo: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        }, null, { enableHighAccuracy: true });
+
+        window.verFoto = (e) => {
+            const reader = new FileReader();
+            reader.onload = () => { 
+                fotoBase64 = reader.result; 
+                document.getElementById('preview').src = fotoBase64; 
+                document.getElementById('preview').style.display = 'block';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        window.guardarDato = async () => {
+            const ofi = document.getElementById('oficial').value;
+            if(!ofi) return alert("Escribe tu nombre");
+            const btn = document.getElementById('btnAccion');
+            btn.innerText = "Conectando..."; btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "recorridos"), {
+                    oficial: ofi, sector: "Cardones",
+                    novedad: document.getElementById('novedad').value || "Sin novedad",
+                    evidencia_foto: fotoBase64,
+                    latitud: lat, longitud: lng,
+                    fecha_hora: new Date().toLocaleString('es-MX'),
+                    timestamp: Date.now()
+                });
+                alert("✅ Guardado con éxito");
+                location.reload();
+            } catch (e) {
+                alert("❌ Error de conexión. Revisa tu señal.");
+                console.error(e);
+            }
+            btn.innerText = "GUARDAR PUNTO"; btn.disabled = false;
+        };
+    </script>
+</body>
+</html>
