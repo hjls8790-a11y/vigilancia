@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MONITOR DE UNIDADES MOTORIZADAS</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #ecf0f1; color: #2c3e50; }
+        header { background: #1a2a3a; color: white; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        h1 { margin: 0; font-size: 20px; text-transform: uppercase; width: 100%; border-bottom: 2px solid #f39c12; padding-bottom: 10px; color: #f39c12; }
+        
+        .filtros { display: flex; gap: 10px; flex-grow: 1; flex-wrap: wrap; }
+        input, select { padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7; font-size: 14px; flex: 1; min-width: 150px; }
+        .btn-buscar { background: #f39c12; color: #1a2a3a; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        
+        .contenedor-tabla { padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+        th { background: #2c3e50; color: white; }
+        
+        .btn-ver { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        
+        /* Ventana Modal para ver los detalles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h2 { margin: 0; color: #2c3e50; font-size: 18px; }
+        .close { font-size: 24px; font-weight: bold; cursor: pointer; color: #c0392b; }
+        
+        .detalle-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .badge-si { background: #27ae60; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+        .badge-no { background: #c0392b; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏍️ Bitácora de Inspección de Motocicletas</h1>
+        <div class="filtros">
+            <select id="filtroUnidad" onchange="filtrar()">
+                <option value="TODAS">Todas las Unidades</option>
+                <option value="Suzuki V-Strom Amarilla">Suzuki V-Strom Amarilla</option>
+                <option value="Suzuki V-Strom Naranja">Suzuki V-Strom Naranja</option>
+                <option value="Suzuki Intruder">Suzuki Intruder</option>
+                <option value="Cargo 150 Honda">Cargo 150 Honda</option>
+                <option value="Honda 125 GXL">Honda 125 GXL</option>
+                <option value="Cuatrimoto 420">Cuatrimoto 420</option>
+            </select>
+            <input type="date" id="filtroFecha" onchange="filtrar()">
+            <input type="text" id="filtroAgente" placeholder="Buscar por Agente..." onkeyup="filtrar()">
+            <input type="text" id="filtroMonitorista" placeholder="Buscar por Monitorista..." onkeyup="filtrar()">
+        </div>
+        <button onclick="cargarDatos()" class="btn-buscar">🔄 REFRESCAR</button>
+    </header>
+
+    <div class="contenedor-tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Unidad</th>
+                    <th>Kilometraje</th>
+                    <th>Agente (Entrega)</th>
+                    <th>Monitorista (Recibe)</th>
+                    <th>Inspección Física</th>
+                </tr>
+            </thead>
+            <tbody id="tablaBody"></tbody>
+        </table>
+    </div>
+
+    <div id="modalDetalles" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Detalles de Inspección</h2>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div id="modalCuerpo"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let datosGlobales = [];
+
+        window.cargarDatos = async () => {
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Cargando registros...</td></tr>";
+            try {
+                const q = query(collection(db, "bitacora_motos"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                datosGlobales = [];
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    d.id = doc.id;
+                    datosGlobales.push(d);
+                });
+                filtrar();
+            } catch(e) { console.error(e); alert("Error al cargar la base de datos."); }
+        };
+
+        window.filtrar = () => {
+            const fUnidad = document.getElementById('filtroUnidad').value;
+            const fFecha = document.getElementById('filtroFecha').value;
+            const fAgente = document.getElementById('filtroAgente').value.toLowerCase();
+            const fMoni = document.getElementById('filtroMonitorista').value.toLowerCase();
+            
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = "";
+
+            let fechaStr = "";
+            if(fFecha) {
+                const [y, m, d] = fFecha.split('-');
+                fechaStr = `${parseInt(d)}/${parseInt(m)}/${y}`;
+            }
+
+            let filas = "";
+            datosGlobales.forEach((d, index) => {
+                if(fUnidad !== "TODAS" && d.unidad !== fUnidad) return;
+                if(fechaStr && !d.fecha_hora.includes(fechaStr)) return;
+                if(fAgente && !(d.agente || "").toLowerCase().includes(fAgente)) return;
+                if(fMoni && !(d.monitorista || "").toLowerCase().includes(fMoni)) return;
+
+                filas += `<tr>
+                    <td>${d.fecha_hora} <br><small>Turno: ${d.turno}</small></td>
+                    <td><b>${d.unidad}</b></td>
+                    <td>${d.kilometraje} km</td>
+                    <td>${d.agente}</td>
+                    <td>${d.monitorista}</td>
+                    <td><button class="btn-ver" onclick="abrirModal(${index})">📋 Ver Reporte</button></td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = filas || "<tr><td colspan='6' style='text-align:center;'>No se encontraron registros</td></tr>";
+        };
+
+        // Lógica del Modal (Ventana emergente)
+        const nombresPuntos = {
+            llantas: "Estado de Llantas", luces: "Luces", bocina: "Bocina",
+            espejos: "Espejos", liquidos: "Líquidos", fugas: "Fugas",
+            frenos: "Frenos", transmision: "Transmisión", servicio: "Servicio General"
+        };
+
+        window.abrirModal = (index) => {
+            const dato = datosGlobales[index];
+            const modal = document.getElementById('modalDetalles');
+            const titulo = document.getElementById('modalTitulo');
+            const cuerpo = document.getElementById('modalCuerpo');
+
+            titulo.innerText = `Reporte: ${dato.unidad} - ${dato.kilometraje} km`;
+            
+            let htmlDetalles = "";
+            if(dato.detalles) {
+                for (let key in dato.detalles) {
+                    let res = dato.detalles[key];
+                    let badge = res.cumple === "SI" ? "<span class='badge-si'>CUMPLE</span>" : "<span class='badge-no'>NO CUMPLE</span>";
+                    htmlDetalles += `
+                        <div class="detalle-item">
+                            <b>${nombresPuntos[key] || key}</b> - ${badge}<br>
+                            <small><i>Observación:</i> ${res.observacion}</small>
+                        </div>
+                    `;
+                }
+            } else {
+                htmlDetalles = "<p>No hay detalles registrados.</p>";
+            }
+
+            cuerpo.innerHTML = htmlDetalles;
+            modal.style.display = "flex";
+        };
+
+        window.cerrarModal = () => document.getElementById('modalDetalles').style.display = "none";
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
