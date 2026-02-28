@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Operativo | Ing. Hugo Lizárraga</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #1a2a3a; 
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+        }
+
+        /* Encabezado de Marca */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .header h1 { margin: 0; font-size: 22px; color: #ecf0f1; text-transform: uppercase; }
+        .header p { margin: 5px 0 0 0; font-size: 14px; color: #3498db; letter-spacing: 2px; }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Estilo de Botones Operativos */
+        .btn-portal {
+            display: flex;
+            align-items: center;
+            padding: 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-portal:active { transform: scale(0.95); }
+
+        .icon { font-size: 35px; margin-right: 20px; }
+        .text-group { display: flex; flex-direction: column; }
+        .subtitle { font-size: 12px; font-weight: normal; opacity: 0.8; margin-top: 4px; }
+
+        /* Colores Específicos */
+        .btn-rondin { background: linear-gradient(135deg, #2980b9, #2c3e50); }
+        .btn-motos { background: linear-gradient(135deg, #f39c12, #d35400); color: #1a2a3a; }
+        .btn-ventas { background: linear-gradient(135deg, #8e44ad, #2c3e50); }
+
+        footer {
+            margin-top: auto;
+            padding-top: 40px;
+            font-size: 11px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ Portal del Guardia</h1>
+        <p>ING. HUGO LIZÁRRAGA</p>
+    </div>
+
+    <div class="container">
+        
+        <a href="index.html" class="btn-portal btn-rondin">
+            <div class="icon">🚶‍♂️</div>
+            <div class="text-group">
+                RONDINES Y ASISTENCIA
+                <span class="subtitle">Registrar entrada, salida o rondín</span>
+            </div>
+        </a>
+
+        <a href="registro_motos.html" class="btn-portal btn-motos">
+            <div class="icon">🏍️</div>
+            <div class="text-group">
+                INSPECCIÓN DE MOTOS
+                <span class="subtitle">Check-list de unidad antes del turno</span>
+            </div>
+        </a>
+
+        <a href="ventas_club.html" class="btn-portal btn-ventas">
+            <div class="icon">💰</div>
+            <div class="text-group">
+                REGISTRO DE VENTAS
+                <span class="subtitle">Ingresos y cobros del Club</span>
+            </div>
+        </a>
+
+    </div>
+
+    <footer>
+        SEGURIDAD INTEGRAL <br>
+        © 2026 Culiacán, Sinaloa.
+    </footer>
+
+</body>
+</html>
