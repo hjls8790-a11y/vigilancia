@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSPECCIÓN DE MOTOCICLETAS</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; padding: 15px; margin: 0; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 12px; border-top: 8px solid #f39c12; max-width: 500px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h2 { text-align: center; color: #f39c12; margin: 0 0 20px 0; font-size: 20px; text-transform: uppercase; }
+        label { font-size: 14px; color: #bdc3c7; display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #444; background: #1a2a3a; color: white; box-sizing: border-box; font-size: 15px; }
+        
+        .check-item { background: #34495e; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3498db; }
+        .check-item h4 { margin: 0 0 10px 0; color: #ecf0f1; font-size: 15px; }
+        .check-item p { font-size: 12px; color: #bdc3c7; margin: 0 0 10px 0; }
+        .radio-group { display: flex; gap: 15px; margin-bottom: 10px; }
+        .radio-group label { display: inline; font-weight: normal; color: white; cursor: pointer; }
+        
+        .btn { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .btn:disabled { background: #7f8c8d; cursor: not-allowed; }
+        #statusBox { text-align: center; font-size: 13px; color: #f1c40f; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🏍️ CHECK-LIST MOTOS EL CIELO</h2>
+        
+        <label>👮 Nombre de quien entrega (Agente)</label>
+        <input type="text" id="agente" placeholder="Escribe tu nombre..." required>
+
+        <label>🖥️ Nombre de quien recibe (Monitorista)</label>
+        <input type="text" id="monitorista" placeholder="Nombre del encargado..." required>
+
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>⏱️ Turno</label>
+                <select id="turno">
+                    <option value="Matutino">Matutino</option>
+                    <option value="Vespertino">Vespertino</option>
+                    <option value="Nocturno">Nocturno</option>
+                    <option value="24 Hrs">24 Hrs</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label>📏 Kilometraje</label>
+                <input type="number" id="kilometraje" placeholder="Ej. 15200" required>
+            </div>
+        </div>
+
+        <label>🛵 Unidad Asignada</label>
+        <select id="unidad">
+            <option value="Suzuki V-Strom Amarilla">Suzuki V-Strom Amarilla</option>
+            <option value="Suzuki V-Strom Naranja">Suzuki V-Strom Naranja</option>
+            <option value="Suzuki Intruder">Suzuki Intruder</option>
+            <option value="Cargo 150 Honda">Cargo 150 Honda</option>
+            <option value="Honda 125 GXL">Honda 125 GXL</option>
+            <option value="Cuatrimoto 420">Cuatrimoto 420</option>
+        </select>
+
+        <hr style="border: 1px solid #444; margin: 20px 0;">
+        <h3 style="color: #3498db; text-align: center;">REVISIÓN FÍSICA Y MECÁNICA</h3>
+
+        <div id="checklistContainer"></div>
+
+        <button class="btn" id="btnGuardar" onclick="guardarInspeccion()">💾 GUARDAR BITÁCORA</button>
+        <div id="statusBox">Llena todos los campos para continuar...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Puntos de inspección basados en tu imagen
+        const puntos = [
+            { id: "llantas", nombre: "Estado de Llantas", desc: "Profundidad del labrado, presión, cortaduras o protuberancias." },
+            { id: "luces", nombre: "Luces", desc: "Altas/bajas, posición, direccionales, estrobos y torreta." },
+            { id: "bocina", nombre: "Bocina", desc: "Verifica su funcionamiento correcto." },
+            { id: "espejos", nombre: "Espejos", desc: "Revisa y posiciona correctamente." },
+            { id: "liquidos", nombre: "Niveles de líquidos", desc: "Revisa los niveles de aceite." },
+            { id: "fugas", nombre: "Fugas de fluidos", desc: "Que no existan fugas ni humedad en el motor." },
+            { id: "frenos", nombre: "Estado de frenos", desc: "Verifica la tensión del pedal/manija." },
+            { id: "transmision", nombre: "Transmisión", desc: "Tensión de la cadena y lubricación." },
+            { id: "servicio", nombre: "Servicio General", desc: "Ruidos extraños o anomalías en el funcionamiento." }
+        ];
+
+        // Renderizar el formulario
+        const contenedor = document.getElementById('checklistContainer');
+        puntos.forEach(p => {
+            contenedor.innerHTML += `
+                <div class="check-item">
+                    <h4>${p.nombre}</h4>
+                    <p>${p.desc}</p>
+                    <div class="radio-group">
+                        <label><input type="radio" name="${p.id}" value="SI" checked> ✔️ Sí cumple</label>
+                        <label><input type="radio" name="${p.id}" value="NO"> ❌ No cumple</label>
+                    </div>
+                    <textarea id="obs_${p.id}" placeholder="Observaciones de ${p.nombre.toLowerCase()}..."></textarea>
+                </div>
+            `;
+        });
+
+        window.guardarInspeccion = async () => {
+            const agente = document.getElementById('agente').value.trim();
+            const monitorista = document.getElementById('monitorista').value.trim();
+            const kilometraje = document.getElementById('kilometraje').value.trim();
+            
+            if(!agente || !monitorista || !kilometraje) {
+                return alert("⚠️ Faltan datos: Asegúrate de poner nombres y kilometraje.");
+            }
+
+            const btn = document.getElementById('btnGuardar');
+            btn.innerText = "Guardando..."; btn.disabled = true;
+
+            // Recopilar respuestas del checklist
+            const resultados = {};
+            puntos.forEach(p => {
+                resultados[p.id] = {
+                    cumple: document.querySelector(`input[name="${p.id}"]:checked`).value,
+                    observacion: document.getElementById(`obs_${p.id}`).value || "Sin observaciones"
+                };
+            });
+
+            try {
+                await addDoc(collection(db, "bitacora_motos"), {
+                    agente: agente,
+                    monitorista: monitorista,
+                    turno: document.getElementById('turno').value,
+                    kilometraje: kilometraje,
+                    unidad: document.getElementById('unidad').value,
+                    detalles: resultados,
+                    fecha_hora: new Date().toLocaleString('es-MX'),
+                    timestamp: Date.now()
+                });
+
+                alert("✅ Checklist de unidad guardado correctamente.");
+                location.reload();
+            } catch (error) {
+                alert("❌ Error de conexión. Intenta de nuevo.");
+                console.error(error);
+                btn.innerText = "💾 GUARDAR BITÁCORA"; btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
