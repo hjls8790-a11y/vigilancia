@@ -6,66 +6,59 @@
     <title>Ing. Hugo Lizárraga | Seguridad Integral</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        /* Estilos de la Marca Personal */
-        .marca-personal { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3498db; padding-bottom: 15px; width: 100%; max-width: 900px; }
-        .marca-personal h1 { color: #ecf0f1; margin: 0 0 5px 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; }
-        .marca-personal h2 { color: #3498db; margin: 0; font-size: 16px; font-weight: 400; letter-spacing: 3px; }
-
+        .marca-personal { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #3498db; padding-bottom: 15px; width: 100%; max-width: 900px; }
+        .marca-personal h1 { color: #ecf0f1; margin: 0; font-size: 26px; text-transform: uppercase; }
+        .marca-personal h2 { color: #3498db; margin: 5px 0 0 0; font-size: 14px; letter-spacing: 2px; }
         .container { width: 100%; max-width: 900px; }
-        
         .section-title { background: #34495e; padding: 10px 20px; border-radius: 8px; margin: 20px 0 15px 0; font-weight: bold; border-left: 5px solid #3498db; }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; }
-        
-        .btn { padding: 20px; border-radius: 12px; text-align: center; text-decoration: none; color: white; font-weight: bold; font-size: 18px; transition: 0.3s; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn span { font-size: 13px; font-weight: normal; margin-top: 5px; opacity: 0.9; }
-        .btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
-
-        /* Colores de las secciones */
-        .btn-blue { background: #2980b9; } /* Accesos */
-        .btn-purple { background: #8e44ad; } /* Ventas */
-        .btn-green { background: #27ae60; } /* Monitoreo Maestro */
-        .btn-yellow { background: #f39c12; color: #1a2a3a; } /* Motos */
+        .btn { padding: 18px; border-radius: 12px; text-align: center; text-decoration: none; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        .btn span { font-size: 12px; font-weight: normal; margin-top: 5px; opacity: 0.8; }
+        .btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
+        .btn-blue { background: #2980b9; } .btn-purple { background: #8e44ad; } .btn-green { background: #27ae60; } .btn-yellow { background: #f39c12; color: #1a2a3a; } .btn-cyan { background: #16a085; } .btn-dark { background: #2c3e50; border: 1px solid #3498db; }
     </style>
 </head>
 <body>
 
     <div class="marca-personal">
-        <h1>🛡️ Ing. Hugo Lizárraga</h1>
+        <h1>🛡️ Ingeniero Hugo Lizárraga</h1>
         <h2>SEGURIDAD INTEGRAL</h2>
     </div>
 
     <div class="container">
         
-        <div class="section-title">📊 ADMINISTRACIÓN Y ACCESOS</div>
+        <div class="section-title">📊 ADMINISTRACIÓN Y NOVEDADES</div>
         <div class="grid">
-            <a href="bitacora_accesos.html" class="btn btn-blue">
-                📝 BITÁCORA DE ACCESOS
-                <span>Registro de entrada y salida</span>
+            <a href="ver_bitacora_caseta.html" class="btn btn-cyan">
+                📋 BITÁCORA DE CASETA
+                <span>Revisar novedades y proveedores</span>
+            </a>
+            <a href="bitacora_motos.html" class="btn btn-yellow">
+                🏍️ REPORTE DE MOTOS
+                <span>Auditoría de unidades motorizadas</span>
             </a>
             <a href="ventas_club.html" class="btn btn-purple">
-                💰 VENTAS CLUB
-                <span>Control de ingresos y pagos</span>
+                💰 REGISTRO DE VENTAS
+                <span>Control de ingresos del Club</span>
             </a>
         </div>
 
-        <div class="section-title">🛰️ CENTRAL DE MONITOREO VIGILANCIA</div>
+        <div class="section-title">🛰️ MONITOREO Y OPERACIÓN</div>
         <div class="grid">
             <a href="supervisor.html" class="btn btn-green">
                 🗺️ MONITOREO MAESTRO
-                <span>Rondines y Asistencia GPS</span>
+                <span>Rondines, GPS y Asistencia</span>
             </a>
-            <a href="bitacora_motos.html" class="btn btn-yellow">
-                🏍️ BITÁCORA DE MOTOS
-                <span>Check-list e Inspecciones</span>
+            <a href="portal_guardia.html" class="btn btn-dark">
+                📱 PORTAL DEL GUARDIA
+                <span>Ver qué ven los oficiales (Link operativo)</span>
             </a>
         </div>
 
     </div>
 
-    <footer style="margin-top: 50px; font-size: 13px; color: #7f8c8d; text-align: center;">
-        © 2026 - Ingeniero Hugo Lizárraga <br> Sistema de Seguridad Integral
+    <footer style="margin-top: 40px; font-size: 11px; color: #7f8c8d;">
+        © 2026 - SISTEMA INTEGRAL DE SEGURIDAD
     </footer>
 
 </body>
