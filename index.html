@@ -1,46 +1,148 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>SISTEMA DE SEGURIDAD</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; padding: 15px; margin: 0; }
-        .card { background: #2c3e50; padding: 20px; border-radius: 12px; border-top: 8px solid #3498db; max-width: 450px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        h2 { text-align: center; color: #ecf0f1; margin: 0 0 20px 0; font-size: 22px; text-transform: uppercase; }
-        label { font-size: 14px; color: #bdc3c7; display: block; margin-bottom: 5px; font-weight: bold; }
-        select, input, textarea { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #444; background: #1a2a3a; color: white; box-sizing: border-box; font-size: 16px; }
-        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a2a3a;
+            color: white;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .card {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 12px;
+            border-top: 8px solid #3498db;
+            max-width: 450px;
+            margin: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            text-align: center;
+            color: #ecf0f1;
+            margin: 0 0 20px 0;
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+
+        label {
+            font-size: 14px;
+            color: #bdc3c7;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1a2a3a;
+            color: white;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
         /* Botones */
-        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 100%; color: white; }
-        .btn-entrada { background: #27ae60; }
-        .btn-salida { background: #c0392b; }
-        .btn-iniciar { background: #2980b9; }
-        .btn-punto { background: #f39c12; }
-        .btn-foto { background: #8e44ad; margin-bottom: 10px; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            color: white;
+        }
+
+        .btn-entrada {
+            background: #27ae60;
+        }
+
+        .btn-salida {
+            background: #c0392b;
+        }
+
+        .btn-iniciar {
+            background: #2980b9;
+        }
+
+        .btn-punto {
+            background: #f39c12;
+        }
+
+        .btn-foto {
+            background: #8e44ad;
+            margin-bottom: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* Panel de Recorrido Activo */
-        #panelRecorrido { display: none; background: #34495e; padding: 15px; border-radius: 8px; border: 2px dashed #f39c12; margin-top: 20px; }
-        #preview { width: 100%; border-radius: 8px; margin-bottom: 15px; display: none; }
-        #statusBox { text-align: center; font-size: 13px; color: #f1c40f; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; }
+        #panelRecorrido {
+            display: none;
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed #f39c12;
+            margin-top: 20px;
+        }
+
+        #preview {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        #statusBox {
+            text-align: center;
+            font-size: 13px;
+            color: #f1c40f;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
     </style>
 </head>
+
 <body>
     <div class="card">
-        <h2>🛡️ Residencial El Cielo</h2>
-        
+        <h2>🛡️ Sistema de Vigilancia</h2>
+
         <label>📍 SECTOR DE SERVICIO</label>
         <select id="sector">
-            <option value="Residencial El Cielo">Residencial El Cielo</option>
+            <option value="Proyecto Residencial">Proyecto Residencial</option>
             <option value="Club Cardones">Club Cardones</option>
             <option value="Obras Fotur">Obras Fotur</option>
         </select>
-        
+
         <label>👮 NOMBRE DEL AGENTE</label>
         <input type="text" id="oficial" placeholder="Escribe tu nombre completo..." required>
-        
+
         <div id="controlesPrincipales">
             <div class="btn-group">
                 <button class="btn btn-entrada" onclick="registrar('ENTRADA')">📥 ENTRADA</button>
@@ -53,9 +155,11 @@
             <h3 style="color:#f39c12; text-align:center; margin-top:0;">🚶‍♂️ RONDÍN EN CURSO</h3>
             <label>📝 Novedades del Punto</label>
             <textarea id="novedad" placeholder="Describe lo que observas..."></textarea>
-            
-            <input type="file" id="input_foto" accept="image/*" capture="environment" style="display:none;" onchange="verFoto(event)">
-            <button class="btn btn-foto" onclick="document.getElementById('input_foto').click()">📷 TOMAR FOTO EVIDENCIA</button>
+
+            <input type="file" id="input_foto" accept="image/*" capture="environment" style="display:none;"
+                onchange="verFoto(event)">
+            <button class="btn btn-foto" onclick="document.getElementById('input_foto').click()">📷 TOMAR FOTO
+                EVIDENCIA</button>
             <img id="preview">
 
             <button class="btn btn-punto" onclick="marcarPunto()" style="margin-bottom: 10px;">📍 MARCAR PUNTO</button>
@@ -69,13 +173,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
-            projectId: "sistema-vigilancia-6851e", 
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
-            messagingSenderId: "714792023462", 
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -84,13 +188,13 @@
         let idRecorrido = localStorage.getItem('id_rondin_activo');
 
         // Restaurar estado si se recarga la página
-        if(idRecorrido) {
+        if (idRecorrido) {
             document.getElementById('controlesPrincipales').style.display = 'none';
             document.getElementById('panelRecorrido').style.display = 'block';
             document.getElementById('sector').disabled = true;
             document.getElementById('oficial').disabled = true;
             document.getElementById('oficial').value = localStorage.getItem('nombre_agente') || '';
-            document.getElementById('sector').value = localStorage.getItem('sector_agente') || 'Residencial El Cielo';
+            document.getElementById('sector').value = localStorage.getItem('sector_agente') || 'Proyecto Residencial';
         }
 
         // Obtener GPS exacto al momento de presionar el botón
@@ -107,24 +211,24 @@
 
         window.verFoto = (e) => {
             const reader = new FileReader();
-            reader.onload = () => { 
-                fotoBase64 = reader.result; 
+            reader.onload = () => {
+                fotoBase64 = reader.result;
                 const img = document.getElementById('preview');
                 img.src = fotoBase64; img.style.display = 'block';
             };
-            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+            if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
         };
 
         // Función Maestra para guardar en Firebase
         const guardarEnBD = async (tipo, novedad = "Sin novedad") => {
             const oficial = document.getElementById('oficial').value.trim();
             const sector = document.getElementById('sector').value;
-            if(!oficial) return alert("Ingresa el nombre del agente.");
+            if (!oficial) return alert("Ingresa el nombre del agente.");
 
             try {
                 const coords = await obtenerGPS();
                 document.getElementById('statusBox').innerText = "☁️ Conectando con la Central...";
-                
+
                 await addDoc(collection(db, "recorridos"), {
                     id_recorrido: idRecorrido || "NO_APLICA",
                     oficial: oficial,
@@ -152,7 +256,7 @@
 
         // Acciones de los botones
         window.registrar = async (tipo) => {
-            if(await guardarEnBD(tipo, `Registro de ${tipo} al servicio.`)) {
+            if (await guardarEnBD(tipo, `Registro de ${tipo} al servicio.`)) {
                 alert(`✅ ${tipo} registrada correctamente en sitio.`);
             }
         };
@@ -160,14 +264,14 @@
         window.iniciarRecorrido = async () => {
             const oficial = document.getElementById('oficial').value.trim();
             const sector = document.getElementById('sector').value;
-            if(!oficial) return alert("Ingresa el nombre del agente.");
+            if (!oficial) return alert("Ingresa el nombre del agente.");
 
             idRecorrido = "REC-" + Date.now();
             localStorage.setItem('id_rondin_activo', idRecorrido);
             localStorage.setItem('nombre_agente', oficial);
             localStorage.setItem('sector_agente', sector);
 
-            if(await guardarEnBD('INICIO_RECORRIDO', 'Inicio de rondín.')) {
+            if (await guardarEnBD('INICIO_RECORRIDO', 'Inicio de rondín.')) {
                 document.getElementById('controlesPrincipales').style.display = 'none';
                 document.getElementById('panelRecorrido').style.display = 'block';
                 document.getElementById('sector').disabled = true;
@@ -179,15 +283,15 @@
 
         window.marcarPunto = async () => {
             const nov = document.getElementById('novedad').value || "Punto de control sin novedad";
-            if(await guardarEnBD('PUNTO', nov)) {
+            if (await guardarEnBD('PUNTO', nov)) {
                 alert("📍 Punto guardado en el mapa.");
             }
         };
 
         window.finalizarRecorrido = async () => {
-            if(!confirm("¿Seguro que deseas terminar el rondín?")) return;
-            
-            if(await guardarEnBD('FIN_RECORRIDO', 'Fin de rondín.')) {
+            if (!confirm("¿Seguro que deseas terminar el rondín?")) return;
+
+            if (await guardarEnBD('FIN_RECORRIDO', 'Fin de rondín.')) {
                 localStorage.removeItem('id_rondin_activo');
                 localStorage.removeItem('nombre_agente');
                 localStorage.removeItem('sector_agente');
@@ -197,4 +301,5 @@
         };
     </script>
 </body>
+
 </html>

@@ -1,31 +1,124 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>INSPECCIÓN DE MOTOCICLETAS</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; padding: 15px; margin: 0; }
-        .card { background: #2c3e50; padding: 20px; border-radius: 12px; border-top: 8px solid #f39c12; max-width: 500px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        h2 { text-align: center; color: #f39c12; margin: 0 0 20px 0; font-size: 20px; text-transform: uppercase; }
-        label { font-size: 14px; color: #bdc3c7; display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #444; background: #1a2a3a; color: white; box-sizing: border-box; font-size: 15px; }
-        
-        .check-item { background: #34495e; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3498db; }
-        .check-item h4 { margin: 0 0 10px 0; color: #ecf0f1; font-size: 15px; }
-        .check-item p { font-size: 12px; color: #bdc3c7; margin: 0 0 10px 0; }
-        .radio-group { display: flex; gap: 15px; margin-bottom: 10px; }
-        .radio-group label { display: inline; font-weight: normal; color: white; cursor: pointer; }
-        
-        .btn { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .btn:disabled { background: #7f8c8d; cursor: not-allowed; }
-        #statusBox { text-align: center; font-size: 13px; color: #f1c40f; margin-top: 15px; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a2a3a;
+            color: white;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .card {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 12px;
+            border-top: 8px solid #f39c12;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            text-align: center;
+            color: #f39c12;
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        label {
+            font-size: 14px;
+            color: #bdc3c7;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1a2a3a;
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        .check-item {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .check-item h4 {
+            margin: 0 0 10px 0;
+            color: #ecf0f1;
+            font-size: 15px;
+        }
+
+        .check-item p {
+            font-size: 12px;
+            color: #bdc3c7;
+            margin: 0 0 10px 0;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .radio-group label {
+            display: inline;
+            font-weight: normal;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        #statusBox {
+            text-align: center;
+            font-size: 13px;
+            color: #f1c40f;
+            margin-top: 15px;
+        }
     </style>
 </head>
+
 <body>
     <div class="card">
-        <h2>🏍️ CHECK-LIST MOTOS EL CIELO</h2>
-        
+        <h2>🏍️ CHECK-LIST MOTOS</h2>
+
         <label>👮 Nombre de quien entrega (Agente)</label>
         <input type="text" id="agente" placeholder="Escribe tu nombre..." required>
 
@@ -71,13 +164,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
-            projectId: "sistema-vigilancia-6851e", 
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
-            messagingSenderId: "714792023462", 
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -115,8 +208,8 @@
             const agente = document.getElementById('agente').value.trim();
             const monitorista = document.getElementById('monitorista').value.trim();
             const kilometraje = document.getElementById('kilometraje').value.trim();
-            
-            if(!agente || !monitorista || !kilometraje) {
+
+            if (!agente || !monitorista || !kilometraje) {
                 return alert("⚠️ Faltan datos: Asegúrate de poner nombres y kilometraje.");
             }
 
@@ -154,4 +247,5 @@
         };
     </script>
 </body>
+
 </html>

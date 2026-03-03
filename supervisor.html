@@ -1,41 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
     <title>CENTRAL DE SUPERVISIÓN MAESTRA</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #ecf0f1; color: #2c3e50; }
-        header { background: #1a2a3a; color: white; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        h1 { margin: 0; font-size: 20px; text-transform: uppercase; width: 100%; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .filtros { display: flex; gap: 10px; flex-grow: 1; }
-        input, select { padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7; font-size: 14px; }
-        .btn-buscar { background: #3498db; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        
-        .contenedor-principal { display: flex; flex-direction: column; padding: 20px; gap: 20px; }
-        #map { height: 400px; width: 100%; border-radius: 12px; border: 2px solid #bdc3c7; z-index: 1; }
-        
-        .panel-datos { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h3 { margin-top: 0; color: #2980b9; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
-        th { background: #2c3e50; color: white; }
-        .img-mini { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; }
-        
-        .badge { padding: 5px 10px; border-radius: 12px; font-weight: bold; font-size: 11px; color: white; }
-        .bg-entrada { background: #27ae60; }
-        .bg-salida { background: #c0392b; }
-        
-        .btn-ver-ruta { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        header {
+            background: #1a2a3a;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            text-transform: uppercase;
+            width: 100%;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #bdc3c7;
+            font-size: 14px;
+        }
+
+        .btn-buscar {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .contenedor-principal {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid #bdc3c7;
+            z-index: 1;
+        }
+
+        .panel-datos {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .img-mini {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 11px;
+            color: white;
+        }
+
+        .bg-entrada {
+            background: #27ae60;
+        }
+
+        .bg-salida {
+            background: #c0392b;
+        }
+
+        .btn-ver-ruta {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
     <header>
         <h1>🛰️ Panel de Supervisión y Evaluaciones</h1>
         <div class="filtros">
             <select id="filtroSector" onchange="filtrarDatos()">
                 <option value="TODOS">Todos los Sectores</option>
-                <option value="Residencial El Cielo">Residencial El Cielo</option>
+                <option value="Proyecto Residencial">Proyecto Residencial</option>
                 <option value="Club Cardones">Club Cardones</option>
                 <option value="Obras Fotur">Obras Fotur</option>
             </select>
@@ -51,7 +164,15 @@
         <div class="panel-datos">
             <h3>⏱️ Registro de Asistencia (Entradas y Salidas en Sitio)</h3>
             <table>
-                <thead><tr><th>Agente</th><th>Sector</th><th>Tipo</th><th>Fecha y Hora</th><th>Ubicación</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Agente</th>
+                        <th>Sector</th>
+                        <th>Tipo</th>
+                        <th>Fecha y Hora</th>
+                        <th>Ubicación</th>
+                    </tr>
+                </thead>
                 <tbody id="tablaAsistencia"></tbody>
             </table>
         </div>
@@ -59,7 +180,16 @@
         <div class="panel-datos">
             <h3>🚶‍♂️ Evaluación de Recorridos (Rondines)</h3>
             <table>
-                <thead><tr><th>Agente</th><th>Sector</th><th>Inicio</th><th>Fin</th><th>Puntos/Novedades</th><th>Acción</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Agente</th>
+                        <th>Sector</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Puntos/Novedades</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
                 <tbody id="tablaRecorridos"></tbody>
             </table>
         </div>
@@ -70,13 +200,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
-            projectId: "sistema-vigilancia-6851e", 
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
-            messagingSenderId: "714792023462", 
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -84,7 +214,7 @@
         // Inicializar Mapa centrado en Culiacán, Sinaloa
         const map = L.map('map').setView([24.809, -107.394], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-        
+
         let capaMarcadores = L.layerGroup().addTo(map);
         let rutaRoja = null; // Línea del recorrido
 
@@ -99,14 +229,14 @@
                 const snapshot = await getDocs(q);
                 datosGlobales = [];
                 snapshot.forEach(doc => datosGlobales.push(doc.data()));
-                
+
                 // Setear fecha de hoy por defecto si está vacía
-                if(!document.getElementById('filtroFecha').value) {
+                if (!document.getElementById('filtroFecha').value) {
                     document.getElementById('filtroFecha').valueAsDate = new Date();
                 }
-                
+
                 filtrarDatos();
-            } catch(e) { console.error(e); alert("Error al conectar con la base de datos."); }
+            } catch (e) { console.error(e); alert("Error al conectar con la base de datos."); }
             btn.innerText = "🔄 REFRESCAR SISTEMA";
         };
 
@@ -114,9 +244,9 @@
             const fSector = document.getElementById('filtroSector').value;
             const fAgente = document.getElementById('filtroAgente').value.toLowerCase();
             const fFecha = document.getElementById('filtroFecha').value; // YYYY-MM-DD
-            
+
             capaMarcadores.clearLayers();
-            if(rutaRoja) map.removeLayer(rutaRoja);
+            if (rutaRoja) map.removeLayer(rutaRoja);
 
             const tablaAsist = document.getElementById('tablaAsistencia');
             const tablaRec = document.getElementById('tablaRecorridos');
@@ -125,19 +255,19 @@
 
             // Formatear fecha para comparar
             let fechaStr = "";
-            if(fFecha) {
+            if (fFecha) {
                 const [y, m, d] = fFecha.split('-');
                 fechaStr = `${parseInt(d)}/${parseInt(m)}/${y}`;
             }
 
             datosGlobales.forEach(d => {
                 // Aplicar filtros
-                if(fSector !== "TODOS" && d.sector !== fSector) return;
-                if(fAgente && !(d.oficial || "").toLowerCase().includes(fAgente)) return;
-                if(fechaStr && !d.fecha_hora.includes(fechaStr)) return;
+                if (fSector !== "TODOS" && d.sector !== fSector) return;
+                if (fAgente && !(d.oficial || "").toLowerCase().includes(fAgente)) return;
+                if (fechaStr && !d.fecha_hora.includes(fechaStr)) return;
 
                 // 1. Llenar Asistencias
-                if(d.tipo === "ENTRADA" || d.tipo === "SALIDA") {
+                if (d.tipo === "ENTRADA" || d.tipo === "SALIDA") {
                     const color = d.tipo === "ENTRADA" ? "bg-entrada" : "bg-salida";
                     tablaAsist.innerHTML += `<tr>
                         <td><b>${d.oficial}</b></td>
@@ -149,16 +279,16 @@
                 }
 
                 // 2. Agrupar Recorridos
-                if(d.tipo === "INICIO_RECORRIDO" || d.tipo === "PUNTO" || d.tipo === "FIN_RECORRIDO") {
+                if (d.tipo === "INICIO_RECORRIDO" || d.tipo === "PUNTO" || d.tipo === "FIN_RECORRIDO") {
                     const id = d.id_recorrido;
-                    if(!recorridosAgrupados[id]) {
+                    if (!recorridosAgrupados[id]) {
                         recorridosAgrupados[id] = { oficial: d.oficial, sector: d.sector, inicio: "Desconocido", fin: "En proceso...", puntos: [] };
                     }
-                    if(d.tipo === "INICIO_RECORRIDO") recorridosAgrupados[id].inicio = d.fecha_hora.split(',')[1];
-                    if(d.tipo === "FIN_RECORRIDO") recorridosAgrupados[id].fin = d.fecha_hora.split(',')[1];
-                    
+                    if (d.tipo === "INICIO_RECORRIDO") recorridosAgrupados[id].inicio = d.fecha_hora.split(',')[1];
+                    if (d.tipo === "FIN_RECORRIDO") recorridosAgrupados[id].fin = d.fecha_hora.split(',')[1];
+
                     // Guardar puntos para dibujar la línea (ignorar si GPS falló)
-                    if(d.latitud && d.longitud) {
+                    if (d.latitud && d.longitud) {
                         recorridosAgrupados[id].puntos.push({ lat: d.latitud, lng: d.longitud, nov: d.novedad, foto: d.evidencia_foto, hora: d.fecha_hora.split(',')[1], tipo: d.tipo });
                     }
                 }
@@ -168,14 +298,14 @@
             Object.keys(recorridosAgrupados).forEach(id => {
                 const r = recorridosAgrupados[id];
                 const btnMapa = `<button class="btn-ver-ruta" onclick="dibujarRuta('${id}')">🗺️ Trazar Ruta</button>`;
-                
+
                 let novedadesHtml = r.puntos.filter(p => p.tipo === "PUNTO").map(p => {
                     let text = `• [${p.hora}] ${p.nov}`;
-                    if(p.foto && p.foto !== "NO") text += ` <br><img src="${p.foto}" class="img-mini" onclick="window.open(this.src)">`;
+                    if (p.foto && p.foto !== "NO") text += ` <br><img src="${p.foto}" class="img-mini" onclick="window.open(this.src)">`;
                     return text;
                 }).join('<hr style="margin:5px 0; border-top:1px solid #ddd;">');
 
-                if(!novedadesHtml) novedadesHtml = "<i>Sin novedades marcadas</i>";
+                if (!novedadesHtml) novedadesHtml = "<i>Sin novedades marcadas</i>";
 
                 tablaRec.innerHTML += `<tr>
                     <td><b>${r.oficial}</b></td>
@@ -191,7 +321,7 @@
         // Ver un punto individual (Entrada/Salida)
         window.verPuntoEnMapa = (lat, lng, texto) => {
             capaMarcadores.clearLayers();
-            if(rutaRoja) map.removeLayer(rutaRoja);
+            if (rutaRoja) map.removeLayer(rutaRoja);
             L.marker([lat, lng]).addTo(capaMarcadores).bindPopup(`<b>${texto}</b>`).openPopup();
             map.setView([lat, lng], 17);
         };
@@ -199,27 +329,27 @@
         // Dibujar ruta completa con línea roja
         window.dibujarRuta = (idRecorrido) => {
             capaMarcadores.clearLayers();
-            if(rutaRoja) map.removeLayer(rutaRoja);
+            if (rutaRoja) map.removeLayer(rutaRoja);
 
             const puntos = recorridosAgrupados[idRecorrido].puntos;
-            if(puntos.length === 0) return alert("El agente no registró coordenadas GPS en este recorrido.");
+            if (puntos.length === 0) return alert("El agente no registró coordenadas GPS en este recorrido.");
 
             const coordenadasLinea = [];
-            
+
             puntos.forEach((p, index) => {
                 coordenadasLinea.push([p.lat, p.lng]);
-                
+
                 // Poner un globito de información
                 let icono = p.tipo === "INICIO_RECORRIDO" ? "🟢 INICIO" : (p.tipo === "FIN_RECORRIDO" ? "🛑 FIN" : "📍 PUNTO");
                 let popupText = `<b>${icono}</b><br>Hora: ${p.hora}<br>${p.nov}`;
-                if(p.foto && p.foto !== "NO") popupText += `<br><img src="${p.foto}" width="100">`;
-                
+                if (p.foto && p.foto !== "NO") popupText += `<br><img src="${p.foto}" width="100">`;
+
                 L.marker([p.lat, p.lng]).addTo(capaMarcadores).bindPopup(popupText);
             });
 
             // Dibujar línea roja evaluadora
             rutaRoja = L.polyline(coordenadasLinea, { color: 'red', weight: 4, opacity: 0.8 }).addTo(map);
-            
+
             // Centrar mapa en la ruta
             map.fitBounds(rutaRoja.getBounds());
         };
@@ -227,4 +357,5 @@
         window.onload = cargarBaseDeDatos;
     </script>
 </body>
+
 </html>
