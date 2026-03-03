@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cierre de Turno | Ing. Hugo Lizárraga</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; width: 100%; max-width: 600px; }
+        .header h1 { margin: 0; font-size: 22px; color: #ecf0f1; text-transform: uppercase; }
+        .header h2 { margin: 5px 0 0 0; font-size: 14px; color: #3498db; letter-spacing: 2px; }
+
+        .form-container { width: 100%; max-width: 600px; background: #2c3e50; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        
+        .section-title { background: #3498db; padding: 10px; border-radius: 5px; font-weight: bold; margin: 20px 0 15px 0; text-align: center; font-size: 16px; }
+        
+        label { display: block; margin-top: 15px; font-size: 14px; color: #bdc3c7; font-weight: bold; }
+        input[type="text"], select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #7f8c8d; background: #34495e; color: white; font-size: 15px; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 80px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s; }
+        .btn-submit:active { transform: scale(0.98); background: #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ Bitácora de Caseta</h1>
+        <h2>CIERRE DE TURNO Y NOVEDADES</h2>
+    </div>
+
+    <div class="form-container">
+        <form id="formCierre">
+            
+            <div class="section-title">👤 DATOS DEL TURNO</div>
+            <label>Nombre del Oficial:</label>
+            <input type="text" id="oficial" placeholder="Ej. Joaquín..." required>
+            
+            <div class="grid-2">
+                <div>
+                    <label>Turno:</label>
+                    <select id="turno">
+                        <option value="Dia">Día (07:00 a 19:00)</option>
+                        <option value="Noche">Noche (19:00 a 07:00)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Fecha de Cierre:</label>
+                    <input type="text" id="fecha" readonly>
+                </div>
+            </div>
+
+            <div class="section-title">📻 INVENTARIO Y EQUIPO</div>
+            <div class="grid-2">
+                <div>
+                    <label>Radios (Cantidad):</label>
+                    <input type="text" id="radios" placeholder="Ej. 7 radios en buen estado" required>
+                </div>
+                <div>
+                    <label>Teléfonos y Monitores:</label>
+                    <input type="text" id="telefonos" placeholder="Ej. 2 fijos, 3 monitores ok" required>
+                </div>
+            </div>
+            <label>Llaves y Equipo Adicional (Gasolina, Bastones):</label>
+            <textarea id="llaves" placeholder="Ej. 11 llaves de caseta, 1 bastón, 0 vales..."></textarea>
+
+            <div class="section-title">🚚 FILTRO EXTERNO (SERVICIOS Y PROVEEDORES)</div>
+            <p style="font-size: 12px; color: #95a5a6; margin-top: 0;">* Si no hubo ingresos de alguno, dejar en blanco o poner "Sin novedad".</p>
+            
+            <label>Servicios (CFE, JUMAPAM, Basura):</label>
+            <textarea id="servicios" placeholder="Ej. CFE entró 10:00 am a toma de lectura, salió 10:15 am."></textarea>
+
+            <label>Proveedores y Autoridades (Policía, Ambulancia, etc):</label>
+            <textarea id="proveedores" placeholder="Registro de proveedores o autoridades en el turno..."></textarea>
+            
+            <label>Trabajos Internos (Colados / Obras):</label>
+            <textarea id="colados" placeholder="Ej. MR40 colado para helios 2009, entró 8am..."></textarea>
+
+            <div class="section-title">📝 CONSIGNAS Y NOVEDADES GENERALES</div>
+            <label>Redacción de Novedades del Turno:</label>
+            <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se entrega turno con las consignas y novedades establecidas. Pendiente para el día de mañana apoyar con acceso a la Sra. Velasco..." required></textarea>
+
+            <button type="button" class="btn-submit" onclick="guardarCierre()">💾 GUARDAR REPORTE DE TURNO</button>
+        </form>
+    </div>
+
+    <script>
+        // Poner la fecha actual automáticamente
+        const fechaActual = new Date().toLocaleDateString('es-MX');
+        document.getElementById('fecha').value = fechaActual;
+
+        function guardarCierre() {
+            // Aquí irá la conexión a Firebase
+            alert("Reporte estructurado correctamente. Falta enlazar a Firebase.");
+        }
+    </script>
+
+</body>
+</html>
