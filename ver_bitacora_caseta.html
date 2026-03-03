@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoría de Caseta | Ing. Hugo Lizárraga</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #ecf0f1; color: #2c3e50; }
+        header { background: #1a2a3a; color: white; padding: 20px; border-bottom: 4px solid #3498db; }
+        h1 { margin: 0; font-size: 20px; text-transform: uppercase; color: #3498db; }
+        
+        .filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; background: #2c3e50; padding: 15px; border-radius: 8px; }
+        .filtros input { padding: 10px; border-radius: 5px; border: none; flex: 1; min-width: 180px; }
+        
+        .contenedor-tabla { padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+        th { background: #34495e; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+
+        .btn-detalle { background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        
+        /* Modal para ver novedades completas */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
+        .modal-content { background:white; padding:25px; border-radius:10px; width:90%; max-width:600px; color:#333; }
+        .modal-header { border-bottom: 2px solid #eee; padding-bottom:10px; margin-bottom:15px; font-weight:bold; color:#1a2a3a; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📋 Auditoría de Novedades y Caseta</h1>
+    <div class="filtros">
+        <input type="date" id="filtroFecha" onchange="filtrar()">
+        <input type="text" id="filtroAgente" placeholder="Buscar por Agente..." onkeyup="filtrar()">
+        <input type="text" id="filtroProveedor" placeholder="Buscar Proveedor / Servicio..." onkeyup="filtrar()">
+        <button onclick="cargarDatos()" style="background:#27ae60; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">🔄 REFRESCAR</button>
+    </div>
+</header>
+
+<div class="contenedor-tabla">
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha/Hora</th>
+                <th>Agente</th>
+                <th>Turno</th>
+                <th>Radios/Equipo</th>
+                <th>Proveedores/Servicios</th>
+                <th>Novedades</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+    </table>
+</div>
+
+<div id="modalNovedades" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalTitulo"></div>
+        <div id="modalCuerpo" style="white-space: pre-wrap; line-height: 1.6;"></div>
+        <button onclick="cerrarModal()" style="margin-top:20px; padding:10px 20px; background:#c0392b; color:white; border:none; border-radius:5px; cursor:pointer;">Cerrar</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+        projectId: "sistema-vigilancia-6851e", 
+        storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+        messagingSenderId: "714792023462", 
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let registros = [];
+
+    window.cargarDatos = async () => {
+        const tbody = document.getElementById('tablaBody');
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Buscando reportes...</td></tr>";
+        
+        try {
+            const q = query(collection(db, "bitacora_caseta"), orderBy("timestamp", "desc"));
+            const snapshot = await getDocs(q);
+            registros = [];
+            snapshot.forEach(doc => registros.push(doc.data()));
+            filtrar();
+        } catch (e) { console.error(e); }
+    };
+
+    window.filtrar = () => {
+        const fFecha = document.getElementById('filtroFecha').value;
+        const fAgente = document.getElementById('filtroAgente').value.toLowerCase();
+        const fProv = document.getElementById('filtroProveedor').value.toLowerCase();
+        const tbody = document.getElementById('tablaBody');
+        tbody.innerHTML = "";
+
+        // Ajuste de formato de fecha para búsqueda
+        let fechaBuscada = "";
+        if(fFecha) {
+            const [y, m, d] = fFecha.split('-');
+            fechaBuscada = `${parseInt(d)}/${parseInt(m)}/${y}`;
+        }
+
+        registros.forEach((r, index) => {
+            const textoProveedores = `${r.accesos.servicios} ${r.accesos.proveedores_autoridades} ${r.accesos.colados_obras}`.toLowerCase();
+            
+            if(fechaBuscada && !r.fecha_cierre.includes(fechaBuscada)) return;
+            if(fAgente && !r.oficial.toLowerCase().includes(fAgente)) return;
+            if(fProv && !textoProveedores.includes(fProv)) return;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${r.fecha_hora_registro}</td>
+                    <td><b>${r.oficial}</b></td>
+                    <td>${r.turno}</td>
+                    <td>Radios: ${r.inventario.radios}<br>Llaves: ${r.inventario.llaves_equipo}</td>
+                    <td><small>${r.accesos.proveedores_autoridades.substring(0,60)}...</small></td>
+                    <td><button class="btn-detalle" onclick="verDetalle(${index})">🔎 Ver Novedades</button></td>
+                </tr>
+            `;
+        });
+    };
+
+    window.verDetalle = (i) => {
+        const r = registros[i];
+        document.getElementById('modalTitulo').innerText = `NOVEDADES: ${r.oficial} (${r.fecha_cierre})`;
+        document.getElementById('modalCuerpo').innerHTML = `
+            <strong>INVENTARIO:</strong> ${r.inventario.llaves_equipo}<br><br>
+            <strong>PROVEEDORES/SERVICIOS:</strong><br>${r.accesos.proveedores_autoridades}<br><br>
+            <strong>COLADOS/OBRAS:</strong><br>${r.accesos.colados_obras}<br><br>
+            <strong>NOVEDADES GENERALES:</strong><br>${r.novedades_generales}
+        `;
+        document.getElementById('modalNovedades').style.display = 'flex';
+    };
+
+    window.cerrarModal = () => document.getElementById('modalNovedades').style.display = 'none';
+
+    window.onload = cargarDatos;
+</script>
+</body>
+</html>
