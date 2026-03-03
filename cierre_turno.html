@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cierre de Turno | Ing. Hugo Lizárraga</title>
+    <title>Cierre de Turno | Seguridad Integral</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
@@ -23,6 +23,7 @@
 
         .btn-submit { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s; }
         .btn-submit:active { transform: scale(0.98); background: #2ecc71; }
+        .btn-submit:disabled { background: #7f8c8d; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -33,70 +34,115 @@
     </div>
 
     <div class="form-container">
-        <form id="formCierre">
-            
-            <div class="section-title">👤 DATOS DEL TURNO</div>
-            <label>Nombre del Oficial:</label>
-            <input type="text" id="oficial" placeholder="Ej. Joaquín..." required>
-            
-            <div class="grid-2">
-                <div>
-                    <label>Turno:</label>
-                    <select id="turno">
-                        <option value="Dia">Día (07:00 a 19:00)</option>
-                        <option value="Noche">Noche (19:00 a 07:00)</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Fecha de Cierre:</label>
-                    <input type="text" id="fecha" readonly>
-                </div>
+        <div class="section-title">👤 DATOS DEL TURNO</div>
+        <label>Nombre del Oficial:</label>
+        <input type="text" id="oficial" placeholder="Ej. Joaquín..." required>
+        
+        <div class="grid-2">
+            <div>
+                <label>Turno:</label>
+                <select id="turno">
+                    <option value="Día">Día (07:00 a 19:00)</option>
+                    <option value="Noche">Noche (19:00 a 07:00)</option>
+                    <option value="24 Hrs">24 Hrs</option>
+                </select>
             </div>
-
-            <div class="section-title">📻 INVENTARIO Y EQUIPO</div>
-            <div class="grid-2">
-                <div>
-                    <label>Radios (Cantidad):</label>
-                    <input type="text" id="radios" placeholder="Ej. 7 radios en buen estado" required>
-                </div>
-                <div>
-                    <label>Teléfonos y Monitores:</label>
-                    <input type="text" id="telefonos" placeholder="Ej. 2 fijos, 3 monitores ok" required>
-                </div>
+            <div>
+                <label>Fecha de Cierre:</label>
+                <input type="text" id="fecha" readonly>
             </div>
-            <label>Llaves y Equipo Adicional (Gasolina, Bastones):</label>
-            <textarea id="llaves" placeholder="Ej. 11 llaves de caseta, 1 bastón, 0 vales..."></textarea>
+        </div>
 
-            <div class="section-title">🚚 FILTRO EXTERNO (SERVICIOS Y PROVEEDORES)</div>
-            <p style="font-size: 12px; color: #95a5a6; margin-top: 0;">* Si no hubo ingresos de alguno, dejar en blanco o poner "Sin novedad".</p>
-            
-            <label>Servicios (CFE, JUMAPAM, Basura):</label>
-            <textarea id="servicios" placeholder="Ej. CFE entró 10:00 am a toma de lectura, salió 10:15 am."></textarea>
+        <div class="section-title">📻 INVENTARIO Y EQUIPO</div>
+        <div class="grid-2">
+            <div>
+                <label>Radios (Cantidad):</label>
+                <input type="text" id="radios" placeholder="Ej. 7 radios en buen estado" required>
+            </div>
+            <div>
+                <label>Teléfonos y Monitores:</label>
+                <input type="text" id="telefonos" placeholder="Ej. 2 fijos, 3 monitores ok" required>
+            </div>
+        </div>
+        <label>Llaves y Equipo Adicional (Gasolina, Bastones):</label>
+        <textarea id="llaves" placeholder="Ej. 11 llaves de caseta, 1 bastón..."></textarea>
 
-            <label>Proveedores y Autoridades (Policía, Ambulancia, etc):</label>
-            <textarea id="proveedores" placeholder="Registro de proveedores o autoridades en el turno..."></textarea>
-            
-            <label>Trabajos Internos (Colados / Obras):</label>
-            <textarea id="colados" placeholder="Ej. MR40 colado para helios 2009, entró 8am..."></textarea>
+        <div class="section-title">🚚 FILTRO EXTERNO (SERVICIOS Y PROVEEDORES)</div>
+        <p style="font-size: 12px; color: #95a5a6; margin-top: 0;">* Si no hubo ingresos, poner "Sin novedad".</p>
+        
+        <label>Servicios (CFE, JUMAPAM, Basura):</label>
+        <textarea id="servicios" placeholder="Ej. CFE entró 10:00 am a toma de lectura..."></textarea>
 
-            <div class="section-title">📝 CONSIGNAS Y NOVEDADES GENERALES</div>
-            <label>Redacción de Novedades del Turno:</label>
-            <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se entrega turno con las consignas y novedades establecidas. Pendiente para el día de mañana apoyar con acceso a la Sra. Velasco..." required></textarea>
+        <label>Proveedores y Autoridades (Policía, Ambulancia, etc):</label>
+        <textarea id="proveedores" placeholder="Registro de autoridades o proveedores..."></textarea>
+        
+        <label>Trabajos Internos (Colados / Obras):</label>
+        <textarea id="colados" placeholder="Ej. MR40 colado para helios 2009..."></textarea>
 
-            <button type="button" class="btn-submit" onclick="guardarCierre()">💾 GUARDAR REPORTE DE TURNO</button>
-        </form>
+        <div class="section-title">📝 CONSIGNAS Y NOVEDADES GENERALES</div>
+        <label>Redacción de Novedades del Turno:</label>
+        <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se entrega turno con las consignas y novedades establecidas..." required></textarea>
+
+        <button type="button" id="btnGuardar" class="btn-submit" onclick="guardarCierre()">💾 GUARDAR REPORTE DE TURNO</button>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // Poner la fecha actual automáticamente
-        const fechaActual = new Date().toLocaleDateString('es-MX');
-        document.getElementById('fecha').value = fechaActual;
+        document.getElementById('fecha').value = new Date().toLocaleDateString('es-MX');
 
-        function guardarCierre() {
-            // Aquí irá la conexión a Firebase
-            alert("Reporte estructurado correctamente. Falta enlazar a Firebase.");
-        }
+        window.guardarCierre = async () => {
+            const oficial = document.getElementById('oficial').value.trim();
+            const novedades = document.getElementById('novedades_generales').value.trim();
+
+            if(!oficial || !novedades) {
+                return alert("⚠️ Debes ingresar el nombre del oficial y las novedades generales.");
+            }
+
+            const btn = document.getElementById('btnGuardar');
+            btn.innerText = "Guardando..."; btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "bitacora_caseta"), {
+                    oficial: oficial,
+                    turno: document.getElementById('turno').value,
+                    fecha_cierre: document.getElementById('fecha').value,
+                    inventario: {
+                        radios: document.getElementById('radios').value || "No especificado",
+                        telefonos: document.getElementById('telefonos').value || "No especificado",
+                        llaves_equipo: document.getElementById('llaves').value || "Sin novedad"
+                    },
+                    accesos: {
+                        servicios: document.getElementById('servicios').value || "Sin novedad",
+                        proveedores_autoridades: document.getElementById('proveedores').value || "Sin novedad",
+                        colados_obras: document.getElementById('colados').value || "Sin novedad"
+                    },
+                    novedades_generales: novedades,
+                    timestamp: Date.now(),
+                    fecha_hora_registro: new Date().toLocaleString('es-MX')
+                });
+
+                alert("✅ Bitácora de Cierre de Turno guardada exitosamente.");
+                location.reload(); // Limpiar el formulario
+            } catch (error) {
+                console.error("Error al guardar: ", error);
+                alert("❌ Ocurrió un error al intentar guardar. Revisa tu conexión.");
+                btn.innerText = "💾 GUARDAR REPORTE DE TURNO"; btn.disabled = false;
+            }
+        };
     </script>
-
 </body>
 </html>
