@@ -13,7 +13,7 @@
 
         .form-container { width: 100%; max-width: 600px; background: #2c3e50; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         
-        .section-title { background: #3498db; padding: 10px; border-radius: 5px; font-weight: bold; margin: 20px 0 15px 0; text-align: center; font-size: 16px; text-transform: uppercase; }
+        .section-title { background: #3498db; padding: 10px; border-radius: 5px; font-weight: bold; margin: 25px 0 15px 0; text-align: center; font-size: 16px; text-transform: uppercase; }
         
         label { display: block; margin-top: 15px; font-size: 14px; color: #bdc3c7; font-weight: bold; }
         input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #7f8c8d; background: #34495e; color: white; font-size: 15px; box-sizing: border-box; }
@@ -29,6 +29,10 @@
         .btn-submit { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s; }
         .btn-submit:active { transform: scale(0.98); background: #2ecc71; }
         .btn-submit:disabled { background: #7f8c8d; cursor: not-allowed; }
+
+        .btn-add { background: transparent; color: #f1c40f; border: 2px dashed #f1c40f; padding: 12px; width: 100%; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .btn-add:hover { background: rgba(241, 196, 15, 0.1); }
+        .vale-input { margin-bottom: 10px; border-color: #f1c40f !important; }
     </style>
 </head>
 <body>
@@ -40,7 +44,7 @@
 
     <div class="form-container">
         <div class="section-title">👤 DATOS DEL TURNO</div>
-        <label>Nombre del Oficial:</label>
+        <label>Nombre del Oficial Saliente:</label>
         <input type="text" id="oficial" placeholder="Ej. Joaquín..." required>
         
         <div class="grid-2">
@@ -58,10 +62,30 @@
             </div>
         </div>
 
-        <div class="section-title">📻 INVENTARIO Y EQUIPO</div>
+        <div class="section-title">🧹 ESTADO DE LA CASETA</div>
+        <label>¿Se realizó limpieza de la caseta?</label>
+        <select id="limpieza">
+            <option value="Sí, se entrega limpia">✅ Sí, se entrega limpia y en orden</option>
+            <option value="No se realizó limpieza">❌ No se realizó limpieza</option>
+        </select>
+
+        <div class="section-title">📻 INVENTARIO Y ASIGNACIÓN</div>
         
-        <label>Asignación para el Agente en Turno (Radio y Teléfono):</label>
-        <input type="text" id="asignacion_equipo" placeholder="Ej. En turno con Radio #7 GAMA y celular 1" required>
+        <label>Asignación de Radio al Agente Entrante:</label>
+        <div class="grid-2">
+            <input type="text" id="agente_entrante" placeholder="Nombre Agente Entrante" required>
+            <select id="radio_asignado">
+                <option value="Sin radio">Seleccionar Radio...</option>
+                <option value="#1 SERIE 950">#1 SERIE 950</option>
+                <option value="#2 SERIE 948">#2 SERIE 948</option>
+                <option value="#3 SERIE 646">#3 SERIE 646</option>
+                <option value="#4 SERIE 045">#4 SERIE 045</option>
+                <option value="#5 SERIE 757">#5 SERIE 757</option>
+                <option value="#6 OOO">#6 OOO</option>
+                <option value="#7 GAMA">#7 GAMA</option>
+            </select>
+        </div>
+        <input type="text" id="telefono_asignado" placeholder="Teléfono/Celular asignado al agente..." style="margin-top:10px;">
 
         <label>Inventario de Radios en Caseta (Marca los presentes):</label>
         <div class="checkbox-group">
@@ -73,28 +97,23 @@
             <label><input type="checkbox" class="radio-check" value="#6 OOO" checked> #6 OOO</label>
             <label><input type="checkbox" class="radio-check" value="#7 GAMA" checked> #7 GAMA</label>
         </div>
-
-        <label>Teléfonos y Monitores:</label>
-        <input type="text" id="telefonos" placeholder="Ej. 6 y 1 fijo, 3 monitores en buen estado" required>
         
-        <label>Llaves, Bastones y Equipo Adicional:</label>
-        <textarea id="llaves" placeholder="Ej. 11 llaves de caseta, 1 bastón, 0 vales de gasolina..."></textarea>
+        <label>Llaves, Teléfonos y Equipo Adicional:</label>
+        <textarea id="llaves" placeholder="Ej. 6 teléfonos y 1 fijo, 3 monitores ok, 11 llaves..."></textarea>
 
-        <div class="section-title">🚚 FILTRO EXTERNO (SERVICIOS Y PROVEEDORES)</div>
-        <p style="font-size: 12px; color: #95a5a6; margin-top: 0;">* Si no hubo ingresos, poner "Sin novedad".</p>
-        
-        <label>Servicios (CFE, JUMAPAM, Basura):</label>
-        <textarea id="servicios" placeholder="Ej. CFE entró 10:00 am a toma de lectura..."></textarea>
+        <div class="section-title">⛽ VALES DE GASOLINA</div>
+        <label>Ingresa los folios de los vales (Máximo 8):</label>
+        <div id="contenedor_vales"></div>
+        <button type="button" class="btn-add" onclick="agregarVale()">➕ AÑADIR FOLIO DE VALE</button>
+        <input type="hidden" id="contador_vales" value="0">
 
-        <label>Proveedores y Autoridades (Policía, Ambulancia, etc):</label>
-        <textarea id="proveedores" placeholder="Registro de autoridades o proveedores..."></textarea>
-        
-        <label>Trabajos Internos (Colados / Obras):</label>
-        <textarea id="colados" placeholder="Ej. MR40 colado para helios 2009..."></textarea>
+        <div class="section-title">🚚 FILTRO EXTERNO</div>
+        <label>Servicios y Proveedores (CFE, JUMAPAM, Policías, Obras):</label>
+        <textarea id="proveedores" style="min-height: 100px;" placeholder="Ej. CFE entró 10:00 am. MR40 colado para helios..."></textarea>
 
         <div class="section-title">📝 CONSIGNAS Y NOVEDADES GENERALES</div>
         <label>Redacción de Novedades del Turno:</label>
-        <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se recibe turno con las consignas establecidas. Pendiente apoyar con acceso a la Sra. Velasco..." required></textarea>
+        <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se recibe turno con las consignas establecidas. Pendiente apoyar con acceso..." required></textarea>
 
         <button type="button" id="btnGuardar" class="btn-submit" onclick="guardarCierre()">💾 GUARDAR REPORTE DE TURNO</button>
     </div>
@@ -103,7 +122,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // TU CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = { 
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
@@ -122,37 +140,57 @@
         const dd = String(hoy.getDate()).padStart(2, '0');
         document.getElementById('fecha').value = `${yyyy}-${mm}-${dd}`;
 
+        // Lógica para añadir Vales de Gasolina (Máx 8)
+        let totalVales = 0;
+        window.agregarVale = () => {
+            if (totalVales >= 8) {
+                alert("⚠️ Límite alcanzado: Solo se permite un máximo de 8 vales por turno.");
+                return;
+            }
+            totalVales++;
+            const contenedor = document.getElementById('contenedor_vales');
+            contenedor.innerHTML += `<input type="text" id="vale_${totalVales}" class="vale-input" placeholder="Escribe el Número de Serie del Vale #${totalVales}">`;
+        };
+
         window.guardarCierre = async () => {
             const oficial = document.getElementById('oficial').value.trim();
-            const asignacion = document.getElementById('asignacion_equipo').value.trim();
+            const agenteEntrante = document.getElementById('agente_entrante').value.trim();
             const novedades = document.getElementById('novedades_generales').value.trim();
 
-            if(!oficial || !asignacion || !novedades) {
-                return alert("⚠️ Faltan datos clave: Oficial, Asignación de Equipo o Novedades.");
+            if(!oficial || !novedades) {
+                return alert("⚠️ Faltan datos clave: Oficial saliente o Novedades Generales.");
             }
 
             const btn = document.getElementById('btnGuardar');
             btn.innerText = "Guardando..."; btn.disabled = true;
 
-            // Recopilar qué radios se marcaron con palomita
+            // Recopilar qué radios se marcaron
             const radiosCheck = document.querySelectorAll('.radio-check:checked');
             const radiosSeleccionados = Array.from(radiosCheck).map(cb => cb.value).join(', ');
+
+            // Recopilar los folios de los vales
+            let valesArray = [];
+            for(let i = 1; i <= totalVales; i++) {
+                let val = document.getElementById(`vale_${i}`).value.trim();
+                if(val) valesArray.push(val);
+            }
+            const valesRegistrados = valesArray.length > 0 ? valesArray.join(' | ') : "Sin vales";
 
             try {
                 await addDoc(collection(db, "bitacora_caseta"), {
                     oficial: oficial,
                     turno: document.getElementById('turno').value,
                     fecha_cierre: document.getElementById('fecha').value,
+                    limpieza: document.getElementById('limpieza').value,
                     inventario: {
-                        asignacion_turno: asignacion,
+                        asignacion_radio: `${agenteEntrante} -> ${document.getElementById('radio_asignado').value}`,
+                        telefono_asignado: document.getElementById('telefono_asignado').value || "No especificado",
                         radios_presentes: radiosSeleccionados || "Ninguno marcado",
-                        telefonos: document.getElementById('telefonos').value || "No especificado",
-                        llaves_equipo: document.getElementById('llaves').value || "Sin novedad"
+                        llaves_equipo: document.getElementById('llaves').value || "Sin novedad",
+                        vales_gasolina: valesRegistrados
                     },
                     accesos: {
-                        servicios: document.getElementById('servicios').value || "Sin novedad",
-                        proveedores_autoridades: document.getElementById('proveedores').value || "Sin novedad",
-                        colados_obras: document.getElementById('colados').value || "Sin novedad"
+                        proveedores_autoridades: document.getElementById('proveedores').value || "Sin novedad"
                     },
                     novedades_generales: novedades,
                     timestamp: Date.now(),
@@ -160,10 +198,10 @@
                 });
 
                 alert("✅ Bitácora de Cierre de Turno guardada exitosamente.");
-                location.reload(); // Limpiar el formulario
+                location.reload(); 
             } catch (error) {
                 console.error("Error al guardar: ", error);
-                alert("❌ Ocurrió un error al intentar guardar. Revisa tu conexión a internet.");
+                alert("❌ Ocurrió un error. Revisa tu conexión a internet.");
                 btn.innerText = "💾 GUARDAR REPORTE DE TURNO"; btn.disabled = false;
             }
         };
