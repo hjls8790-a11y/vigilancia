@@ -21,7 +21,11 @@
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* Estilos para los checkbox de los radios */
+        /* Estilos de Radios y Checkbox */
+        .radio-asignacion { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+        .radio-tag { background: #1a2a3a; padding: 12px; border-radius: 8px; font-weight: bold; color: #f1c40f; width: 40%; text-align: center; font-size: 13px; border: 1px solid #7f8c8d; }
+        .radio-input { width: 60%; }
+
         .checkbox-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; background: #34495e; padding: 15px; border-radius: 8px; border: 1px solid #7f8c8d; }
         .checkbox-group label { margin-top: 0; font-weight: normal; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ecf0f1; }
         .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #3498db; }
@@ -69,25 +73,18 @@
             <option value="No se realizó limpieza">❌ No se realizó limpieza</option>
         </select>
 
-        <div class="section-title">📻 INVENTARIO Y ASIGNACIÓN</div>
+        <div class="section-title">📻 ASIGNACIÓN DE RADIOS AL PERSONAL</div>
+        <label>Escribe el nombre del Agente al que se le entrega cada unidad (Dejar en blanco si se queda en caseta):</label>
         
-        <label>Asignación de Radio al Agente Entrante:</label>
-        <div class="grid-2">
-            <input type="text" id="agente_entrante" placeholder="Nombre Agente Entrante" required>
-            <select id="radio_asignado">
-                <option value="Sin radio">Seleccionar Radio...</option>
-                <option value="#1 SERIE 950">#1 SERIE 950</option>
-                <option value="#2 SERIE 948">#2 SERIE 948</option>
-                <option value="#3 SERIE 646">#3 SERIE 646</option>
-                <option value="#4 SERIE 045">#4 SERIE 045</option>
-                <option value="#5 SERIE 757">#5 SERIE 757</option>
-                <option value="#6 OOO">#6 OOO</option>
-                <option value="#7 GAMA">#7 GAMA</option>
-            </select>
-        </div>
-        <input type="text" id="telefono_asignado" placeholder="Teléfono/Celular asignado al agente..." style="margin-top:10px;">
+        <div class="radio-asignacion"><div class="radio-tag">#1 SERIE 950</div><input type="text" id="agente_radio_1" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#2 SERIE 948</div><input type="text" id="agente_radio_2" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#3 SERIE 646</div><input type="text" id="agente_radio_3" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#4 SERIE 045</div><input type="text" id="agente_radio_4" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#5 SERIE 757</div><input type="text" id="agente_radio_5" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#6 OOO</div><input type="text" id="agente_radio_6" class="radio-input" placeholder="Nombre Agente Entrante"></div>
+        <div class="radio-asignacion"><div class="radio-tag">#7 GAMA</div><input type="text" id="agente_radio_7" class="radio-input" placeholder="Nombre Agente Entrante"></div>
 
-        <label>Inventario de Radios en Caseta (Marca los presentes):</label>
+        <label style="margin-top:20px;">Inventario Físico (Marca los radios que SÍ operan o están presentes):</label>
         <div class="checkbox-group">
             <label><input type="checkbox" class="radio-check" value="#1 SERIE 950" checked> #1 SERIE 950</label>
             <label><input type="checkbox" class="radio-check" value="#2 SERIE 948" checked> #2 SERIE 948</label>
@@ -97,12 +94,12 @@
             <label><input type="checkbox" class="radio-check" value="#6 OOO" checked> #6 OOO</label>
             <label><input type="checkbox" class="radio-check" value="#7 GAMA" checked> #7 GAMA</label>
         </div>
-        
-        <label>Llaves, Teléfonos y Equipo Adicional:</label>
-        <textarea id="llaves" placeholder="Ej. 6 teléfonos y 1 fijo, 3 monitores ok, 11 llaves..."></textarea>
+
+        <label>Teléfonos y Equipo Adicional:</label>
+        <textarea id="llaves" placeholder="Ej. 6 teléfonos y 1 fijo, 3 monitores ok, 11 llaves de caseta..."></textarea>
 
         <div class="section-title">⛽ VALES DE GASOLINA</div>
-        <label>Ingresa los folios de los vales (Máximo 8):</label>
+        <label>Ingresa los folios de los vales utilizados (Máximo 8):</label>
         <div id="contenedor_vales"></div>
         <button type="button" class="btn-add" onclick="agregarVale()">➕ AÑADIR FOLIO DE VALE</button>
         <input type="hidden" id="contador_vales" value="0">
@@ -113,7 +110,7 @@
 
         <div class="section-title">📝 CONSIGNAS Y NOVEDADES GENERALES</div>
         <label>Redacción de Novedades del Turno:</label>
-        <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se recibe turno con las consignas establecidas. Pendiente apoyar con acceso..." required></textarea>
+        <textarea id="novedades_generales" style="min-height: 120px;" placeholder="Ej. Se entrega turno con las consignas establecidas. Pendiente apoyar con acceso..." required></textarea>
 
         <button type="button" id="btnGuardar" class="btn-submit" onclick="guardarCierre()">💾 GUARDAR REPORTE DE TURNO</button>
     </div>
@@ -133,14 +130,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Colocar la fecha actual en el input type="date"
         const hoy = new Date();
         const yyyy = hoy.getFullYear();
         const mm = String(hoy.getMonth() + 1).padStart(2, '0');
         const dd = String(hoy.getDate()).padStart(2, '0');
         document.getElementById('fecha').value = `${yyyy}-${mm}-${dd}`;
 
-        // Lógica para añadir Vales de Gasolina (Máx 8)
         let totalVales = 0;
         window.agregarVale = () => {
             if (totalVales >= 8) {
@@ -154,7 +149,6 @@
 
         window.guardarCierre = async () => {
             const oficial = document.getElementById('oficial').value.trim();
-            const agenteEntrante = document.getElementById('agente_entrante').value.trim();
             const novedades = document.getElementById('novedades_generales').value.trim();
 
             if(!oficial || !novedades) {
@@ -164,11 +158,20 @@
             const btn = document.getElementById('btnGuardar');
             btn.innerText = "Guardando..."; btn.disabled = true;
 
-            // Recopilar qué radios se marcaron
+            // Recopilar Asignaciones de Radios
+            let asignacionesRadios = [
+                `#1 SERIE 950: ${document.getElementById('agente_radio_1').value.trim() || 'En Caseta'}`,
+                `#2 SERIE 948: ${document.getElementById('agente_radio_2').value.trim() || 'En Caseta'}`,
+                `#3 SERIE 646: ${document.getElementById('agente_radio_3').value.trim() || 'En Caseta'}`,
+                `#4 SERIE 045: ${document.getElementById('agente_radio_4').value.trim() || 'En Caseta'}`,
+                `#5 SERIE 757: ${document.getElementById('agente_radio_5').value.trim() || 'En Caseta'}`,
+                `#6 OOO: ${document.getElementById('agente_radio_6').value.trim() || 'En Caseta'}`,
+                `#7 GAMA: ${document.getElementById('agente_radio_7').value.trim() || 'En Caseta'}`
+            ];
+
             const radiosCheck = document.querySelectorAll('.radio-check:checked');
             const radiosSeleccionados = Array.from(radiosCheck).map(cb => cb.value).join(', ');
 
-            // Recopilar los folios de los vales
             let valesArray = [];
             for(let i = 1; i <= totalVales; i++) {
                 let val = document.getElementById(`vale_${i}`).value.trim();
@@ -176,15 +179,17 @@
             }
             const valesRegistrados = valesArray.length > 0 ? valesArray.join(' | ') : "Sin vales";
 
+            // Texto combinado para poder buscar agentes fácilmente
+            const textoBuscador = oficial + " " + asignacionesRadios.join(" ");
+
             try {
                 await addDoc(collection(db, "bitacora_caseta"), {
-                    oficial: oficial,
+                    oficial_saliente: oficial,
                     turno: document.getElementById('turno').value,
                     fecha_cierre: document.getElementById('fecha').value,
                     limpieza: document.getElementById('limpieza').value,
                     inventario: {
-                        asignacion_radio: `${agenteEntrante} -> ${document.getElementById('radio_asignado').value}`,
-                        telefono_asignado: document.getElementById('telefono_asignado').value || "No especificado",
+                        asignacion_radios: asignacionesRadios,
                         radios_presentes: radiosSeleccionados || "Ninguno marcado",
                         llaves_equipo: document.getElementById('llaves').value || "Sin novedad",
                         vales_gasolina: valesRegistrados
@@ -193,11 +198,12 @@
                         proveedores_autoridades: document.getElementById('proveedores').value || "Sin novedad"
                     },
                     novedades_generales: novedades,
+                    busqueda_agentes: textoBuscador.toLowerCase(),
                     timestamp: Date.now(),
                     fecha_hora_registro: new Date().toLocaleString('es-MX')
                 });
 
-                alert("✅ Bitácora de Cierre de Turno guardada exitosamente.");
+                alert("✅ Bitácora guardada exitosamente.");
                 location.reload(); 
             } catch (error) {
                 console.error("Error al guardar: ", error);
