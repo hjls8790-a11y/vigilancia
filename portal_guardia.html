@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Operativo | Captura de Datos</title>
+    <title>Portal del Guardia | Área de Registro</title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -29,22 +29,21 @@
             color: #3498db;
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        .header .subtitle {
+        .header .aviso-registro {
             font-size: 13px;
             color: #e74c3c;
-            font-weight: bold;
-            margin-top: 5px;
-            background: rgba(231, 76, 60, 0.1);
-            padding: 5px;
-            border-radius: 5px;
+            background: rgba(231, 76, 60, 0.15);
+            padding: 6px 15px;
+            border-radius: 20px;
             display: inline-block;
+            margin-top: 10px;
+            font-weight: bold;
+            border: 1px solid #e74c3c;
         }
 
-        /* Contenedor de botones */
-        .grid-portal {
+        .grid-operativa {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
@@ -52,112 +51,105 @@
             max-width: 500px;
         }
 
-        .btn-portal {
+        .btn-registro {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 22px 10px;
+            padding: 25px 10px;
             border-radius: 12px;
             text-decoration: none;
             color: white;
             font-weight: bold;
             font-size: 13px;
             text-align: center;
-            transition: all 0.2s;
+            transition: transform 0.2s;
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .btn-portal:active {
+        .btn-registro:active {
             transform: scale(0.95);
-            filter: brightness(0.8);
         }
 
-        .btn-portal span {
-            font-size: 32px;
-            margin-bottom: 8px;
+        .btn-registro span {
+            font-size: 35px;
+            margin-bottom: 10px;
         }
 
-        /* Colores para identificación rápida */
-        .btn-turno { background: #2980b9; }  /* Azul: Operativo */
-        .btn-acceso { background: #27ae60; } /* Verde: Entradas */
-        .btn-motos { background: #f39c12; }  /* Naranja: Unidades */
-        .btn-ventas { background: #8e44ad; } /* Morado: Dinero */
+        /* Colores operativos */
+        .cierre { background: #2980b9; }  
+        .acceso { background: #27ae60; }  
+        .motos  { background: #f39c12; }  
+        .ventas { background: #8e44ad; }  
         
-        .btn-inicio { 
+        .btn-salir { 
             background: #34495e; 
             grid-column: span 2; 
-            margin-top: 15px;
+            margin-top: 10px;
             border: 1px solid #3498db;
             flex-direction: row;
             gap: 15px;
-        }
-
-        .status-bar {
-            margin-top: auto;
-            padding: 20px 0;
-            text-align: center;
-            width: 100%;
+            padding: 15px;
         }
 
         #reloj {
-            font-size: 16px;
-            color: #3498db;
+            margin-top: 25px;
             font-weight: bold;
+            color: #3498db;
             background: rgba(0,0,0,0.2);
             padding: 8px 20px;
             border-radius: 20px;
-            display: inline-block;
+            border: 1px solid #34495e;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🛡️ PORTAL DEL GUARDIA</h1>
-        <div class="subtitle">🔴 SOLO REGISTRO DE NOVEDADES</div>
+        <h1>🛡️ PORTAL OPERATIVO</h1>
+        <div class="aviso-registro">🔴 SOLO CAPTURA DE DATOS</div>
     </div>
 
-    <div class="grid-portal">
-        <a href="cierre_turno.html" class="btn-portal btn-turno">
+    <div class="grid-operativa">
+        <a href="cierre_turno.html" class="btn-registro cierre">
             <span>📋</span>
-            REGISTRO DE<br>CIERRE DE TURNO
+            REGISTRO<br>CIERRE TURNO
         </a>
 
-        <a href="bitacora_accesos.html" class="btn-portal btn-acceso">
+        <a href="registro_acceso.html" class="btn-registro acceso">
             <span>📥</span>
-            REGISTRO DE<br>ACCESOS
+            REGISTRO<br>ACCESOS
         </a>
 
-        <a href="bitacora_motos.html" class="btn-portal btn-motos">
+        <a href="registro_motos.html" class="btn-registro motos">
             <span>🏍️</span>
-            REGISTRO DE<br>MOTOS
+            REGISTRO<br>MOTOS
         </a>
 
-        <a href="ventas_club.html" class="btn-portal btn-ventas">
+        <a href="registro_ventas.html" class="btn-registro ventas">
             <span>💰</span>
-            REGISTRO DE<br>VENTAS
+            REGISTRO<br>VENTAS
         </a>
 
-        <a href="index.html" class="btn-portal btn-inicio">
+        <a href="index.html" class="btn-registro btn-salir">
             <span style="font-size: 24px;">🏠</span>
-            VOLVER AL MENÚ PRINCIPAL
+            VOLVER AL MENÚ
         </a>
     </div>
 
-    <div class="status-bar">
-        <div id="reloj">--:--:--</div>
-    </div>
+    <div id="reloj">--:--:--</div>
 
     <script>
-        function actualizarReloj() {
-            const ahora = new Date();
-            const opciones = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            document.getElementById('reloj').innerText = "HORA OPERATIVA: " + ahora.toLocaleTimeString('es-MX', opciones);
+        function moverReloj() {
+            const tiempo = new Date();
+            const h = String(tiempo.getHours()).padStart(2, '0');
+            const m = String(tiempo.getMinutes()).padStart(2, '0');
+            const s = String(tiempo.getSeconds()).padStart(2, '0');
+            document.getElementById('reloj').innerText = `HORA: ${h}:${m}:${s}`;
         }
-        setInterval(actualizarReloj, 1000);
-        actualizarReloj();
+        setInterval(moverReloj, 1000);
+        moverReloj();
     </script>
 
 </body>
