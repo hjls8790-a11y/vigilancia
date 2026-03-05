@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Auditoría de Caseta | Ing. Hugo Lizárraga</title>
+    <title>Auditoría de Caseta | Seguridad Integral</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #ecf0f1; color: #2c3e50; }
         header { background: #1a2a3a; color: white; padding: 20px; border-bottom: 4px solid #3498db; }
@@ -17,12 +17,15 @@
         th { background: #34495e; color: white; }
         tr:nth-child(even) { background: #f9f9f9; }
 
-        .btn-detalle { background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .btn-detalle { background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .badge-limpio { background: #27ae60; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
+        .badge-sucio { background: #c0392b; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
         
         /* Modal para ver novedades completas */
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
-        .modal-content { background:white; padding:25px; border-radius:10px; width:90%; max-width:600px; color:#333; }
-        .modal-header { border-bottom: 2px solid #eee; padding-bottom:10px; margin-bottom:15px; font-weight:bold; color:#1a2a3a; }
+        .modal-content { background:white; padding:25px; border-radius:10px; width:90%; max-width:600px; color:#333; max-height: 85vh; overflow-y: auto; }
+        .modal-header { border-bottom: 2px solid #eee; padding-bottom:10px; margin-bottom:15px; font-weight:bold; color:#1a2a3a; font-size: 18px; }
+        .bloque-info { background: #f4f7f6; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #3498db; }
     </style>
 </head>
 <body>
@@ -31,7 +34,7 @@
     <h1>📋 Auditoría de Novedades y Caseta</h1>
     <div class="filtros">
         <input type="date" id="filtroFecha" onchange="filtrar()">
-        <input type="text" id="filtroAgente" placeholder="Buscar por Agente..." onkeyup="filtrar()">
+        <input type="text" id="filtroAgente" placeholder="Buscar por Nombre de Agente..." title="Busca al oficial saliente o a los entrantes con radio" onkeyup="filtrar()">
         <input type="text" id="filtroProveedor" placeholder="Buscar Proveedor / Servicio..." onkeyup="filtrar()">
         <button onclick="cargarDatos()" style="background:#27ae60; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">🔄 REFRESCAR</button>
     </div>
@@ -41,12 +44,12 @@
     <table>
         <thead>
             <tr>
-                <th>Fecha/Hora</th>
-                <th>Agente</th>
+                <th>Fecha Cierre</th>
                 <th>Turno</th>
-                <th>Radios/Equipo</th>
+                <th>Oficial Saliente</th>
+                <th>Estado Caseta</th>
                 <th>Proveedores/Servicios</th>
-                <th>Novedades</th>
+                <th>Acción</th>
             </tr>
         </thead>
         <tbody id="tablaBody"></tbody>
@@ -56,8 +59,8 @@
 <div id="modalNovedades" class="modal">
     <div class="modal-content">
         <div class="modal-header" id="modalTitulo"></div>
-        <div id="modalCuerpo" style="white-space: pre-wrap; line-height: 1.6;"></div>
-        <button onclick="cerrarModal()" style="margin-top:20px; padding:10px 20px; background:#c0392b; color:white; border:none; border-radius:5px; cursor:pointer;">Cerrar</button>
+        <div id="modalCuerpo" style="white-space: pre-wrap; line-height: 1.5; font-size: 14px;"></div>
+        <button onclick="cerrarModal()" style="margin-top:20px; padding:10px 20px; background:#c0392b; color:white; border:none; border-radius:5px; cursor:pointer; width: 100%; font-weight: bold;">CERRAR REPORTE</button>
     </div>
 </div>
 
@@ -80,7 +83,7 @@
 
     window.cargarDatos = async () => {
         const tbody = document.getElementById('tablaBody');
-        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Buscando reportes...</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Buscando reportes en la base de datos...</td></tr>";
         
         try {
             const q = query(collection(db, "bitacora_caseta"), orderBy("timestamp", "desc"));
@@ -98,41 +101,83 @@
         const tbody = document.getElementById('tablaBody');
         tbody.innerHTML = "";
 
-        // Ajuste de formato de fecha para búsqueda
         let fechaBuscada = "";
         if(fFecha) {
             const [y, m, d] = fFecha.split('-');
-            fechaBuscada = `${parseInt(d)}/${parseInt(m)}/${y}`;
+            fechaBuscada = `${y}-${m}-${d}`; // Coincide con el formato del input date
         }
 
         registros.forEach((r, index) => {
-            const textoProveedores = `${r.accesos.servicios} ${r.accesos.proveedores_autoridades} ${r.accesos.colados_obras}`.toLowerCase();
+            const proveedoresTexto = (r.accesos.proveedores_autoridades || "").toLowerCase();
+            const busquedaAgentes = (r.busqueda_agentes || r.oficial_saliente).toLowerCase();
             
-            if(fechaBuscada && !r.fecha_cierre.includes(fechaBuscada)) return;
-            if(fAgente && !r.oficial.toLowerCase().includes(fAgente)) return;
-            if(fProv && !textoProveedores.includes(fProv)) return;
+            if(fechaBuscada && r.fecha_cierre !== fechaBuscada) return;
+            // Busca en el oficial saliente o en los oficiales a los que se les asignó radio
+            if(fAgente && !busquedaAgentes.includes(fAgente)) return;
+            if(fProv && !proveedoresTexto.includes(fProv)) return;
+
+            const badgeLimpieza = r.limpieza.includes('Sí') ? `<span class="badge-limpio">LIMPIA</span>` : `<span class="badge-sucio">SUCIA</span>`;
 
             tbody.innerHTML += `
                 <tr>
-                    <td>${r.fecha_hora_registro}</td>
-                    <td><b>${r.oficial}</b></td>
+                    <td>${r.fecha_cierre}<br><small>${r.fecha_hora_registro.split(',')[1]}</small></td>
                     <td>${r.turno}</td>
-                    <td>Radios: ${r.inventario.radios}<br>Llaves: ${r.inventario.llaves_equipo}</td>
-                    <td><small>${r.accesos.proveedores_autoridades.substring(0,60)}...</small></td>
-                    <td><button class="btn-detalle" onclick="verDetalle(${index})">🔎 Ver Novedades</button></td>
+                    <td><b>${r.oficial_saliente}</b></td>
+                    <td>${badgeLimpieza}</td>
+                    <td><small>${(r.accesos.proveedores_autoridades || "Sin novedad").substring(0,50)}...</small></td>
+                    <td><button class="btn-detalle" onclick="verDetalle(${index})">🔎 VER DETALLES</button></td>
                 </tr>
             `;
         });
+        
+        if(tbody.innerHTML === "") {
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No se encontraron reportes con esos filtros.</td></tr>";
+        }
     };
 
     window.verDetalle = (i) => {
         const r = registros[i];
-        document.getElementById('modalTitulo').innerText = `NOVEDADES: ${r.oficial} (${r.fecha_cierre})`;
+        document.getElementById('modalTitulo').innerText = `TURNO: ${r.turno} | FECHA: ${r.fecha_cierre}`;
+        
+        let radiosAsignadosHtml = "";
+        if(r.inventario.asignacion_radios && r.inventario.asignacion_radios.length > 0) {
+            radiosAsignadosHtml = r.inventario.asignacion_radios.join('<br>• ');
+        } else {
+            radiosAsignadosHtml = "No se especificó la asignación detallada.";
+        }
+
         document.getElementById('modalCuerpo').innerHTML = `
-            <strong>INVENTARIO:</strong> ${r.inventario.llaves_equipo}<br><br>
-            <strong>PROVEEDORES/SERVICIOS:</strong><br>${r.accesos.proveedores_autoridades}<br><br>
-            <strong>COLADOS/OBRAS:</strong><br>${r.accesos.colados_obras}<br><br>
-            <strong>NOVEDADES GENERALES:</strong><br>${r.novedades_generales}
+            <div class="bloque-info">
+                <strong>👮 Oficial que entrega:</strong> ${r.oficial_saliente}<br>
+                <strong>🧹 Limpieza:</strong> ${r.limpieza}
+            </div>
+            
+            <div class="bloque-info">
+                <strong>📻 ASIGNACIÓN DE RADIOS:</strong><br>
+                • ${radiosAsignadosHtml}
+            </div>
+
+            <div class="bloque-info">
+                <strong>✅ RADIOS FÍSICOS PRESENTES:</strong><br>
+                ${r.inventario.radios_presentes}<br><br>
+                <strong>🔑 EQUIPO ADICIONAL:</strong><br>
+                ${r.inventario.llaves_equipo}
+            </div>
+
+            <div class="bloque-info">
+                <strong>⛽ VALES DE GASOLINA EMITIDOS:</strong><br>
+                ${r.inventario.vales_gasolina}
+            </div>
+
+            <div class="bloque-info">
+                <strong>🚚 PROVEEDORES Y ACCESOS:</strong><br>
+                ${r.accesos.proveedores_autoridades}
+            </div>
+
+            <div class="bloque-info" style="border-left-color: #f1c40f;">
+                <strong>📝 NOVEDADES GENERALES:</strong><br>
+                ${r.novedades_generales}
+            </div>
         `;
         document.getElementById('modalNovedades').style.display = 'flex';
     };
