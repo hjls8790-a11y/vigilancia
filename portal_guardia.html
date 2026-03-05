@@ -3,120 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Operativo | Seguridad Integral</title>
+    <title>Portal del Guardia | Seguridad Integral</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #1a2a3a; 
-            color: white; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        .header h1 { margin: 0; font-size: 22px; color: #ecf0f1; text-transform: uppercase; }
-        .header p { margin: 5px 0 0 0; font-size: 14px; color: #3498db; letter-spacing: 2px; }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn-portal {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .btn-portal:active { transform: scale(0.95); }
-
-        .icon { font-size: 30px; margin-right: 15px; min-width: 40px; text-align: center; }
-        .text-group { display: flex; flex-direction: column; }
-        .subtitle { font-size: 12px; font-weight: normal; opacity: 0.8; margin-top: 4px; }
-
-        /* Colores Específicos */
-        .btn-rondin { background: linear-gradient(135deg, #2980b9, #2c3e50); }
-        .btn-motos { background: linear-gradient(135deg, #f39c12, #d35400); color: #1a2a3a; }
-        .btn-ventas { background: linear-gradient(135deg, #8e44ad, #2c3e50); }
-        .btn-caseta { background: linear-gradient(135deg, #16a085, #2c3e50); }
-
-        footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            font-size: 11px;
-            color: #7f8c8d;
-            text-align: center;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .form-container { width: 100%; max-width: 500px; background: #2c3e50; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h1 { text-align: center; color: #3498db; margin-bottom: 20px; text-transform: uppercase; }
+        .section-title { background: #34495e; padding: 10px; border-radius: 5px; font-weight: bold; margin: 20px 0 10px 0; text-align: center; }
+        label { display: block; margin-top: 15px; font-size: 14px; color: #bdc3c7; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #7f8c8d; background: #34495e; color: white; box-sizing: border-box; }
+        button { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🛡️ Portal del Guardia</h1>
-        <p>SEGURIDAD OPERATIVA</p>
-    </div>
-
-    <div class="container">
+    <div class="form-container">
+        <h1>📱 Portal del Guardia</h1>
         
-        <a href="index.html" class="btn-portal btn-rondin">
-            <div class="icon">🚶‍♂️</div>
-            <div class="text-group">
-                RONDINES Y ASISTENCIA
-                <span class="subtitle">Entradas, salidas y puntos de control</span>
-            </div>
-        </a>
-
-        <a href="registro_motos.html" class="btn-portal btn-motos">
-            <div class="icon">🏍️</div>
-            <div class="text-group">
-                INSPECCIÓN DE MOTOS
-                <span class="subtitle">Check-list antes del turno</span>
-            </div>
-        </a>
-
-        <a href="cierre_turno.html" class="btn-portal btn-caseta">
-            <div class="icon">📋</div>
-            <div class="text-group">
-                BITÁCORA DE CASETA
-                <span class="subtitle">Cierre de turno, inventario y proveedores</span>
-            </div>
-        </a>
-
-        <a href="ventas_club.html" class="btn-portal btn-ventas">
-            <div class="icon">💰</div>
-            <div class="text-group">
-                REGISTRO DE VENTAS
-                <span class="subtitle">Ingresos y cobros del Club</span>
-            </div>
-        </a>
-
+        <div class="section-title">📝 REGISTRO DE ACCESOS</div>
+        <label>Tipo de movimiento:</label>
+        <select id="tipo_movimiento">
+            <option value="Entrada">📥 Entrada</option>
+            <option value="Salida">📤 Salida</option>
+        </select>
+        
+        <label>Persona / Proveedor / Vehículo:</label>
+        <input type="text" id="nombre_visitante" placeholder="Ej. Proveedor CFE, Vecino Casa 4, etc.">
+        
+        <label>Motivo:</label>
+        <input type="text" id="motivo" placeholder="Ej. Reparación, Visita, Entrega">
+        
+        <label>Observaciones:</label>
+        <textarea id="observaciones" placeholder="Detalles adicionales..."></textarea>
+        
+        <button onclick="registrarAcceso()">💾 GUARDAR ACCESO</button>
     </div>
 
-    <footer>
-        SISTEMA INTEGRAL DE SEGURIDAD <br>
-        © 2026 Culiacán, Sinaloa.
-    </footer>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // TU CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.registrarAcceso = async () => {
+            const nombre = document.getElementById('nombre_visitante').value;
+            const motivo = document.getElementById('motivo').value;
+
+            if(!nombre || !motivo) return alert("Por favor llena los campos obligatorios.");
+
+            try {
+                await addDoc(collection(db, "bitacora_accesos"), {
+                    tipo: document.getElementById('tipo_movimiento').value,
+                    quien: nombre,
+                    motivo: motivo,
+                    observaciones: document.getElementById('observaciones').value,
+                    fecha_hora: new Date().toLocaleString('es-MX'),
+                    timestamp: Date.now()
+                });
+                alert("✅ Acceso registrado correctamente.");
+                // Limpiar campos
+                document.getElementById('nombre_visitante').value = "";
+                document.getElementById('motivo').value = "";
+                document.getElementById('observaciones').value = "";
+            } catch (e) {
+                alert("Error al guardar: " + e.message);
+            }
+        };
+    </script>
 </body>
 </html>
