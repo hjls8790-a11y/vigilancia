@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ing. Hugo Lizárraga | Seguridad Integral</title>
+    <title>Ingeniero Hugo Lizárraga | Seguridad Integral</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .marca-personal { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #3498db; padding-bottom: 15px; width: 100%; max-width: 900px; }
@@ -15,7 +15,14 @@
         .btn { padding: 18px; border-radius: 12px; text-align: center; text-decoration: none; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
         .btn span { font-size: 12px; font-weight: normal; margin-top: 5px; opacity: 0.8; }
         .btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
-        .btn-blue { background: #2980b9; } .btn-purple { background: #8e44ad; } .btn-green { background: #27ae60; } .btn-yellow { background: #f39c12; color: #1a2a3a; } .btn-cyan { background: #16a085; } .btn-dark { background: #2c3e50; border: 1px solid #3498db; }
+        
+        /* Colores de los botones */
+        .btn-blue { background: #2980b9; } 
+        .btn-cyan { background: #16a085; } 
+        .btn-yellow { background: #f39c12; color: #1a2a3a; } 
+        .btn-purple { background: #8e44ad; } 
+        .btn-green { background: #27ae60; } 
+        .btn-dark { background: #2c3e50; border: 1px solid #3498db; }
     </style>
 </head>
 <body>
@@ -29,14 +36,21 @@
         
         <div class="section-title">📊 ADMINISTRACIÓN Y NOVEDADES</div>
         <div class="grid">
+            <a href="bitacora_accesos.html" class="btn btn-blue">
+                📝 BITÁCORA DE ACCESOS
+                <span>Registro de entradas y salidas</span>
+            </a>
+            
             <a href="ver_bitacora_caseta.html" class="btn btn-cyan">
                 📋 BITÁCORA DE CASETA
                 <span>Revisar novedades y proveedores</span>
             </a>
+            
             <a href="bitacora_motos.html" class="btn btn-yellow">
                 🏍️ REPORTE DE MOTOS
                 <span>Auditoría de unidades motorizadas</span>
             </a>
+            
             <a href="ventas_club.html" class="btn btn-purple">
                 💰 REGISTRO DE VENTAS
                 <span>Control de ingresos del Club</span>
@@ -49,6 +63,7 @@
                 🗺️ MONITOREO MAESTRO
                 <span>Rondines, GPS y Asistencia</span>
             </a>
+            
             <a href="portal_guardia.html" class="btn btn-dark">
                 📱 PORTAL DEL GUARDIA
                 <span>Ver qué ven los oficiales (Link operativo)</span>
@@ -57,7 +72,7 @@
 
     </div>
 
-    <footer style="margin-top: 40px; font-size: 11px; color: #7f8c8d;">
+    <footer style="margin-top: 40px; font-size: 11px; color: #7f8c8d; text-align: center;">
         © 2026 - SISTEMA INTEGRAL DE SEGURIDAD
     </footer>
 
