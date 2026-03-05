@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Operativo | Registro de Guardia</title>
+    <title>Portal Operativo | Captura de Datos</title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -14,30 +14,36 @@
             flex-direction: column; 
             align-items: center; 
             padding: 20px;
+            min-height: 100vh;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             width: 100%;
             max-width: 500px;
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 22px;
             color: #3498db;
             margin: 0;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .header p {
-            font-size: 14px;
-            color: #e74c3c; /* Rojo suave para indicar que es área de REGISTRO */
+        .header .subtitle {
+            font-size: 13px;
+            color: #e74c3c;
             font-weight: bold;
             margin-top: 5px;
-            text-transform: uppercase;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 5px;
+            border-radius: 5px;
+            display: inline-block;
         }
 
+        /* Contenedor de botones */
         .grid-portal {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -51,88 +57,104 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 25px 10px;
-            border-radius: 15px;
+            padding: 22px 10px;
+            border-radius: 12px;
             text-decoration: none;
             color: white;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             text-align: center;
-            transition: transform 0.2s, background 0.2s;
+            transition: all 0.2s;
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .btn-portal:active {
             transform: scale(0.95);
+            filter: brightness(0.8);
         }
 
-        /* Colores de botones operativos */
-        .btn-turno { background: #2980b9; }  /* Registro de Turno */
-        .btn-acceso { background: #27ae60; } /* Registro de Accesos */
-        .btn-motos { background: #f39c12; }  /* Registro de Motos */
-        .btn-ventas { background: #8e44ad; } /* Registro de Ventas */
+        .btn-portal span {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        /* Colores para identificación rápida */
+        .btn-turno { background: #2980b9; }  /* Azul: Operativo */
+        .btn-acceso { background: #27ae60; } /* Verde: Entradas */
+        .btn-motos { background: #f39c12; }  /* Naranja: Unidades */
+        .btn-ventas { background: #8e44ad; } /* Morado: Dinero */
         
         .btn-inicio { 
             background: #34495e; 
             grid-column: span 2; 
             margin-top: 15px;
             border: 1px solid #3498db;
+            flex-direction: row;
+            gap: 15px;
         }
 
-        .reloj {
-            margin-top: 30px;
-            font-size: 18px;
+        .status-bar {
+            margin-top: auto;
+            padding: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        #reloj {
+            font-size: 16px;
             color: #3498db;
             font-weight: bold;
-            background: rgba(0,0,0,0.3);
-            padding: 10px 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 20px;
             border-radius: 20px;
-            border: 1px solid #34495e;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🛡️ Portal Operativo</h1>
-        <p>🔴 ÁREA DE REGISTRO Y CAPTURA</p>
+        <h1>🛡️ PORTAL DEL GUARDIA</h1>
+        <div class="subtitle">🔴 SOLO REGISTRO DE NOVEDADES</div>
     </div>
 
     <div class="grid-portal">
         <a href="cierre_turno.html" class="btn-portal btn-turno">
-            <span style="font-size: 35px;">📝</span><br>
-            REGISTRAR<br>CIERRE DE TURNO
+            <span>📋</span>
+            REGISTRO DE<br>CIERRE DE TURNO
         </a>
 
         <a href="bitacora_accesos.html" class="btn-portal btn-acceso">
-            <span style="font-size: 35px;">📥</span><br>
-            REGISTRAR<br>ENTRADA / SALIDA
+            <span>📥</span>
+            REGISTRO DE<br>ACCESOS
         </a>
 
         <a href="bitacora_motos.html" class="btn-portal btn-motos">
-            <span style="font-size: 35px;">🏍️</span><br>
-            REGISTRAR<br>ESTADO DE MOTOS
+            <span>🏍️</span>
+            REGISTRO DE<br>MOTOS
         </a>
 
         <a href="ventas_club.html" class="btn-portal btn-ventas">
-            <span style="font-size: 35px;">💰</span><br>
-            REGISTRAR<br>VENTAS DEL CLUB
+            <span>💰</span>
+            REGISTRO DE<br>VENTAS
         </a>
 
         <a href="index.html" class="btn-portal btn-inicio">
-            <span style="font-size: 24px;">🏠</span><br>
-            SALIR AL MENÚ PRINCIPAL
+            <span style="font-size: 24px;">🏠</span>
+            VOLVER AL MENÚ PRINCIPAL
         </a>
     </div>
 
-    <div class="reloj" id="reloj">--:--:--</div>
+    <div class="status-bar">
+        <div id="reloj">--:--:--</div>
+    </div>
 
     <script>
         function actualizarReloj() {
             const ahora = new Date();
             const opciones = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            document.getElementById('reloj').innerText = "HORA LOCAL: " + ahora.toLocaleTimeString('es-MX', opciones);
+            document.getElementById('reloj').innerText = "HORA OPERATIVA: " + ahora.toLocaleTimeString('es-MX', opciones);
         }
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
