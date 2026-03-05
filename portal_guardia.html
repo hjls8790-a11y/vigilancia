@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal del Guardia | Seguridad Integral</title>
+    <title>Portal Operativo | Registro de Guardia</title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -32,11 +32,12 @@
 
         .header p {
             font-size: 14px;
-            color: #bdc3c7;
+            color: #e74c3c; /* Rojo suave para indicar que es área de REGISTRO */
+            font-weight: bold;
             margin-top: 5px;
+            text-transform: uppercase;
         }
 
-        /* Contenedor de botones en cuadrícula */
         .grid-portal {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -59,27 +60,24 @@
             text-align: center;
             transition: transform 0.2s, background 0.2s;
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .btn-portal:active {
             transform: scale(0.95);
         }
 
-        .btn-portal i {
-            font-size: 30px;
-            margin-bottom: 10px;
-        }
-
-        /* Colores específicos para identificar rápido */
-        .btn-turno { background: #2980b9; }  /* Azul */
-        .btn-acceso { background: #27ae60; } /* Verde */
-        .btn-motos { background: #f39c12; }  /* Naranja */
-        .btn-ventas { background: #8e44ad; } /* Morado */
+        /* Colores de botones operativos */
+        .btn-turno { background: #2980b9; }  /* Registro de Turno */
+        .btn-acceso { background: #27ae60; } /* Registro de Accesos */
+        .btn-motos { background: #f39c12; }  /* Registro de Motos */
+        .btn-ventas { background: #8e44ad; } /* Registro de Ventas */
+        
         .btn-inicio { 
             background: #34495e; 
-            grid-column: span 2; /* Este botón ocupa todo el ancho */
-            margin-top: 10px;
+            grid-column: span 2; 
+            margin-top: 15px;
+            border: 1px solid #3498db;
         }
 
         .reloj {
@@ -87,9 +85,10 @@
             font-size: 18px;
             color: #3498db;
             font-weight: bold;
-            background: rgba(0,0,0,0.2);
-            padding: 10px 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 25px;
             border-radius: 20px;
+            border: 1px solid #34495e;
         }
     </style>
 </head>
@@ -97,44 +96,43 @@
 
     <div class="header">
         <h1>🛡️ Portal Operativo</h1>
-        <p>Selecciona la acción a realizar</p>
+        <p>🔴 ÁREA DE REGISTRO Y CAPTURA</p>
     </div>
 
     <div class="grid-portal">
         <a href="cierre_turno.html" class="btn-portal btn-turno">
-            <span style="font-size: 30px;">📋</span><br>
-            CIERRE DE TURNO
+            <span style="font-size: 35px;">📝</span><br>
+            REGISTRAR<br>CIERRE DE TURNO
         </a>
 
         <a href="bitacora_accesos.html" class="btn-portal btn-acceso">
-            <span style="font-size: 30px;">📝</span><br>
-            REGISTRO ACCESOS
+            <span style="font-size: 35px;">📥</span><br>
+            REGISTRAR<br>ENTRADA / SALIDA
         </a>
 
         <a href="bitacora_motos.html" class="btn-portal btn-motos">
-            <span style="font-size: 30px;">🏍️</span><br>
-            REGISTRO MOTOS
+            <span style="font-size: 35px;">🏍️</span><br>
+            REGISTRAR<br>ESTADO DE MOTOS
         </a>
 
         <a href="ventas_club.html" class="btn-portal btn-ventas">
-            <span style="font-size: 30px;">💰</span><br>
-            REGISTRO VENTAS
+            <span style="font-size: 35px;">💰</span><br>
+            REGISTRAR<br>VENTAS DEL CLUB
         </a>
 
         <a href="index.html" class="btn-portal btn-inicio">
             <span style="font-size: 24px;">🏠</span><br>
-            VOLVER AL MENÚ PRINCIPAL
+            SALIR AL MENÚ PRINCIPAL
         </a>
     </div>
 
-    <div class="reloj" id="reloj">Cargando hora...</div>
+    <div class="reloj" id="reloj">--:--:--</div>
 
     <script>
-        // Reloj en tiempo real para el guardia
         function actualizarReloj() {
             const ahora = new Date();
             const opciones = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            document.getElementById('reloj').innerText = ahora.toLocaleTimeString('es-MX', opciones);
+            document.getElementById('reloj').innerText = "HORA LOCAL: " + ahora.toLocaleTimeString('es-MX', opciones);
         }
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
