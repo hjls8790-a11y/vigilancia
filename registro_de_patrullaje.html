@@ -3,121 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Arribo - Prevención</title>
+    <title>Registro de Patrullaje - El Cielo</title>
     <style>
         :root {
-            --primary: #1A252C; /* Azul marino seguridad */
-            --success: #28B463; /* Verde confirmación */
+            --primary: #1A252C; 
+            --success: #28B463; 
             --text: #333;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 0;
-            color: var(--text);
-        }
-        .header {
-            background-color: var(--primary);
-            color: white;
-            text-align: center;
-            padding: 20px 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .header h2 {
-            margin: 5px 0 0 0;
-            font-size: 0.9rem;
-            font-weight: 300;
-            color: #AAB7B8;
-        }
-        .header p {
-            margin: 5px 0 0 0;
-            font-size: 0.8rem;
-            font-style: italic;
-            color: #F1C40F;
-        }
-        .container {
-            padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: var(--primary);
-        }
-        select, input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #BDC3C7;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            background-color: white;
-        }
-        select:focus, input:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
-        /* Estilos para los distintivos de colores */
-        .distintivos-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .distintivo-btn {
-            padding: 15px;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .distintivo-btn input {
-            display: none; /* Ocultar el circulo del radio button */
-        }
-        /* Colores de los botones */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: var(--text); }
+        .header { background-color: var(--primary); color: white; text-align: center; padding: 20px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        .header h2 { margin: 5px 0 0 0; font-size: 0.9rem; font-weight: 300; color: #AAB7B8; }
+        .header p { margin: 5px 0 0 0; font-size: 0.8rem; font-style: italic; color: #F1C40F; }
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
+        select, input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background-color: white; }
+        select:focus, input:focus { border-color: var(--primary); outline: none; }
+        
+        /* Sección de Vehículo */
+        .vehiculo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .vehiculo-placas { grid-column: span 2; }
+
+        /* Distintivos */
+        .distintivos-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .distintivo-btn { padding: 15px; border: 2px solid transparent; border-radius: 8px; font-weight: bold; text-align: center; color: #333; cursor: pointer; transition: 0.2s; }
+        .distintivo-btn input { display: none; }
         .btn-amarillo { background-color: #F1C40F; }
         .btn-naranja { background-color: #E67E22; color: white; }
         .btn-verde { background-color: #2ECC71; color: white; }
         .btn-gris { background-color: #95A5A6; color: white; }
+        .distintivo-btn.selected { border: 3px solid var(--primary); transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
         
-        /* Efecto al seleccionar un distintivo */
-        .distintivo-btn.selected {
-            border: 3px solid var(--primary);
-            transform: scale(0.98);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-        }
-        .submit-btn {
-            width: 100%;
-            background-color: var(--success);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            margin-top: 10px;
-        }
-        .submit-btn:active {
-            background-color: #1E8449;
-            transform: scale(0.98);
-        }
+        .submit-btn { width: 100%; background-color: var(--success); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-top: 10px; }
+        .back-btn { display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -129,11 +48,11 @@
     </div>
 
     <div class="container">
-        <form id="formArribo">
+        <form id="formArribo" name="submit-to-google-sheet">
             
             <div class="form-group">
                 <label for="calle">Calle de Destino:</label>
-                <select id="calle" required>
+                <select id="calle" name="Calle" required>
                     <option value="" disabled selected>Selecciona la calle...</option>
                     <option value="Zona Común">Zona Común</option>
                     <option value="Aurora">Aurora</option>
@@ -159,12 +78,12 @@
 
             <div class="form-group">
                 <label for="numero">Número de Domicilio:</label>
-                <input type="number" id="numero" placeholder="Ej. 124" required>
+                <input type="number" id="numero" name="Numero" placeholder="Ej. 124" required>
             </div>
 
             <div class="form-group">
                 <label for="tipo_visita">Tipo de Acceso / Visita:</label>
-                <select id="tipo_visita" required>
+                <select id="tipo_visita" name="Tipo_Visita" required>
                     <option value="" disabled selected>Selecciona el tipo...</option>
                     <option value="Proveedor de obra">Proveedor de obra</option>
                     <option value="Proveedor de gas">Proveedor de gas</option>
@@ -177,63 +96,98 @@
                 </select>
             </div>
 
+            <div class="form-group vehiculo-grid">
+                <div class="vehiculo-placas">
+                    <label for="placas">Placas del Vehículo:</label>
+                    <input type="text" id="placas" name="Placas" placeholder="Ej. VHG-123-A (Opcional)">
+                </div>
+                <div>
+                    <label for="marca">Marca:</label>
+                    <input type="text" id="marca" name="Marca" placeholder="Ej. Nissan">
+                </div>
+                <div>
+                    <label for="color">Color:</label>
+                    <input type="text" id="color" name="Color" placeholder="Ej. Blanco">
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Distintivo de Identificación:</label>
                 <div class="distintivos-container">
                     <label class="distintivo-btn btn-amarillo" id="lbl-amarillo">
-                        <input type="radio" name="distintivo" value="Amarillo" required onclick="seleccionarDistintivo('lbl-amarillo')"> Amarillo
+                        <input type="radio" name="Distintivo" value="Amarillo" required onclick="seleccionarDistintivo('lbl-amarillo')"> Amarillo
                     </label>
                     <label class="distintivo-btn btn-naranja" id="lbl-naranja">
-                        <input type="radio" name="distintivo" value="Naranja" onclick="seleccionarDistintivo('lbl-naranja')"> Naranja
+                        <input type="radio" name="Distintivo" value="Naranja" onclick="seleccionarDistintivo('lbl-naranja')"> Naranja
                     </label>
                     <label class="distintivo-btn btn-verde" id="lbl-verde">
-                        <input type="radio" name="distintivo" value="Verde" onclick="seleccionarDistintivo('lbl-verde')"> Verde
+                        <input type="radio" name="Distintivo" value="Verde" onclick="seleccionarDistintivo('lbl-verde')"> Verde
                     </label>
                     <label class="distintivo-btn btn-gris" id="lbl-gris">
-                        <input type="radio" name="distintivo" value="Gris" onclick="seleccionarDistintivo('lbl-gris')"> Gris
+                        <input type="radio" name="Distintivo" value="Gris" onclick="seleccionarDistintivo('lbl-gris')"> Gris
                     </label>
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn">📍 Confirmar Arribo</button>
+            <input type="hidden" id="hora_registro" name="Hora_Arribo">
+
+            <button type="submit" class="submit-btn">📍 Enviar Arribo a Caseta</button>
+            <a href="index.html" class="back-btn">⬅️ Volver al Panel Principal</a>
         </form>
     </div>
 
     <script>
-        // Función para cambiar el estilo visual del distintivo seleccionado
         function seleccionarDistintivo(idLabel) {
-            // Quitar la clase 'selected' de todos los botones
             let etiquetas = document.getElementsByClassName('distintivo-btn');
-            for(let i = 0; i < etiquetas.length; i++) {
-                etiquetas[i].classList.remove('selected');
-            }
-            // Añadir la clase 'selected' solo al presionado
+            for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
             document.getElementById(idLabel).classList.add('selected');
         }
 
-        // Función al presionar Confirmar Arribo
         document.getElementById('formArribo').addEventListener('submit', function(e) {
-            e.preventDefault(); // Evita que la página se recargue
+            e.preventDefault(); 
 
             // Recolectar datos
             let calle = document.getElementById('calle').value;
             let numero = document.getElementById('numero').value;
             let tipo = document.getElementById('tipo_visita').value;
-            let distintivo = document.querySelector('input[name="distintivo"]:checked').value;
+            let distintivo = document.querySelector('input[name="Distintivo"]:checked').value;
             
-            // Obtener la hora exacta del dispositivo
+            // Datos del vehículo
+            let placas = document.getElementById('placas').value || "N/A";
+            let marca = document.getElementById('marca').value || "N/A";
+            let color = document.getElementById('color').value || "N/A";
+            
             let fecha = new Date();
             let horaExacta = fecha.getHours() + ":" + (fecha.getMinutes() < 10 ? '0' : '') + fecha.getMinutes();
-
-            // Mensaje de éxito en pantalla
-            alert("✅ ARRIBO CONFIRMADO\n\nHora: " + horaExacta + "\nDestino: " + calle + " #" + numero + "\nTipo: " + tipo + "\nDistintivo: " + distintivo);
             
-            // Limpiar el formulario para el siguiente registro
+            // Guardar hora en el campo oculto para Google Sheets
+            document.getElementById('hora_registro').value = horaExacta;
+
+            // 1. CREAR EL MENSAJE PARA WHATSAPP
+            let mensajeWA = `🚨 *ARRIBO CONFIRMADO* 🚨\n\n` +
+                            `📍 *Destino:* ${calle} #${numero}\n` +
+                            `👤 *Motivo:* ${tipo}\n` +
+                            `🚗 *Vehículo:* ${marca} ${color} / Placas: ${placas}\n` +
+                            `🏷️ *Distintivo:* ${distintivo}\n` +
+                            `⏰ *Hora de llegada:* ${horaExacta}\n\n` +
+                            `_Reporte generado por Agente en Patrullaje._`;
+
+            // Número de caseta (ya configurado)
+            let numeroCaseta = "526692486726";
+            
+            // Codificar el texto para que la URL no se rompa
+            let urlWhatsapp = `https://api.whatsapp.com/send?phone=${numeroCaseta}&text=${encodeURIComponent(mensajeWA)}`;
+
+            // 2. ABRIR WHATSAPP AUTOMÁTICAMENTE
+            window.open(urlWhatsapp, '_blank');
+
+            // 3. LIMPIAR EL FORMULARIO
             document.getElementById('formArribo').reset();
             let etiquetas = document.getElementsByClassName('distintivo-btn');
-            for(let i = 0; i < etiquetas.length; i++) {
-                etiquetas[i].classList.remove('selected');
-            }
+            for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
+            
+            // NOTA: La conexión a Google Sheets se programa en el siguiente paso.
+            alert("Redirigiendo a WhatsApp. Se enviará el reporte a Caseta.");
         });
     </script>
 </body>
