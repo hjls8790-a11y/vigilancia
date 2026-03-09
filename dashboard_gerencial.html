@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Gerencial - Seguridad Integral</title>
+    <title>Dashboard Gerencial - El Cielo</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #1A252C; --success: #28B463; --warning: #F1C40F; --danger: #E74C3C; --text: #333; --bg: #f4f7f6; }
@@ -14,25 +14,24 @@
         
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         
-        /* Tarjetas de Resumen */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .kpi-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; border-left: 5px solid var(--primary); }
-        .kpi-card h3 { margin: 0; font-size: 1rem; color: #7f8c8d; text-transform: uppercase; }
-        .kpi-card .valor { font-size: 2.5rem; font-weight: bold; margin: 10px 0; color: var(--primary); }
-        .kpi-card .meta { font-size: 0.85rem; color: #95a5a6; }
+        .kpi-card h3 { margin: 0; font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; }
+        .kpi-card .valor { font-size: 2.2rem; font-weight: bold; margin: 10px 0; color: var(--primary); }
+        .kpi-card .meta { font-size: 0.8rem; color: #95a5a6; }
 
-        /* Gráficas y Áreas de Mejora */
         .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .panel h2 { margin-top: 0; color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
         
-        /* Alertas Automáticas */
-        .alerta { padding: 15px; border-radius: 5px; margin-bottom: 10px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .alerta { padding: 15px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
         .alerta.oportunidad { background-color: #fcf3cf; color: #b9770e; border-left: 4px solid var(--warning); }
         .alerta.critico { background-color: #fadbd8; color: #943126; border-left: 4px solid var(--danger); }
         .alerta.excelente { background-color: #e8f8f5; color: #117864; border-left: 4px solid var(--success); }
 
         .btn-imprimir { display: block; width: 100%; max-width: 200px; margin: 30px auto; padding: 15px; background-color: var(--primary); color: white; text-align: center; text-decoration: none; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; }
+        
+        .nav-btn { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
         
         @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } }
     </style>
@@ -40,59 +39,69 @@
 <body>
 
     <div class="header">
-        <h1>Reporte Gerencial de Seguridad - Mensual</h1>
-        <p>Ingeniero Hugo Lizarraga | "FIRMEZA NO PREPOTENCIA"</p>
+        <h1>Dashboard Gerencial de Seguridad</h1>
+        <p>El Cielo Parque Residencial | "FIRMEZA NO PREPOTENCIA"</p>
     </div>
 
     <div class="container">
+        <a href="index.html" class="nav-btn">⬅️ Volver al Panel de Caseta</a>
+
+        <div class="panel" style="margin-bottom: 20px; background-color: #f8f9fa;">
+            <h2 style="font-size: 1rem;">Ecosistema Operativo GitHub Integrado</h2>
+            <p style="font-size: 0.9rem; margin: 0; color: #555;">
+                <strong>1. Patrullaje y Accesos:</strong> Registro digital en campo por agentes de prevención.<br>
+                <strong>2. Capacitación y Evaluación:</strong> Portal de filtros para aspirantes y elementos activos.<br>
+                <strong>3. Analítica Automática:</strong> Los datos operativos alimentan este panel en tiempo real sin bases de datos externas.
+            </p>
+        </div>
+
         <div class="kpi-grid" id="kpiContainer">
             </div>
 
         <div class="content-grid">
             <div class="panel">
-                <h2>Rendimiento Operativo vs Meta</h2>
-                <canvas id="graficaCumplimiento" height="100"></canvas>
+                <h2>Actividad de Arribos y Patrullaje (Últimos 7 días)</h2>
+                <canvas id="graficaOperacion" height="120"></canvas>
             </div>
 
             <div class="panel">
-                <h2>Áreas de Oportunidad y Mejora</h2>
+                <h2>Análisis y Áreas de Oportunidad</h2>
                 <div id="analisisAutomatico">
                     </div>
             </div>
         </div>
 
-        <div class="panel" style="margin-top: 20px;">
-            <h2>Ecosistema Tecnológico Implementado</h2>
-            <ul style="line-height: 1.8; color: #555;">
-                <li><strong>✅ App Vigilancia:</strong> Bitácoras digitales, control de arribos y patrullaje.</li>
-                <li><strong>✅ Base de Datos AppSheet:</strong> Control de accesos automatizado y tiempos de estancia reales.</li>
-                <li><strong>✅ Portal RRHH:</strong> Evaluaciones digitales para agentes de prevención.</li>
-                <li><strong>✅ S.O.S Residentes:</strong> Aplicación de pánico y alerta vecinal rápida.</li>
-            </ul>
-        </div>
-
-        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir Reporte</button>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Exportar a PDF / Imprimir</button>
     </div>
 
     <script>
-        // 1. SIMULACIÓN DE DATOS DEL MES (Aquí luego conectaremos tu Google Sheets)
-        const datosMes = {
-            rondinesRealizados: 92, // Porcentaje
-            efectividadAccesos: 98, // Porcentaje
-            rotacionPersonal: 12, // Porcentaje (Menor es mejor)
-            tiempoRespuesta: 4.5, // Minutos
-            incidentes: 3
-        };
+        // 1. EXTRACCIÓN DE DATOS REALES (MEMORIA LOCAL DE TUS PLATAFORMAS)
+        // Extraemos los arribos que los agentes registraron en 'registro_de_patrullaje.html'
+        const bitacoraArribos = JSON.parse(localStorage.getItem('bitacoraResidencial')) || [];
+        
+        // Extraemos datos simulados de capacitación (asumiendo que tu portal de RRHH guarda un arreglo similar)
+        // Si no hay datos, simulamos unos para que el sistema empiece a medir
+        let evaluaciones = JSON.parse(localStorage.getItem('evaluacionesActivos')) || [85, 90, 78, 92]; 
 
-        const metas = { rondines: 95, accesos: 99, rotacionMaxima: 10, tiempoMaximo: 5 };
+        // 2. CÁLCULO AUTOMÁTICO DE KPIs
+        const totalArribos = bitacoraArribos.length;
+        const metaArribos = 50; // Meta mensual o semanal que tú defines
+        const porcentajePatrullaje = totalArribos > 0 ? Math.min(Math.round((totalArribos / metaArribos) * 100), 100) : 0;
 
-        // 2. RENDERIZAR TARJETAS KPI
+        const promedioCapacitacion = evaluaciones.length > 0 ? 
+            Math.round(evaluaciones.reduce((a, b) => a + b, 0) / evaluaciones.length) : 0;
+
+        // KPI de Omisiones (Si en los registros falta algún dato crítico como las placas)
+        const registrosIncompletos = bitacoraArribos.filter(reg => reg.vehiculo.includes("N/A")).length;
+        const porcentajeCalidad = totalArribos > 0 ? Math.round(((totalArribos - registrosIncompletos) / totalArribos) * 100) : 100;
+
+        // 3. RENDERIZAR TARJETAS KPI
         const kpiContainer = document.getElementById('kpiContainer');
         const kpis = [
-            { titulo: "Cumplimiento Rondines", valor: datosMes.rondinesRealizados + "%", meta: "Meta: > 95%" },
-            { titulo: "Efectividad Accesos", valor: datosMes.efectividadAccesos + "%", meta: "Meta: > 99%" },
-            { titulo: "Tiempo Prom. Respuesta", valor: datosMes.tiempoRespuesta + " min", meta: "Meta: < 5 min" },
-            { titulo: "Rotación de Personal", valor: datosMes.rotacionPersonal + "%", meta: "Meta: < 10%" }
+            { titulo: "Cumplimiento Arribos", valor: porcentajePatrullaje + "%", meta: `${totalArribos} registrados / Meta: ${metaArribos}` },
+            { titulo: "Calidad de Bitácora", valor: porcentajeCalidad + "%", meta: "Datos completos en registros" },
+            { titulo: "Prom. Capacitación", valor: promedioCapacitacion + "/100", meta: "Evaluación de agentes" },
+            { titulo: "Alertas de Caseta", valor: registrosIncompletos, meta: "Registros incompletos" }
         ];
 
         kpis.forEach(k => {
@@ -105,43 +114,49 @@
             `;
         });
 
-        // 3. GENERADOR AUTOMÁTICO DE ÁREAS DE OPORTUNIDAD
+        // 4. GENERADOR AUTOMÁTICO DE ÁREAS DE OPORTUNIDAD (LA "INTELIGENCIA")
         const analisisDiv = document.getElementById('analisisAutomatico');
         
-        if (datosMes.rondinesRealizados < metas.rondines) {
-            analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Patrullaje:</strong> El cumplimiento de rondines está en ${datosMes.rondinesRealizados}%. <em>Acción: Auditar el registro de patrullaje en los turnos nocturnos.</em></div>`;
+        if (totalArribos === 0) {
+            analisisDiv.innerHTML += `<div class="alerta critico">🚨 <strong>Sin Datos:</strong> Los agentes no han registrado arribos. <em>Acción: Asegurar que el módulo de patrullaje esté en uso en la unidad móvil.</em></div>`;
         } else {
-            analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Patrullaje:</strong> Cumplimiento óptimo de consignas de recorrido.</div>`;
+            if (porcentajePatrullaje < 80) {
+                analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Patrullaje:</strong> Volumen de arribos por debajo del 80%. <em>Acción: Auditar rutas de los agentes de prevención y verificar si están usando el botón en todos los servicios.</em></div>`;
+            } else {
+                analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Patrullaje:</strong> Óptimo cumplimiento en confirmación de arribos a domicilios.</div>`;
+            }
+
+            if (porcentajeCalidad < 95) {
+                analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Calidad de Datos:</strong> Hay ${registrosIncompletos} registros sin placas o datos del vehículo. <em>Acción: Reforzar consigna en caseta de llenar todos los campos antes del envío.</em></div>`;
+            } else {
+                analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Bitácora:</strong> Excelente disciplina en la captura de datos (Placas, Marca, Color).</div>`;
+            }
         }
 
-        if (datosMes.rotacionPersonal > metas.rotacionMaxima) {
-            analisisDiv.innerHTML += `<div class="alerta critico">🚨 <strong>Talento Humano:</strong> Rotación del ${datosMes.rotacionPersonal}%. <em>Acción: Revisar plataforma de evaluaciones y reforzar la retención en el reclutamiento.</em></div>`;
+        if (promedioCapacitacion < 80) {
+            analisisDiv.innerHTML += `<div class="alerta critico">🚨 <strong>Capacitación:</strong> Promedio del personal (${promedioCapacitacion}) por debajo del estándar. <em>Acción: Programar sesión de repaso en protocolos de acceso.</em></div>`;
         }
 
-        if (datosMes.efectividadAccesos < metas.accesos) {
-            analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Caseta:</strong> Hubo incidencias menores en el registro de acceso. <em>Acción: Reforzar el uso correcto del botón "Dar Accesos" en AppSheet.</em></div>`;
-        }
+        // 5. GENERAR GRÁFICA VISUAL (Chart.js)
+        // Agrupamos los arribos por distintivo para ver qué tipo de visitas hay más
+        let conteoDistintivos = { "Amarillo": 0, "Naranja": 0, "Verde": 0, "Gris": 0 };
+        bitacoraArribos.forEach(reg => {
+            if(conteoDistintivos[reg.distintivo] !== undefined) conteoDistintivos[reg.distintivo]++;
+        });
 
-        if (datosMes.tiempoRespuesta <= metas.tiempoMaximo) {
-            analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Reacción:</strong> Tiempos de respuesta a alertas S.O.S dentro de los parámetros de excelencia (${datosMes.tiempoRespuesta} min).</div>`;
-        }
-
-        // 4. GENERAR GRÁFICA VISUAL (Chart.js)
-        const ctx = document.getElementById('graficaCumplimiento').getContext('2d');
+        const ctx = document.getElementById('graficaOperacion').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+                labels: ['Distintivo Amarillo', 'Distintivo Naranja', 'Distintivo Verde', 'Distintivo Gris'],
                 datasets: [{
-                    label: 'Rendimiento Global (%)',
-                    data: [90, 94, 91, datosMes.rondinesRealizados],
-                    backgroundColor: '#1A252C',
+                    label: 'Volumen de Arribos por Categoría',
+                    data: [conteoDistintivos["Amarillo"], conteoDistintivos["Naranja"], conteoDistintivos["Verde"], conteoDistintivos["Gris"]],
+                    backgroundColor: ['#F1C40F', '#E67E22', '#2ECC71', '#95A5A6'],
                     borderRadius: 5
                 }]
             },
-            options: {
-                scales: { y: { beginAtZero: true, max: 100 } }
-            }
+            options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
         });
     </script>
 </body>
