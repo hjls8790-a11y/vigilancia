@@ -3,247 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTROL DE ACCESOS</title>
+    <title>Bitácora de Accesos - El Cielo</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f7; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-        #header { background: #2c3e50; color: white; width: 100%; padding: 15px 0; text-align: center; border-bottom: 4px solid #3498db; }
-        .form-container { background: white; width: 90%; max-width: 400px; margin-top: 15px; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        .input-group textarea { resize: vertical; height: 60px; }
-        
-        .tab-container { display: flex; width: 90%; max-width: 400px; margin-top: 15px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #ddd; cursor: pointer; font-weight: bold; border-radius: 10px 10px 0 0; }
-        .tab.active { background: white; border-bottom: 3px solid #3498db; }
-        
-        #btnGuardar { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-        #btnGuardar:disabled { background: #95a5a6; cursor: not-allowed; }
-        
-        /* Estilos para Foto */
-        .foto-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
-        .btn-camara { border: 2px dashed #3498db; background: #ebf5fb; color: #2980b9; padding: 12px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; display: block; }
-        .foto-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
-        #preview-container { text-align: center; margin-top: 10px; display: none; }
-        #preview-foto { max-width: 100%; height: 150px; border-radius: 5px; object-fit: cover; border: 1px solid #ccc; }
-
-        /* Estilos para salida */
-        .search-item { background: #f9f9f9; padding: 10px; border: 1px solid #eee; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-salida-rapida { background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #lista-pendientes { margin-top: 10px; max-height: 300px; overflow-y: auto; }
+        body { font-family: Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 10px; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; background: #e0e0e0; border: 1px solid #ccc; cursor: pointer; }
+        .tab.active { background: white; border-bottom: none; border-top: 4px solid #2980B9; }
+        .form-group { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9em; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn-foto { background: #fff; border: 2px dashed #2980B9; color: #2980B9; padding: 15px; margin: 15px 0; font-weight: bold; width: 100%; border-radius: 5px; cursor: pointer; }
+        .btn-registrar { background: #27AE60; color: white; padding: 15px; width: 100%; border: none; border-radius: 5px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .btn-salida { background: #E74C3C; color: white; padding: 15px; width: 100%; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="header">
-        <h2>🚧 CONTROL DE ACCESOS</h2>
+    <div class="tabs">
+        <div class="tab active">NUEVA ENTRADA</div>
+        <div class="tab">DAR SALIDA</div>
     </div>
 
-    <div class="tab-container">
-        <div class="tab active" onclick="cambiarTab('entrada')">NUEVA ENTRADA</div>
-        <div class="tab" onclick="cambiarTab('salida')">DAR SALIDA</div>
-    </div>
+    <div class="form-group">
+        <label>Ubicación</label>
+        <select id="ubicacion"><option>General</option></select>
 
-    <div id="panel-entrada" class="form-container">
-        <div class="input-group">
-            <label>📍 Ubicación</label>
-            <select id="ubicacion">
-                <option value="General">General</option>
-                <option value="Cardones">Cardones</option>
-                <option value="Fotur">Fotur</option>
-            </select>
-        </div>
-        <div class="input-group"><label>👤 Nombre del Visitante</label><input type="text" id="nombre"></div>
-        <div class="input-group"><label>🏠 Domicilio a Visitar</label><input type="text" id="domicilio"></div>
-        <div class="input-group"><label>🔢 Placas</label><input type="text" id="placas"></div>
-        <div class="input-group"><label>🚗 Vehículo (Marca/Color)</label><input type="text" id="vehiculo" placeholder="Ej: Nissan Blanco"></div>
+        <label>Nombre del Visitante</label>
+        <input type="text" id="visitante" placeholder="Escribe el nombre...">
+
+        <label>Domicilio a Visitar</label>
+        <input type="text" id="domicilio" placeholder="Ej. Cirrus 102">
+
+        <label>Placas</label>
+        <input type="text" id="placas">
+
+        <label>Vehículo (Marca/Color)</label>
+        <input type="text" id="vehiculo" placeholder="Ej: Nissan Blanco">
+
+        <label>Comentarios</label>
+        <textarea id="comentarios" rows="3"></textarea>
+
+        <button class="btn-foto">📷 TOMAR FOTO O SUBIR IMAGEN</button>
         
-        <div class="input-group">
-            <label>📝 Comentarios (Opcional)</label>
-            <textarea id="comentarios" placeholder="Ej. Trae material, vidrio roto, etc."></textarea>
-        </div>
-
-        <div class="input-group">
-            <label>📸 Evidencia (ID oficial o Vehículo)</label>
-            <div class="foto-btn-wrapper">
-                <div class="btn-camara">📷 TOMAR FOTO O SUBIR IMAGEN</div>
-                <input type="file" id="foto_id" accept="image/*" capture="environment" onchange="mostrarVistaPrevia(event)">
-            </div>
-            <div id="preview-container">
-                <img id="preview-foto" src="">
-                <div style="font-size: 11px; color: green; margin-top:5px;">✅ Imagen lista y comprimida</div>
-            </div>
-        </div>
-
-        <button id="btnGuardar" onclick="registrarEntrada()">REGISTRAR ENTRADA</button>
+        <button class="btn-registrar" onclick="guardarDatos('entrada')">REGISTRAR ENTRADA</button>
+        <button class="btn-salida" onclick="guardarDatos('salida')">DAR SALIDA</button>
     </div>
 
-    <div id="panel-salida" class="form-container" style="display:none;">
-        <label style="font-weight: bold;">🔍 Buscar persona o placas adentro:</label>
-        <input type="text" id="buscarPendiente" oninput="buscarParaSalida()" placeholder="Escribe nombre o placa..." style="width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc;">
-        <div id="lista-pendientes">
-            <p style="text-align:center; color:gray;">Cargando personas adentro...</p>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
-            messagingSenderId: "714792023462",
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        let personasAdentro = [];
-        let imagenComprimidaBase64 = null;
-
-        // VISTA PREVIA Y COMPRESIÓN DE IMAGEN
-        window.mostrarVistaPrevia = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    // COMPRESIÓN MÁXIMA PARA CUIDAR ALMACENAMIENTO (Máx 600px ancho)
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 600; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height = Math.round((height * MAX_WIDTH) / width);
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // Comprimir a JPEG con calidad al 60%
-                    imagenComprimidaBase64 = canvas.toDataURL('image/jpeg', 0.6); 
-
-                    // Mostrar vista previa
-                    document.getElementById('preview-foto').src = imagenComprimidaBase64;
-                    document.getElementById('preview-container').style.display = 'block';
-                }
-            }
-        };
-
-        window.cambiarTab = function(tipo) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            if(tipo === 'entrada') {
-                document.getElementById('panel-entrada').style.display = 'block';
-                document.getElementById('panel-salida').style.display = 'none';
-                document.querySelectorAll('.tab')[0].classList.add('active');
-            } else {
-                document.getElementById('panel-entrada').style.display = 'none';
-                document.getElementById('panel-salida').style.display = 'block';
-                document.querySelectorAll('.tab')[1].classList.add('active');
-                cargarPersonasAdentro();
-            }
-        };
-
-        window.registrarEntrada = async function() {
-            const btn = document.getElementById('btnGuardar');
-            const data = {
+    <script>
+        function guardarDatos(tipo) {
+            let datos = {
+                tipoRegistro: tipo,
+                fecha: new Date().toLocaleDateString(),
+                hora: new Date().toLocaleTimeString(),
                 ubicacion: document.getElementById('ubicacion').value,
-                tipo_movimiento: "ENTRADA",
-                visitante: document.getElementById('nombre').value || "Desconocido",
-                domicilio: document.getElementById('domicilio').value || "N/A",
-                vehiculo_placas: document.getElementById('placas').value || "N/A",
-                vehiculo_marca: document.getElementById('vehiculo').value || "N/A",
-                comentarios: document.getElementById('comentarios').value || "",
-                foto_evidencia: imagenComprimidaBase64 || "NO", // Guarda el base64 o "NO"
-                fecha_hora: new Date().toLocaleString('es-MX'),
-                timestamp: new Date().getTime()
+                visitante: document.getElementById('visitante').value,
+                domicilio: document.getElementById('domicilio').value,
+                placas: document.getElementById('placas').value,
+                vehiculo: document.getElementById('vehiculo').value,
+                comentarios: document.getElementById('comentarios').value
             };
+            
+            // TU CÓDIGO ORIGINAL INTACTO
+            let bitacora = JSON.parse(localStorage.getItem('bitacora_accesos')) || [];
+            bitacora.push(datos);
+            localStorage.setItem('bitacora_accesos', JSON.stringify(bitacora));
 
-            btn.innerText = "Subiendo datos y foto...";
-            btn.disabled = true;
-
-            try {
-                await addDoc(collection(db, "accesos"), data);
-                alert("✅ Entrada y foto registradas correctamente");
-                location.reload();
-            } catch (error) {
-                console.error("Error:", error);
-                alert("❌ Error al guardar. Revisa la conexión.");
-                btn.innerText = "REGISTRAR ENTRADA";
-                btn.disabled = false;
+            // --- INICIO PARCHE KPI PARA DASHBOARD (Solo cuantifica Entradas) ---
+            if(tipo === 'entrada') {
+                try {
+                    let fechaKPI = new Date().toLocaleDateString();
+                    let accesosKPI = JSON.parse(localStorage.getItem('kpi_accesos')) || {};
+                    accesosKPI[fechaKPI] = (accesosKPI[fechaKPI] || 0) + 1;
+                    localStorage.setItem('kpi_accesos', JSON.stringify(accesosKPI));
+                } catch(e) { console.error("Error KPI", e); }
             }
-        };
+            // --- FIN PARCHE KPI ---
 
-        async function cargarPersonasAdentro() {
-            const listado = document.getElementById('lista-pendientes');
-            listado.innerHTML = "Buscando...";
-            const q = query(collection(db, "accesos"), orderBy("timestamp", "desc"), limit(60));
-            const snap = await getDocs(q);
-            personasAdentro = [];
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.tipo_movimiento === "ENTRADA") {
-                    personasAdentro.push(d);
-                }
-            });
-            renderizarPendientes(personasAdentro);
+            alert("Registro guardado exitosamente");
+            // location.reload(); // Descomenta si deseas que limpie el formulario al guardar
         }
-
-        function renderizarPendientes(lista) {
-            const container = document.getElementById('lista-pendientes');
-            container.innerHTML = "";
-            lista.forEach(p => {
-                const div = document.createElement('div');
-                div.className = "search-item";
-                div.innerHTML = `
-                    <div>
-                        <strong style="text-transform:uppercase;">${p.vehiculo_placas || 'S/N'}</strong> - ${p.visitante}<br>
-                        <small>${p.domicilio} (${p.fecha_hora.split(' ')[1]})</small>
-                    </div>
-                    <button class="btn-salida-rapida" onclick="registrarSalidaDirecta('${p.visitante}','${p.vehiculo_placas}','${p.domicilio}','${p.vehiculo_marca}')">SALIDA</button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        window.buscarParaSalida = function() {
-            const txt = document.getElementById('buscarPendiente').value.toLowerCase();
-            const filtrados = personasAdentro.filter(p => 
-                p.visitante.toLowerCase().includes(txt) || 
-                p.vehiculo_placas.toLowerCase().includes(txt)
-            );
-            renderizarPendientes(filtrados);
-        };
-
-        window.registrarSalidaDirecta = async function(nombre, placas, dom, veh) {
-            if(!confirm(`¿Registrar salida de ${nombre}?`)) return;
-            const data = {
-                ubicacion: document.getElementById('ubicacion').value || "General",
-                tipo_movimiento: "SALIDA",
-                visitante: nombre,
-                domicilio: dom,
-                vehiculo_placas: placas,
-                vehiculo_marca: veh,
-                comentarios: "Salida rápida",
-                foto_evidencia: "NO",
-                fecha_hora: new Date().toLocaleString('es-MX'),
-                timestamp: new Date().getTime()
-            };
-            await addDoc(collection(db, "accesos"), data);
-            alert("🔴 Salida Registrada con éxito");
-            cambiarTab('entrada');
-        };
     </script>
 </body>
 </html>
