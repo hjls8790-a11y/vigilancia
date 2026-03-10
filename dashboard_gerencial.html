@@ -3,161 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Gerencial - El Cielo</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Dashboard Gerencial - Auditoría Operativa</title>
     <style>
-        :root { --primary: #1A252C; --success: #28B463; --warning: #F1C40F; --danger: #E74C3C; --text: #333; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: var(--text); }
-        .header { background-color: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; }
-        .header p { margin: 5px 0 0 0; font-size: 0.9rem; color: var(--warning); font-style: italic; }
-        
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-        
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .kpi-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; border-left: 5px solid var(--primary); }
-        .kpi-card h3 { margin: 0; font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; }
-        .kpi-card .valor { font-size: 2.2rem; font-weight: bold; margin: 10px 0; color: var(--primary); }
-        .kpi-card .meta { font-size: 0.8rem; color: #95a5a6; }
-
-        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .panel h2 { margin-top: 0; color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
-        
-        .alerta { padding: 15px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .alerta.oportunidad { background-color: #fcf3cf; color: #b9770e; border-left: 4px solid var(--warning); }
-        .alerta.critico { background-color: #fadbd8; color: #943126; border-left: 4px solid var(--danger); }
-        .alerta.excelente { background-color: #e8f8f5; color: #117864; border-left: 4px solid var(--success); }
-
-        .btn-imprimir { display: block; width: 100%; max-width: 200px; margin: 30px auto; padding: 15px; background-color: var(--primary); color: white; text-align: center; text-decoration: none; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; }
-        
-        .nav-btn { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
-        
-        @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } }
+        :root { --primary: #1A252C; --success: #28B463; --warning: #F1C40F; --danger: #E74C3C; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: var(--text); }
+        .header { background-color: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 4px solid var(--primary); }
+        .card h2 { margin-top: 0; font-size: 1.2rem; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .dato-grande { font-size: 2.5rem; font-weight: bold; margin: 10px 0; text-align: center; }
+        .alerta { padding: 10px; border-radius: 5px; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
+        .bg-ok { background-color: #e8f8f5; color: #117864; border-left: 4px solid var(--success); }
+        .bg-bad { background-color: #fadbd8; color: #943126; border-left: 4px solid var(--danger); }
+        .lista-agentes { list-style: none; padding: 0; }
+        .lista-agentes li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Dashboard Gerencial de Seguridad</h1>
-        <p>El Cielo Parque Residencial | "FIRMEZA NO PREPOTENCIA"</p>
+        <h1 style="margin:0;">Auditoría Operativa de Seguridad</h1>
+        <p style="margin:5px 0 0 0; color: #AAB7B8;">"FIRMEZA NO PREPOTENCIA"</p>
     </div>
 
-    <div class="container">
-        <a href="index.html" class="nav-btn">⬅️ Volver al Panel de Caseta</a>
-
-        <div class="panel" style="margin-bottom: 20px; background-color: #f8f9fa;">
-            <h2 style="font-size: 1rem;">Ecosistema Operativo GitHub Integrado</h2>
-            <p style="font-size: 0.9rem; margin: 0; color: #555;">
-                <strong>1. Patrullaje y Accesos:</strong> Registro digital en campo por agentes de prevención.<br>
-                <strong>2. Capacitación y Evaluación:</strong> Portal de filtros para aspirantes y elementos activos.<br>
-                <strong>3. Analítica Automática:</strong> Los datos operativos alimentan este panel en tiempo real sin bases de datos externas.
-            </p>
+    <div class="grid">
+        <div class="card">
+            <h2>1. Control de Trazabilidad (Accesos vs Arribos)</h2>
+            <div style="display: flex; justify-content: space-around;">
+                <div style="text-align: center;"><div class="dato-grande" id="tot-accesos" style="color:#34495E;">0</div><small>Accesos (Caseta)</small></div>
+                <div style="text-align: center;"><div class="dato-grande" id="tot-arribos" style="color:#28B463;">0</div><small>Arribos (Patrulla)</small></div>
+            </div>
+            <div id="alerta-trazabilidad"></div>
         </div>
 
-        <div class="kpi-grid" id="kpiContainer">
-            </div>
-
-        <div class="content-grid">
-            <div class="panel">
-                <h2>Actividad de Arribos y Patrullaje (Últimos 7 días)</h2>
-                <canvas id="graficaOperacion" height="120"></canvas>
-            </div>
-
-            <div class="panel">
-                <h2>Análisis y Áreas de Oportunidad</h2>
-                <div id="analisisAutomatico">
-                    </div>
-            </div>
+        <div class="card">
+            <h2>2. Efectividad de Recorridos (Min. 8 Puntos)</h2>
+            <div class="dato-grande" id="rondines-completos" style="color:#2980B9;">0 / 0</div>
+            <p style="text-align: center; margin-top:0;">Rondines Válidos vs Iniciados</p>
+            <div id="alerta-rondines"></div>
         </div>
 
-        <button class="btn-imprimir" onclick="window.print()">🖨️ Exportar a PDF / Imprimir</button>
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2>3. Disciplina de Turnos (07:00, 15:00, 23:00)</h2>
+            <ul class="lista-agentes" id="lista-asistencia">
+                </ul>
+        </div>
     </div>
 
     <script>
-        // 1. EXTRACCIÓN DE DATOS REALES (MEMORIA LOCAL DE TUS PLATAFORMAS)
-        // Extraemos los arribos que los agentes registraron en 'registro_de_patrullaje.html'
-        const bitacoraArribos = JSON.parse(localStorage.getItem('bitacoraResidencial')) || [];
+        // Cargar bases de datos locales
+        const accesos = JSON.parse(localStorage.getItem('bd_accesos')) || [];
+        const arribos = JSON.parse(localStorage.getItem('bd_arribos')) || [];
+        const rondines = JSON.parse(localStorage.getItem('bd_rondines')) || {};
+        const asistencia = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
+
+        // --- 1. EVALUAR ACCESOS VS ARRIBOS ---
+        document.getElementById('tot-accesos').innerText = accesos.length;
+        document.getElementById('tot-arribos').innerText = arribos.length;
         
-        // Extraemos datos simulados de capacitación (asumiendo que tu portal de RRHH guarda un arreglo similar)
-        // Si no hay datos, simulamos unos para que el sistema empiece a medir
-        let evaluaciones = JSON.parse(localStorage.getItem('evaluacionesActivos')) || [85, 90, 78, 92]; 
-
-        // 2. CÁLCULO AUTOMÁTICO DE KPIs
-        const totalArribos = bitacoraArribos.length;
-        const metaArribos = 50; // Meta mensual o semanal que tú defines
-        const porcentajePatrullaje = totalArribos > 0 ? Math.min(Math.round((totalArribos / metaArribos) * 100), 100) : 0;
-
-        const promedioCapacitacion = evaluaciones.length > 0 ? 
-            Math.round(evaluaciones.reduce((a, b) => a + b, 0) / evaluaciones.length) : 0;
-
-        // KPI de Omisiones (Si en los registros falta algún dato crítico como las placas)
-        const registrosIncompletos = bitacoraArribos.filter(reg => reg.vehiculo.includes("N/A")).length;
-        const porcentajeCalidad = totalArribos > 0 ? Math.round(((totalArribos - registrosIncompletos) / totalArribos) * 100) : 100;
-
-        // 3. RENDERIZAR TARJETAS KPI
-        const kpiContainer = document.getElementById('kpiContainer');
-        const kpis = [
-            { titulo: "Cumplimiento Arribos", valor: porcentajePatrullaje + "%", meta: `${totalArribos} registrados / Meta: ${metaArribos}` },
-            { titulo: "Calidad de Bitácora", valor: porcentajeCalidad + "%", meta: "Datos completos en registros" },
-            { titulo: "Prom. Capacitación", valor: promedioCapacitacion + "/100", meta: "Evaluación de agentes" },
-            { titulo: "Alertas de Caseta", valor: registrosIncompletos, meta: "Registros incompletos" }
-        ];
-
-        kpis.forEach(k => {
-            kpiContainer.innerHTML += `
-                <div class="kpi-card">
-                    <h3>${k.titulo}</h3>
-                    <div class="valor">${k.valor}</div>
-                    <div class="meta">${k.meta}</div>
-                </div>
-            `;
-        });
-
-        // 4. GENERADOR AUTOMÁTICO DE ÁREAS DE OPORTUNIDAD (LA "INTELIGENCIA")
-        const analisisDiv = document.getElementById('analisisAutomatico');
-        
-        if (totalArribos === 0) {
-            analisisDiv.innerHTML += `<div class="alerta critico">🚨 <strong>Sin Datos:</strong> Los agentes no han registrado arribos. <em>Acción: Asegurar que el módulo de patrullaje esté en uso en la unidad móvil.</em></div>`;
+        let msgTrazabilidad = document.getElementById('alerta-trazabilidad');
+        if (arribos.length < accesos.length) {
+            let faltantes = accesos.length - arribos.length;
+            msgTrazabilidad.innerHTML = `<div class="alerta bg-bad">🚨 Faltan ${faltantes} arribos por confirmar. El patrullaje no está cubriendo todas las entradas.</div>`;
+        } else if (accesos.length > 0) {
+            msgTrazabilidad.innerHTML = `<div class="alerta bg-ok">✔️ Trazabilidad al 100%. Cada acceso tiene su arribo.</div>`;
         } else {
-            if (porcentajePatrullaje < 80) {
-                analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Patrullaje:</strong> Volumen de arribos por debajo del 80%. <em>Acción: Auditar rutas de los agentes de prevención y verificar si están usando el botón en todos los servicios.</em></div>`;
-            } else {
-                analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Patrullaje:</strong> Óptimo cumplimiento en confirmación de arribos a domicilios.</div>`;
-            }
-
-            if (porcentajeCalidad < 95) {
-                analisisDiv.innerHTML += `<div class="alerta oportunidad">⚠️ <strong>Calidad de Datos:</strong> Hay ${registrosIncompletos} registros sin placas o datos del vehículo. <em>Acción: Reforzar consigna en caseta de llenar todos los campos antes del envío.</em></div>`;
-            } else {
-                analisisDiv.innerHTML += `<div class="alerta excelente">✔️ <strong>Bitácora:</strong> Excelente disciplina en la captura de datos (Placas, Marca, Color).</div>`;
-            }
+            msgTrazabilidad.innerHTML = `<div class="alerta" style="background:#eee; color:#666;">Sin actividad registrada hoy.</div>`;
         }
 
-        if (promedioCapacitacion < 80) {
-            analisisDiv.innerHTML += `<div class="alerta critico">🚨 <strong>Capacitación:</strong> Promedio del personal (${promedioCapacitacion}) por debajo del estándar. <em>Acción: Programar sesión de repaso en protocolos de acceso.</em></div>`;
+        // --- 2. EVALUAR RONDINES (Regla: >= 8 puntos) ---
+        let totalIniciados = Object.keys(rondines).length;
+        let rondinesValidos = 0;
+        
+        for (let id in rondines) {
+            if (rondines[id].length >= 8) { rondinesValidos++; }
+        }
+        
+        document.getElementById('rondines-completos').innerText = `${rondinesValidos} / ${totalIniciados}`;
+        let msgRondines = document.getElementById('alerta-rondines');
+        
+        if (totalIniciados > 0 && rondinesValidos < totalIniciados) {
+            msgRondines.innerHTML = `<div class="alerta bg-bad">⚠️ Hay ${totalIniciados - rondinesValidos} rondines incompletos (menos de 8 puntos).</div>`;
+        } else if (totalIniciados > 0) {
+            msgRondines.innerHTML = `<div class="alerta bg-ok">✔️ Todos los recorridos cumplen la consigna operativa.</div>`;
         }
 
-        // 5. GENERAR GRÁFICA VISUAL (Chart.js)
-        // Agrupamos los arribos por distintivo para ver qué tipo de visitas hay más
-        let conteoDistintivos = { "Amarillo": 0, "Naranja": 0, "Verde": 0, "Gris": 0 };
-        bitacoraArribos.forEach(reg => {
-            if(conteoDistintivos[reg.distintivo] !== undefined) conteoDistintivos[reg.distintivo]++;
-        });
-
-        const ctx = document.getElementById('graficaOperacion').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Distintivo Amarillo', 'Distintivo Naranja', 'Distintivo Verde', 'Distintivo Gris'],
-                datasets: [{
-                    label: 'Volumen de Arribos por Categoría',
-                    data: [conteoDistintivos["Amarillo"], conteoDistintivos["Naranja"], conteoDistintivos["Verde"], conteoDistintivos["Gris"]],
-                    backgroundColor: ['#F1C40F', '#E67E22', '#2ECC71', '#95A5A6'],
-                    borderRadius: 5
-                }]
-            },
-            options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-        });
+        // --- 3. EVALUAR ASISTENCIA DE AGENTES ---
+        let listaDOM = document.getElementById('lista-asistencia');
+        if (asistencia.length === 0) {
+            listaDOM.innerHTML = `<li><span style="color:#999;">No hay registros de checador hoy.</span></li>`;
+        } else {
+            // Mostrar solo los últimos 11 registros (asumiendo la plantilla de 11 agentes)
+            let ultimosRegistros = asistencia.slice(-11).reverse();
+            ultimosRegistros.forEach(reg => {
+                let color = reg.estatus === "A tiempo" ? "green" : "red";
+                listaDOM.innerHTML += `
+                    <li>
+                        <strong>${reg.agente}</strong> 
+                        <span>Turno: ${reg.turno} | Ingreso: ${reg.horaExacta}</span>
+                        <span style="color: ${color}; font-weight: bold;">[${reg.estatus}]</span>
+                    </li>
+                `;
+            });
+        }
     </script>
 </body>
 </html>
