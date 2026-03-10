@@ -3,108 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Gerencial - Auditoría Operativa</title>
+    <title>KPIs Gerenciales - El Cielo</title>
     <style>
-        :root { --primary: #1A252C; --success: #28B463; --warning: #F1C40F; --danger: #E74C3C; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: var(--text); }
-        .header { background-color: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #EAECEE; padding: 20px; color: #1A252C; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #2C3E50; font-size: 2em; }
+        .header p { color: #7F8C8D; margin-top: 5px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 4px solid var(--primary); }
-        .card h2 { margin-top: 0; font-size: 1.2rem; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .dato-grande { font-size: 2.5rem; font-weight: bold; margin: 10px 0; text-align: center; }
-        .alerta { padding: 10px; border-radius: 5px; margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
-        .bg-ok { background-color: #e8f8f5; color: #117864; border-left: 4px solid var(--success); }
-        .bg-bad { background-color: #fadbd8; color: #943126; border-left: 4px solid var(--danger); }
-        .lista-agentes { list-style: none; padding: 0; }
-        .lista-agentes li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #2980B9; position: relative; }
+        .card h3 { margin-top: 0; color: #34495E; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; }
+        .data-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .num-box { text-align: center; }
+        .num { font-size: 2.5em; font-weight: bold; display: block; }
+        .label { font-size: 0.8em; color: #7F8C8D; text-transform: uppercase; }
+        .status { margin-top: 20px; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9em; text-align: center; }
+        .ok { background: #EAFAF1; color: #27AE60; border: 1px solid #A9DFBF; }
+        .bad { background: #FDEDEC; color: #C0392B; border: 1px solid #F5B7B1; }
+        .fecha-hoy { position: absolute; top: 15px; right: 20px; font-size: 0.8em; color: #95A5A6; background: #F2F3F4; padding: 4px 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1 style="margin:0;">Auditoría Operativa de Seguridad</h1>
-        <p style="margin:5px 0 0 0; color: #AAB7B8;">"FIRMEZA NO PREPOTENCIA"</p>
+        <h1>📊 Dashboard de Mejora Continua</h1>
+        <p>Auditoría Operativa - El Cielo Parque Residencial</p>
     </div>
 
     <div class="grid">
-        <div class="card">
-            <h2>1. Control de Trazabilidad (Accesos vs Arribos)</h2>
-            <div style="display: flex; justify-content: space-around;">
-                <div style="text-align: center;"><div class="dato-grande" id="tot-accesos" style="color:#34495E;">0</div><small>Accesos (Caseta)</small></div>
-                <div style="text-align: center;"><div class="dato-grande" id="tot-arribos" style="color:#28B463;">0</div><small>Arribos (Patrulla)</small></div>
+        <div class="card" style="border-top-color: #3498DB;">
+            <div class="fecha-hoy" id="fecha1">Hoy</div>
+            <h3>1. Trazabilidad de Visitas</h3>
+            <div class="data-row">
+                <div class="num-box"><span class="num" id="kpi-accesos" style="color:#2980B9;">0</span><span class="label">Entradas (Caseta)</span></div>
+                <div style="font-size: 1.5em; color: #BDC3C7;">➔</div>
+                <div class="num-box"><span class="num" id="kpi-arribos" style="color:#27AE60;">0</span><span class="label">Arribos (Patrulla)</span></div>
             </div>
-            <div id="alerta-trazabilidad"></div>
+            <div id="status-trazabilidad"></div>
         </div>
 
-        <div class="card">
-            <h2>2. Efectividad de Recorridos (Min. 8 Puntos)</h2>
-            <div class="dato-grande" id="rondines-completos" style="color:#2980B9;">0 / 0</div>
-            <p style="text-align: center; margin-top:0;">Rondines Válidos vs Iniciados</p>
-            <div id="alerta-rondines"></div>
+        <div class="card" style="border-top-color: #9B59B6;">
+            <div class="fecha-hoy" id="fecha2">Hoy</div>
+            <h3>2. Disciplina de Turnos</h3>
+            <div class="data-row">
+                <div class="num-box"><span class="num" id="kpi-tiempo" style="color:#27AE60;">0</span><span class="label">A Tiempo</span></div>
+                <div class="num-box"><span class="num" id="kpi-retardo" style="color:#E74C3C;">0</span><span class="label">Retardos</span></div>
+            </div>
+            <div id="status-puntualidad"></div>
         </div>
 
-        <div class="card" style="grid-column: 1 / -1;">
-            <h2>3. Disciplina de Turnos (07:00, 15:00, 23:00)</h2>
-            <ul class="lista-agentes" id="lista-asistencia">
-                </ul>
+        <div class="card" style="border-top-color: #E67E22;">
+            <div class="fecha-hoy" id="fecha3">Hoy</div>
+            <h3>3. Calidad de Recorridos</h3>
+            <div class="data-row">
+                <div class="num-box"><span class="num" id="kpi-ron-ok" style="color:#27AE60;">0</span><span class="label">Completos (8+ pts)</span></div>
+                <div class="num-box"><span class="num" id="kpi-ron-bad" style="color:#E74C3C;">0</span><span class="label">Incompletos</span></div>
+            </div>
+            <div id="status-rondines"></div>
         </div>
     </div>
 
     <script>
-        // Cargar bases de datos locales
-        const accesos = JSON.parse(localStorage.getItem('bd_accesos')) || [];
-        const arribos = JSON.parse(localStorage.getItem('bd_arribos')) || [];
-        const rondines = JSON.parse(localStorage.getItem('bd_rondines')) || {};
-        const asistencia = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
+        const fechaHoy = new Date().toLocaleDateString();
+        document.getElementById('fecha1').innerText = fechaHoy;
+        document.getElementById('fecha2').innerText = fechaHoy;
+        document.getElementById('fecha3').innerText = fechaHoy;
 
-        // --- 1. EVALUAR ACCESOS VS ARRIBOS ---
-        document.getElementById('tot-accesos').innerText = accesos.length;
-        document.getElementById('tot-arribos').innerText = arribos.length;
+        // Leer datos silentes
+        const acc = JSON.parse(localStorage.getItem('kpi_accesos')) || {};
+        const arr = JSON.parse(localStorage.getItem('kpi_arribos')) || {};
+        const ast = JSON.parse(localStorage.getItem('kpi_asistencia')) || {};
+        const ron = JSON.parse(localStorage.getItem('kpi_rondines')) || {};
+
+        // 1. Trazabilidad
+        const hoyAcc = acc[fechaHoy] || 0;
+        const hoyArr = arr[fechaHoy] || 0;
+        document.getElementById('kpi-accesos').innerText = hoyAcc;
+        document.getElementById('kpi-arribos').innerText = hoyArr;
         
-        let msgTrazabilidad = document.getElementById('alerta-trazabilidad');
-        if (arribos.length < accesos.length) {
-            let faltantes = accesos.length - arribos.length;
-            msgTrazabilidad.innerHTML = `<div class="alerta bg-bad">🚨 Faltan ${faltantes} arribos por confirmar. El patrullaje no está cubriendo todas las entradas.</div>`;
-        } else if (accesos.length > 0) {
-            msgTrazabilidad.innerHTML = `<div class="alerta bg-ok">✔️ Trazabilidad al 100%. Cada acceso tiene su arribo.</div>`;
+        const faltantes = hoyAcc - hoyArr;
+        if (hoyAcc === 0 && hoyArr === 0) {
+            document.getElementById('status-trazabilidad').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Sin actividad registrada</div>`;
+        } else if (faltantes > 0) {
+            document.getElementById('status-trazabilidad').innerHTML = `<div class="status bad">⚠️ Faltan ${faltantes} arribos por confirmar en domicilio</div>`;
         } else {
-            msgTrazabilidad.innerHTML = `<div class="alerta" style="background:#eee; color:#666;">Sin actividad registrada hoy.</div>`;
+            document.getElementById('status-trazabilidad').innerHTML = `<div class="status ok">✔️ 100% de vehículos rastreados</div>`;
         }
 
-        // --- 2. EVALUAR RONDINES (Regla: >= 8 puntos) ---
-        let totalIniciados = Object.keys(rondines).length;
-        let rondinesValidos = 0;
+        // 2. Puntualidad
+        const hoyAst = ast[fechaHoy] || { aTiempo: 0, retardo: 0 };
+        document.getElementById('kpi-tiempo').innerText = hoyAst.aTiempo;
+        document.getElementById('kpi-retardo').innerText = hoyAst.retardo;
         
-        for (let id in rondines) {
-            if (rondines[id].length >= 8) { rondinesValidos++; }
-        }
-        
-        document.getElementById('rondines-completos').innerText = `${rondinesValidos} / ${totalIniciados}`;
-        let msgRondines = document.getElementById('alerta-rondines');
-        
-        if (totalIniciados > 0 && rondinesValidos < totalIniciados) {
-            msgRondines.innerHTML = `<div class="alerta bg-bad">⚠️ Hay ${totalIniciados - rondinesValidos} rondines incompletos (menos de 8 puntos).</div>`;
-        } else if (totalIniciados > 0) {
-            msgRondines.innerHTML = `<div class="alerta bg-ok">✔️ Todos los recorridos cumplen la consigna operativa.</div>`;
-        }
-
-        // --- 3. EVALUAR ASISTENCIA DE AGENTES ---
-        let listaDOM = document.getElementById('lista-asistencia');
-        if (asistencia.length === 0) {
-            listaDOM.innerHTML = `<li><span style="color:#999;">No hay registros de checador hoy.</span></li>`;
+        if (hoyAst.aTiempo === 0 && hoyAst.retardo === 0) {
+            document.getElementById('status-puntualidad').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Esperando checadas...</div>`;
+        } else if (hoyAst.retardo > 0) {
+            document.getElementById('status-puntualidad').innerHTML = `<div class="status bad">🚨 Detectados ${hoyAst.retardo} retardos. Aplicar actas.</div>`;
         } else {
-            // Mostrar solo los últimos 11 registros (asumiendo la plantilla de 11 agentes)
-            let ultimosRegistros = asistencia.slice(-11).reverse();
-            ultimosRegistros.forEach(reg => {
-                let color = reg.estatus === "A tiempo" ? "green" : "red";
-                listaDOM.innerHTML += `
-                    <li>
-                        <strong>${reg.agente}</strong> 
-                        <span>Turno: ${reg.turno} | Ingreso: ${reg.horaExacta}</span>
-                        <span style="color: ${color}; font-weight: bold;">[${reg.estatus}]</span>
-                    </li>
-                `;
-            });
+            document.getElementById('status-puntualidad').innerHTML = `<div class="status ok">✔️ Puntualidad impecable</div>`;
+        }
+
+        // 3. Rondines
+        const hoyRon = ron[fechaHoy] || { validos: 0, incompletos: 0 };
+        document.getElementById('kpi-ron-ok').innerText = hoyRon.validos;
+        document.getElementById('kpi-ron-bad').innerText = hoyRon.incompletos;
+
+        if (hoyRon.validos === 0 && hoyRon.incompletos === 0) {
+            document.getElementById('status-rondines').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Esperando recorridos...</div>`;
+        } else if (hoyRon.incompletos > 0) {
+            document.getElementById('status-rondines').innerHTML = `<div class="status bad">⚠️ ${hoyRon.incompletos} recorridos no cumplieron la consigna de 8 puntos</div>`;
+        } else {
+            document.getElementById('status-rondines').innerHTML = `<div class="status ok">✔️ Consigna cumplida. Cobertura total.</div>`;
         }
     </script>
 </body>
