@@ -227,7 +227,7 @@
         };
 
         window.registrarSalidaDirecta = async function(nombre, placas, dom, veh) {
-            if(!confirm(¿Registrar salida de ${nombre}?)) return;
+            if(!confirm(`¿Registrar salida de ${nombre}?`)) return;
             const data = {
                 ubicacion: document.getElementById('ubicacion').value || "General",
                 tipo_movimiento: "SALIDA",
