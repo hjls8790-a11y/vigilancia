@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Drones - El Cielo</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; background: #2C3E50; color: white; padding: 15px; border-radius: 8px; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #2C3E50; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #7F8C8D; }
+        .tab.active { color: #2C3E50; border-bottom: 4px solid #3498DB; }
+        
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; margin-top: 10px; }
+        input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        .checkbox-group { background: #eef2f5; padding: 15px; border-radius: 5px; margin-top: 15px; border-left: 4px solid #E74C3C; }
+        .checkbox-group label { display: flex; align-items: center; font-weight: normal; margin-top: 5px; font-size: 0.95em; cursor: pointer;}
+        .checkbox-group input { margin-right: 10px; width: auto; transform: scale(1.2); }
+
+        .btn { background: #27AE60; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; font-size: 1.1em;}
+        .btn:hover { opacity: 0.9; }
+
+        /* Estilos de la tabla de búsqueda */
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #e8ecef; padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: flex-end;}
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #34495E; color: white; }
+        .badge { background: #27AE60; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🚁 CONTROL DE VUELO DE DRONES - EL CIELO</h2>
+        <p style="margin: 0; font-size: 0.9em;">Plataforma de Autorización y Bitácora</p>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="mostrarPestana('registro')">1. Nuevo Registro</div>
+        <div class="tab" onclick="mostrarPestana('bitacora')">2. Bitácora y Buscador</div>
+    </div>
+
+    <div id="sec-registro">
+        <div class="card">
+            <h3>📝 Datos del Solicitante</h3>
+            <div class="grid-2">
+                <div><label>Nombre del Solicitante / Piloto:</label><input type="text" id="r_nombre" placeholder="Ej. Juan Pérez"></div>
+                <div><label>Empresa:</label><input type="text" id="r_empresa" placeholder="Ej. Constructora X o Particular"></div>
+                <div style="grid-column: span 2;"><label>Propósito del Vuelo:</label><input type="text" id="r_proposito" placeholder="Ej. Promoción, Revisión de avances de obra, etc."></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📍 Ubicación y Horario</h3>
+            <div class="grid-3">
+                <div style="grid-column: span 3;"><label>Dirección Específica:</label><input type="text" id="r_direccion" placeholder="Calle y número"></div>
+                <div><label>Manzana:</label><input type="text" id="r_manzana" placeholder="Ej. 4"></div>
+                <div><label>Lote:</label><input type="text" id="r_lote" placeholder="Ej. 12"></div>
+                <div><label>Fecha de Vuelo:</label><input type="date" id="r_fecha"></div>
+                <div><label>Hora de Vuelo:</label><input type="time" id="r_hora"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🚁 Especificaciones Técnicas y Seguridad</h3>
+            <div class="grid-2">
+                <div><label>Modelo del Dron:</label><input type="text" id="r_dron" placeholder="Ej. DJI Mavic 3"></div>
+                <div><label>Altitud Máxima Permitida:</label><input type="text" id="r_altitud" placeholder="Ej. 50 metros"></div>
+            </div>
+
+            <div class="checkbox-group">
+                <h4 style="margin-top:0; color:#C0392B;">⚠️ Medidas de Seguridad Obligatorias (Marcar todas)</h4>
+                <label><input type="checkbox" id="cb_casas"> Compromiso de NO volar sobre casas habitadas.</label>
+                <label><input type="checkbox" id="cb_limites"> Respetar estrictamente los límites del lote/área autorizada.</label>
+                <label><input type="checkbox" id="cb_ley"> Cumplir con las regulaciones locales y federales de aeronaves no tripuladas.</label>
+            </div>
+        </div>
+
+        <button class="btn" onclick="guardarYNotificar()">💾 REGISTRAR Y NOTIFICAR A CASETA (WHATSAPP)</button>
+    </div>
+
+    <div id="sec-bitacora" style="display:none;">
+        <div class="search-bar">
+            <div><label>Filtrar por Fecha:</label><input type="date" id="b_fecha" onchange="cargarTabla()"></div>
+            <div><label>Buscar Nombre / Piloto:</label><input type="text" id="b_nombre" onkeyup="cargarTabla()" placeholder="Escribe un nombre..."></div>
+            <div><label>Buscar Mz/Lote o Dirección:</label><input type="text" id="b_ubicacion" onkeyup="cargarTabla()" placeholder="Ej. Mz 4, Lote 12..."></div>
+            <div><button class="btn" style="margin-top: 28px; padding: 10px;" onclick="limpiarFiltros()">🔄 Limpiar</button></div>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <table id="tablaDrones">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Piloto / Empresa</th>
+                        <th>Ubicación (Mz/Lote)</th>
+                        <th>Propósito</th>
+                        <th>Dron / Altitud</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar fecha actual en registro
+        document.getElementById('r_fecha').valueAsDate = new Date();
+
+        function mostrarPestana(id) {
+            document.getElementById('sec-registro').style.display = id === 'registro' ? 'block' : 'none';
+            document.getElementById('sec-bitacora').style.display = id === 'bitacora' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if(id === 'bitacora') cargarTabla();
+        }
+
+        function guardarYNotificar() {
+            // Validar checkboxes
+            if (!document.getElementById('cb_casas').checked || !document.getElementById('cb_limites').checked || !document.getElementById('cb_ley').checked) {
+                alert("Para registrar el vuelo, el solicitante debe aceptar TODAS las medidas de seguridad.");
+                return;
+            }
+
+            // Recopilar datos
+            let vuelo = {
+                id: Date.now(),
+                nombre: document.getElementById('r_nombre').value.trim() || 'No especificado',
+                empresa: document.getElementById('r_empresa').value.trim() || 'No especificada',
+                proposito: document.getElementById('r_proposito').value.trim() || 'No especificado',
+                direccion: document.getElementById('r_direccion').value.trim() || 'No especificada',
+                manzana: document.getElementById('r_manzana').value.trim() || '-',
+                lote: document.getElementById('r_lote').value.trim() || '-',
+                fecha: document.getElementById('r_fecha').value,
+                hora: document.getElementById('r_hora').value || 'Sin hora',
+                dron: document.getElementById('r_dron').value.trim() || 'No especificado',
+                altitud: document.getElementById('r_altitud').value.trim() || 'No especificada',
+                registro_timestamp: new Date().toLocaleString()
+            };
+
+            if(vuelo.nombre === 'No especificado' || vuelo.direccion === 'No especificada') {
+                alert("Por favor, llena al menos el Nombre y la Dirección.");
+                return;
+            }
+
+            // Guardar en LocalStorage
+            let bitacora = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
+            bitacora.push(vuelo);
+            localStorage.setItem('bitacora_drones', JSON.stringify(bitacora));
+
+            // Generar Mensaje de WhatsApp
+            let textoWa = `*🚁 AUTORIZACIÓN DE VUELO DE DRON*\n*Residencial El Cielo*\n\n` +
+                          `*👤 Piloto:* ${vuelo.nombre}\n` +
+                          `*🏢 Empresa:* ${vuelo.empresa}\n` +
+                          `*📅 Fecha:* ${vuelo.fecha} a las ${vuelo.hora}\n\n` +
+                          `*📍 UBICACIÓN AUTORIZADA*\n` +
+                          `Dir: ${vuelo.direccion}\n` +
+                          `Mz: ${vuelo.manzana} | Lote: ${vuelo.lote}\n\n` +
+                          `*📋 DETALLES*\n` +
+                          `Motivo: ${vuelo.proposito}\n` +
+                          `Equipo: ${vuelo.dron}\n` +
+                          `Altitud Max: ${vuelo.altitud}\n\n` +
+                          `✅ *Reglas Aceptadas:* No volar sobre casas, respetar límites y apego a la ley.\n\n` +
+                          `_Caseta: Favor de permitir acceso y monitorear perímetro._`;
+
+            let url = `https://api.whatsapp.com/send?phone=526692486726&text=${encodeURIComponent(textoWa)}`;
+            
+            // Limpiar formulario
+            document.querySelectorAll('input[type="text"]').forEach(i => i.value = '');
+            document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
+            document.getElementById('r_hora').value = '';
+
+            alert("Registro guardado. Se abrirá WhatsApp para notificar a Caseta.");
+            window.open(url, '_blank');
+        }
+
+        function cargarTabla() {
+            let bitacora = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
+            let tbody = document.getElementById('cuerpoTabla');
+            tbody.innerHTML = '';
+
+            // Obtener filtros
+            let f_fecha = document.getElementById('b_fecha').value;
+            let f_nombre = document.getElementById('b_nombre').value.toLowerCase();
+            let f_ubi = document.getElementById('b_ubicacion').value.toLowerCase();
+
+            // Ordenar del más reciente al más antiguo
+            bitacora.reverse();
+
+            bitacora.forEach(v => {
+                // Lógica de filtrado
+                let cumpleFecha = f_fecha === '' || v.fecha === f_fecha;
+                let cumpleNombre = f_nombre === '' || v.nombre.toLowerCase().includes(f_nombre) || v.empresa.toLowerCase().includes(f_nombre);
+                let textUbi = `${v.direccion} ${v.manzana} ${v.lote}`.toLowerCase();
+                let cumpleUbi = f_ubi === '' || textUbi.includes(f_ubi);
+
+                if (cumpleFecha && cumpleNombre && cumpleUbi) {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${v.fecha}</strong><br><small>${v.hora}</small></td>
+                        <td>${v.nombre}<br><small style="color:#7F8C8D;">${v.empresa}</small></td>
+                        <td>${v.direccion}<br>Mz: ${v.manzana} | Lte: ${v.lote}</td>
+                        <td>${v.proposito}</td>
+                        <td>${v.dron}<br><small>Max: ${v.altitud}</small></td>
+                        <td><span class="badge">Autorizado</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            if(tbody.innerHTML === '') {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No se encontraron registros con esos filtros.</td></tr>`;
+            }
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('b_fecha').value = '';
+            document.getElementById('b_nombre').value = '';
+            document.getElementById('b_ubicacion').value = '';
+            cargarTabla();
+        }
+    </script>
+</body>
+</html>
