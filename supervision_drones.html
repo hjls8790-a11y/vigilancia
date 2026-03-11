@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora de Supervisión - El Cielo</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: auto; }
+        .header { background: #2C3E50; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Dashboard */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 5px solid #3498DB; }
+        .stat-card h3 { margin: 0; font-size: 0.9em; color: #7F8C8D; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 2em; font-weight: bold; color: #2C3E50; }
+
+        /* Buscador */
+        .search-area { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .grid-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: flex-end; }
+        label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #34495E; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;}
+
+        /* Tabla */
+        .table-bg { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #34495E; color: white; padding: 15px; text-align: left; font-size: 0.85em; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 0.9em; vertical-align: middle; }
+        tr:hover { background: #f8f9fa; }
+
+        /* Estatus y Botones */
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.75em; font-weight: bold; display: inline-block; text-align: center;}
+        .badge-vuelo { background: #E74C3C; color: white; } 
+        .badge-fin { background: #27AE60; color: white; }   
+        
+        .btn-action { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: 0.2s; }
+        .btn-close { background: #F39C12; color: white; }
+        .btn-close:hover { background: #D68910; }
+        .btn-wa { background: #25D366; color: white; text-decoration: none; display: inline-block; }
+        .btn-wa:hover { background: #20B256; }
+        .btn-print { background: #3498DB; color: white; width: 100%; height: 42px;}
+        .btn-print:hover { background: #2980B9; }
+
+        .empty-msg { text-align: center; padding: 30px; color: #7F8C8D; font-style: italic; }
+
+        @media print {
+            .search-area, .btn-action, .header p { display: none !important; }
+            .stat-card { border: 1px solid #ddd; }
+            body { background: white; }
+            .table-bg { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🛡️ BITÁCORA GERENCIAL DE DRONES</h2>
+        <p>Residencial El Cielo - Panel de Control y Auditoría</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total de Registros</h3>
+            <p id="total-vuelos">0</p>
+        </div>
+        <div class="stat-card" style="border-top-color: #E74C3C;">
+            <h3>Drones en Vuelo Ahora</h3>
+            <p id="en-vuelo">0</p>
+        </div>
+        <div class="stat-card" style="border-top-color: #27AE60;">
+            <h3>Vuelos de Hoy</h3>
+            <p id="hoy-vuelos">0</p>
+        </div>
+    </div>
+
+    <div class="search-area">
+        <div class="grid-filters">
+            <div>
+                <label>Fecha del Vuelo:</label>
+                <input type="date" id="f-fecha" onchange="actualizarTabla()">
+            </div>
+            <div>
+                <label>Buscar Piloto o Empresa:</label>
+                <input type="text" id="f-nombre" placeholder="Escribe para buscar..." onkeyup="actualizarTabla()">
+            </div>
+            <div>
+                <label>Filtrar por Estatus:</label>
+                <select id="f-status" onchange="actualizarTabla()">
+                    <option value="TODOS">Todos los registros</option>
+                    <option value="EN VUELO">En Vuelo / Pendientes</option>
+                    <option value="FINALIZADO">Finalizados / Aterrizados</option>
+                </select>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn-action btn-print">🖨️ Exportar Reporte</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-bg">
+        <table>
+            <thead>
+                <tr>
+                    <th>FECHA / HORA</th>
+                    <th>PILOTO / EMPRESA</th>
+                    <th>UBICACIÓN</th>
+                    <th>EQUIPO Y ALTITUD</th>
+                    <th>ESTATUS</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-bitacora">
+                </tbody>
+        </table>
+        <div id="mensaje-vacio" class="empty-msg" style="display: none;">
+            No se encontraron registros que coincidan con la búsqueda.
+        </div>
+    </div>
+</div>
+
+<script>
+    function actualizarTabla() {
+        // Obtenemos la base de datos local que se alimenta desde registro_drones.html
+        let registros = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
+        const tbody = document.getElementById('cuerpo-bitacora');
+        tbody.innerHTML = '';
+
+        // Obtenemos los valores de los filtros
+        const fFecha = document.getElementById('f-fecha').value;
+        const fNombre = document.getElementById('f-nombre').value.toLowerCase();
+        const fStatus = document.getElementById('f-status').value;
+
+        let contTotal = 0;
+        let contVuelo = 0;
+        let contHoy = 0;
+        
+        // Obtenemos la fecha de hoy para las estadísticas
+        const hoy = new Date();
+        // Ajuste de zona horaria para obtener formato YYYY-MM-DD correcto localmente
+        const hoyString = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+        // Mostramos del más reciente al más antiguo
+        let registrosInvertidos = [...registros].reverse();
+
+        registrosInvertidos.forEach(v => {
+            // Si el vuelo no tiene la propiedad 'finalizado', asumimos que sigue en vuelo
+            const statusVuelo = v.finalizado ? 'FINALIZADO' : 'EN VUELO';
+            
+            // Evaluamos si el registro cumple con los filtros
+            const matchFecha = !fFecha || v.fecha === fFecha;
+            const matchNombre = v.nombre.toLowerCase().includes(fNombre) || v.empresa.toLowerCase().includes(fNombre);
+            const matchStatus = fStatus === 'TODOS' || statusVuelo === fStatus;
+
+            if (matchFecha && matchNombre && matchStatus) {
+                contTotal++;
+                if(!v.finalizado) contVuelo++;
+                if(v.fecha === hoyString) contHoy++;
+
+                const tr = document.createElement('tr');
+                
+                // Mensaje predeterminado para WhatsApp a la caseta
+                const mensajeWa = encodeURIComponent(`Revisión de seguridad: ¿Me confirman estatus del dron piloteado por ${v.nombre} en Mz ${v.manzana} Lote ${v.lote}?`);
+                const enlaceWa = `https://api.whatsapp.com/send?phone=526692486726&text=${mensajeWa}`;
+
+                tr.innerHTML = `
+                    <td><strong>${v.fecha}</strong><br><small style="color:#7F8C8D;">${v.hora}</small></td>
+                    <td><strong>${v.nombre}</strong><br><small style="color:#3498DB">${v.empresa}</small></td>
+                    <td>Mz: <strong>${v.manzana}</strong> | Lte: <strong>${v.lote}</strong><br><small>${v.direccion}</small></td>
+                    <td>${v.dron}<br><small>Alt máx: ${v.altitud}</small></td>
+                    <td>
+                        <span class="badge ${v.finalizado ? 'badge-fin' : 'badge-vuelo'}">
+                            ${v.finalizado ? '✅ ' : '🚁 '}${statusVuelo}
+                        </span>
+                    </td>
+                    <td>
+                        ${!v.finalizado ? `<button class="btn-action btn-close" onclick="cerrarVuelo(${v.id})" title="Marcar como aterrizado">🚩 Cerrar Vuelo</button>` : '<span style="color:#BDC3C7; font-size:0.85em;">Sin acciones</span>'}
+                        <br>
+                        <a href="${enlaceWa}" class="btn-action btn-wa" style="margin-top:5px;" target="_blank" title="Mandar mensaje a caseta">📲 Caseta</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+
+        // Actualizar los números en el panel superior
+        document.getElementById('total-vuelos').innerText = contTotal;
+        document.getElementById('en-vuelo').innerText = contVuelo;
+        document.getElementById('hoy-vuelos').innerText = contHoy;
+
+        // Mostrar mensaje si no hay resultados
+        document.getElementById('mensaje-vacio').style.display = contTotal === 0 ? 'block' : 'none';
+    }
+
+    // Función para cambiar el estatus en la base de datos
+    function cerrarVuelo(id) {
+        if(confirm("¿Confirmas que este dron ya aterrizó y finalizó sus operaciones en el residencial?")) {
+            let registros = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
+            
+            // Buscamos el vuelo exacto por su ID
+            const index = registros.findIndex(v => v.id === id);
+            
+            if (index !== -1) {
+                // Actualizamos el estado
+                registros[index].finalizado = true;
+                // Guardamos de vuelta en la base de datos local
+                localStorage.setItem('bitacora_drones', JSON.stringify(registros));
+                // Refrescamos la tabla para que desaparezca de "En vuelo"
+                actualizarTabla();
+            }
+        }
+    }
+
+    // Cargar la tabla en cuanto se abra la página
+    window.onload = actualizarTabla;
+</script>
+
+</body>
+</html>
