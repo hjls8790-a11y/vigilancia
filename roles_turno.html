@@ -25,6 +25,7 @@
         
         .btn { background: #27AE60; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .btn-blue { background: #2980B9; }
+        .btn-wa { background: #25D366; }
         
         @media print {
             .controles, .btn { display: none !important; }
@@ -36,7 +37,7 @@
 
     <div class="header">
         <h2>🗓️ ROL DE TURNOS SEMANAL - EL CIELO</h2>
-        <p>Edita nombres, asigna turnos y guarda por semana</p>
+        <p>Edita nombres, asigna turnos y envía el rol por WhatsApp</p>
     </div>
 
     <div class="controles">
@@ -51,6 +52,7 @@
         <div>
             <button class="btn" onclick="guardarRol()">💾 Guardar Semana</button>
             <button class="btn btn-blue" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn btn-wa" onclick="enviarRolesWhatsApp()">📲 Enviar por WA</button>
         </div>
     </div>
 
@@ -66,13 +68,11 @@
     </table>
 
     <script>
-        // Nombres por defecto si es la primera vez que se abre
         const nombresDefault = ["ALEJANDRO", "LEROY", "ABEL", "VINALAY", "JOSE", "JULIO", "ALFONSO ACOSTA", "MARIO", "ISAEL", "LUIS CASTRO", "SANTILLAN", "ARMANDO", "SOTELO", "PIZARRO", "VICTOR CARDENA"];
         const turnos = ["07:00 A 15:00", "15:00 A 23:00", "23:00 A 07:00", "DESCANSO"];
         const dias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
         const numElementos = 15;
 
-        // Establecer el lunes de la semana actual por defecto
         let hoy = new Date();
         let diaSemana = hoy.getDay() || 7; 
         if(diaSemana !== 1) hoy.setHours(-24 * (diaSemana - 1));
@@ -95,7 +95,6 @@
                 let tr = document.createElement('tr');
                 tr.className = 'fila-agente';
                 
-                // Celda del Nombre (Editable)
                 let tdNombre = document.createElement('td');
                 tdNombre.className = 'td-nombre';
                 let inputNombre = document.createElement('input');
@@ -105,7 +104,6 @@
                 tdNombre.appendChild(inputNombre);
                 tr.appendChild(tdNombre);
                 
-                // Celdas de los días
                 dias.forEach(dia => {
                     let td = document.createElement('td');
                     let select = document.createElement('select');
@@ -130,14 +128,10 @@
             let fecha = document.getElementById('fechaSemana').value;
             let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
             let datosSemana = dbRoles[fecha];
-
-            // Cargar lista global de nombres (para mantener los últimos nombres guardados si es una semana nueva)
             let nombresGuardados = JSON.parse(localStorage.getItem('lista_nombres_global')) || nombresDefault;
 
             for(let i = 0; i < numElementos; i++) {
-                // Si la semana tiene datos, usar el nombre de esa semana, si no, usar el global
                 document.getElementById(`nombre_${i}`).value = (datosSemana && datosSemana[`nombre_${i}`]) ? datosSemana[`nombre_${i}`] : nombresGuardados[i];
-                
                 dias.forEach(dia => {
                     let select = document.getElementById(`${dia}_${i}`);
                     select.value = (datosSemana && datosSemana[`${dia}_${i}`]) ? datosSemana[`${dia}_${i}`] : "07:00 A 15:00";
@@ -166,8 +160,6 @@
 
             dbRoles[fecha] = datosSemana;
             localStorage.setItem('db_roles_semanales', JSON.stringify(dbRoles));
-            
-            // Actualizar la lista global de nombres para futuras semanas
             localStorage.setItem('lista_nombres_global', JSON.stringify(nombresActuales));
 
             alert("Rol guardado para la semana del: " + fecha);
@@ -176,7 +168,6 @@
         function filtrarTabla() {
             let filtro = document.getElementById('buscador').value.toUpperCase();
             let filas = document.getElementsByClassName('fila-agente');
-            
             for(let i = 0; i < filas.length; i++) {
                 let inputNom = filas[i].querySelector('.input-nombre');
                 if(inputNom.value.toUpperCase().indexOf(filtro) > -1) {
@@ -187,7 +178,43 @@
             }
         }
 
-        // Iniciar
+        function enviarRolesWhatsApp() {
+            let fecha = document.getElementById('fechaSemana').value;
+            if(!fecha) { alert("Selecciona una fecha primero."); return; }
+
+            let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
+            let datosSemana = dbRoles[fecha];
+
+            if(!datosSemana) {
+                alert("Guarda el rol de esta semana primero antes de enviarlo.");
+                return;
+            }
+
+            let textoWa = `*🗓️ ROL DE TURNOS - EL CIELO*\n*Semana del:* ${fecha}\n\n`;
+            
+            const mapT = { "07:00 A 15:00": "07 a 15", "15:00 A 23:00": "15 a 23", "23:00 A 07:00": "23 a 07", "DESCANSO": "🔴 DESC" };
+            const nDias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+
+            for(let i = 0; i < numElementos; i++) {
+                let nombre = datosSemana[`nombre_${i}`];
+                if(!nombre) continue;
+                
+                textoWa += `👤 *${nombre}*\n`;
+                let linea = "";
+                dias.forEach((diaClave, idx) => {
+                    let t = mapT[datosSemana[`${diaClave}_${i}`]];
+                    linea += `${nDias[idx]}:${t} | `;
+                });
+                textoWa += linea.slice(0, -3) + `\n\n`; 
+            }
+
+            // Mensaje de confirmación obligatoria
+            textoWa += `\n⚠️ *CONFIRMACIÓN REQUERIDA*\nPor favor, responde a este mensaje con tu nombre y la palabra *"ENTERADO"* para confirmar que recibiste tu rol de la semana.`;
+
+            let url = `https://api.whatsapp.com/send?phone=526692486726&text=${encodeURIComponent(textoWa)}`;
+            window.open(url, '_blank');
+        }
+
         construirTabla();
         cargarRol();
     </script>
