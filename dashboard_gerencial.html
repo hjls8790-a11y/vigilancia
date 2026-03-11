@@ -16,6 +16,7 @@
         input[type="number"], select, input[type="date"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         .btn { background: #3498DB; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-print { background: #2C3E50; }
+        .btn-wa { background: #25D366; }
         .btn:hover { opacity: 0.9; }
         
         /* Dashboard Styles */
@@ -26,7 +27,7 @@
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #2C3E50; color: white; }
         
-        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #e8ecef; padding: 15px; border-radius: 8px; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #e8ecef; padding: 15px; border-radius: 8px; flex-wrap: wrap;}
 
         /* Estilos específicos para cuando se manda a imprimir */
         @media print {
@@ -90,7 +91,8 @@
         <div class="search-bar">
             <label style="margin:0;">Consultar Fecha:</label>
             <input type="date" id="fechaBusqueda" onchange="cargarDashboard()">
-            <button class="btn btn-print" style="margin:0;" onclick="window.print()">🖨️ Imprimir Reporte para Jefe Inmediato</button>
+            <button class="btn btn-print" style="margin:0; width:auto;" onclick="window.print()">🖨️ Imprimir Reporte</button>
+            <button class="btn btn-wa" style="margin:0; width:auto;" onclick="enviarWhatsApp()">📲 Enviar por WhatsApp</button>
         </div>
 
         <h3 id="dash-fecha" style="text-align:center; color:#34495E;">Resultados de Operación: --</h3>
@@ -212,6 +214,37 @@
             setStatus('d-cctv', datos.cctv);
             setStatus('d-cerco', datos.cerco);
             setStatus('d-interphone', datos.interphone);
+        }
+
+        function enviarWhatsApp() {
+            let fecha = document.getElementById('fechaBusqueda').value;
+            let historial = JSON.parse(localStorage.getItem('historial_kpi')) || {};
+            let datos = historial[fecha];
+
+            if(!datos) {
+                alert("Primero guarda un reporte para esta fecha antes de enviarlo.");
+                return;
+            }
+
+            let textoWa = `*📊 REPORTE GERENCIAL - EL CIELO*
+*📅 Fecha:* ${fecha}
+
+*👥 PERSONAL (15)*
+A Tiempo: ${datos.tiempo} | Retardos: ${datos.retardo} | Faltas: ${datos.falta}
+
+*🛂 OPERACIÓN*
+Accesos: ${datos.accesos} | Arribos: ${datos.arribos}
+Rondines Óptimos: ${datos.ronOk} | Incompletos: ${datos.ronMal}
+
+*⚙️ SISTEMAS*
+Pistones: ${datos.pistones}
+App: ${datos.app}
+CCTV: ${datos.cctv}
+Cerco: ${datos.cerco}
+Interphone: ${datos.interphone}`;
+
+            let url = `https://api.whatsapp.com/send?phone=526692486726&text=${encodeURIComponent(textoWa)}`;
+            window.open(url, '_blank');
         }
         
         // Mostrar firma solo al imprimir
