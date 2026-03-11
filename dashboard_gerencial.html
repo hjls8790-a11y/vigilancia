@@ -14,32 +14,43 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
         input[type="number"], select, input[type="date"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .btn { background: #3498DB; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn:hover { background: #2980B9; }
+        .btn { background: #3498DB; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-print { background: #2C3E50; }
+        .btn:hover { opacity: 0.9; }
         
         /* Dashboard Styles */
         .kpi-box { text-align: center; padding: 15px; border-radius: 8px; color: white; }
-        .bg-green { background: #27AE60; } .bg-blue { background: #2980B9; } .bg-orange { background: #E67E22; }
+        .bg-green { background: #27AE60; } .bg-blue { background: #2980B9; }
         .status-ok { color: #27AE60; font-weight: bold; } .status-fail { color: #E74C3C; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #2C3E50; color: white; }
+        
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #e8ecef; padding: 15px; border-radius: 8px; }
+
+        /* Estilos específicos para cuando se manda a imprimir */
+        @media print {
+            body { background: white; padding: 0; }
+            .tabs, .search-bar, .btn { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+            .header h2 { color: #2C3E50; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>📊 PLATAFORMA GERENCIAL - EL CIELO</h2>
+        <h2>📊 REPORTE GERENCIAL DE SEGURIDAD - EL CIELO</h2>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="mostrarPestana('captura')">1. Captura Manual de Datos</div>
-        <div class="tab" onclick="mostrarPestana('dashboard')">2. Ver Dashboard</div>
+        <div class="tab active" onclick="mostrarPestana('captura')">1. Captura de Datos</div>
+        <div class="tab" onclick="mostrarPestana('dashboard')">2. Historial y Reportes</div>
     </div>
 
     <div id="sec-captura">
         <div class="card">
-            <h3>📅 Fecha del Reporte</h3>
+            <h3>📅 Fecha a Reportar</h3>
             <input type="date" id="fechaReporte">
         </div>
 
@@ -71,49 +82,66 @@
             </div>
         </div>
 
-        <button class="btn" onclick="guardarKpi()">💾 GUARDAR REPORTE DEL DÍA</button>
+        <button class="btn" style="background:#27AE60;" onclick="guardarKpi()">💾 GUARDAR REPORTE</button>
     </div>
 
     <div id="sec-dashboard" style="display:none;">
-        <h3 id="dash-fecha" style="text-align:center;">Resultados del Día: --</h3>
         
-        <div class="grid-2">
-            <div class="kpi-box bg-blue">
-                <h3>Movimientos</h3>
-                <p style="font-size: 2em; margin: 10px 0;"><span id="d-accesos">0</span></p>
-                <small>Accesos Registrados</small>
-            </div>
-            <div class="kpi-box bg-green">
-                <h3>Arribos / Patrullaje</h3>
-                <p style="font-size: 2em; margin: 10px 0;"><span id="d-arribos">0</span></p>
-                <small>Reportados</small>
-            </div>
+        <div class="search-bar">
+            <label style="margin:0;">Consultar Fecha:</label>
+            <input type="date" id="fechaBusqueda" onchange="cargarDashboard()">
+            <button class="btn btn-print" style="margin:0;" onclick="window.print()">🖨️ Imprimir Reporte para Jefe Inmediato</button>
         </div>
 
-        <div class="card" style="margin-top:20px;">
-            <h3>Resumen Operativo</h3>
-            <table>
-                <tr><th>Métrica</th><th>Resultado</th></tr>
-                <tr><td>Guardias A Tiempo</td><td id="d-tiempo">0</td></tr>
-                <tr><td>Retardos / Faltas</td><td><span class="status-fail" id="d-retardos">0</span> / <span class="status-fail" id="d-faltas">0</span></td></tr>
-                <tr><td>Calidad de Rondines</td><td><span class="status-ok" id="d-ron-ok">0</span> Óptimos | <span class="status-fail" id="d-ron-mal">0</span> Incompletos</td></tr>
-            </table>
-        </div>
+        <h3 id="dash-fecha" style="text-align:center; color:#34495E;">Resultados de Operación: --</h3>
+        
+        <div id="mensaje-vacio" style="display:none; text-align:center; padding:20px; color:#7F8C8D;">No hay datos registrados para esta fecha.</div>
 
-        <div class="card">
-            <h3>Estado de Controles de Ingeniería</h3>
-            <table>
-                <tr><td>Pistones</td><td id="d-pistones">--</td></tr>
-                <tr><td>App de Acceso</td><td id="d-app">--</td></tr>
-                <tr><td>CCTV</td><td id="d-cctv">--</td></tr>
-                <tr><td>Cerco Eléctrico</td><td id="d-cerco">--</td></tr>
-                <tr><td>Interphone</td><td id="d-interphone">--</td></tr>
-            </table>
+        <div id="contenido-reporte">
+            <div class="grid-2">
+                <div class="kpi-box bg-blue">
+                    <h3>Movimientos</h3>
+                    <p style="font-size: 2em; margin: 10px 0;"><span id="d-accesos">0</span></p>
+                    <small>Accesos Registrados</small>
+                </div>
+                <div class="kpi-box bg-green">
+                    <h3>Arribos / Patrullaje</h3>
+                    <p style="font-size: 2em; margin: 10px 0;"><span id="d-arribos">0</span></p>
+                    <small>Reportados</small>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:20px;">
+                <h3>Resumen Operativo</h3>
+                <table>
+                    <tr><th>Métrica</th><th>Resultado</th></tr>
+                    <tr><td>Guardias A Tiempo</td><td id="d-tiempo">0</td></tr>
+                    <tr><td>Retardos / Faltas</td><td><span class="status-fail" id="d-retardos">0</span> / <span class="status-fail" id="d-faltas">0</span></td></tr>
+                    <tr><td>Calidad de Rondines</td><td><span class="status-ok" id="d-ron-ok">0</span> Óptimos | <span class="status-fail" id="d-ron-mal">0</span> Incompletos</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Estado de Controles de Ingeniería</h3>
+                <table>
+                    <tr><td>Pistones</td><td id="d-pistones">--</td></tr>
+                    <tr><td>App de Acceso</td><td id="d-app">--</td></tr>
+                    <tr><td>CCTV</td><td id="d-cctv">--</td></tr>
+                    <tr><td>Cerco Eléctrico</td><td id="d-cerco">--</td></tr>
+                    <tr><td>Interphone</td><td id="d-interphone">--</td></tr>
+                </table>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center; border-top: 1px solid #ccc; padding-top: 20px; width: 60%; margin-left: auto; margin-right: auto; display: none;" id="firma-print">
+                <p>_____________________________________</p>
+                <p><strong>Firma de Supervisión / Gerencia</strong></p>
+            </div>
         </div>
     </div>
 
     <script>
         document.getElementById('fechaReporte').valueAsDate = new Date();
+        document.getElementById('fechaBusqueda').valueAsDate = new Date();
 
         function mostrarPestana(id) {
             document.getElementById('sec-captura').style.display = id === 'captura' ? 'block' : 'none';
@@ -124,7 +152,10 @@
         }
 
         function guardarKpi() {
-            let datos = {
+            let fecha = document.getElementById('fechaReporte').value;
+            let historial = JSON.parse(localStorage.getItem('historial_kpi')) || {};
+            
+            historial[fecha] = {
                 tiempo: document.getElementById('kpi-tiempo').value,
                 retardo: document.getElementById('kpi-retardo').value,
                 falta: document.getElementById('kpi-falta').value,
@@ -138,18 +169,30 @@
                 cerco: document.getElementById('sys-cerco').value,
                 interphone: document.getElementById('sys-interphone').value
             };
-            localStorage.setItem('kpi_manual', JSON.stringify(datos));
-            alert("Reporte guardado exitosamente.");
-            mostrarPestana('dashboard');
-            document.querySelectorAll('.tab')[1].classList.add('active');
-            document.querySelectorAll('.tab')[0].classList.remove('active');
+            
+            localStorage.setItem('historial_kpi', JSON.stringify(historial));
+            alert("Reporte guardado exitosamente para la fecha: " + fecha);
+            
+            document.getElementById('fechaBusqueda').value = fecha;
+            document.querySelectorAll('.tab')[1].click(); // Ir a dashboard
         }
 
         function cargarDashboard() {
-            let datos = JSON.parse(localStorage.getItem('kpi_manual'));
-            if(!datos) return;
+            let fecha = document.getElementById('fechaBusqueda').value;
+            let historial = JSON.parse(localStorage.getItem('historial_kpi')) || {};
+            let datos = historial[fecha];
             
-            document.getElementById('dash-fecha').innerText = "Resultados del Día: " + document.getElementById('fechaReporte').value;
+            document.getElementById('dash-fecha').innerText = "Resultados de Operación: " + fecha;
+            
+            if(!datos) {
+                document.getElementById('contenido-reporte').style.display = 'none';
+                document.getElementById('mensaje-vacio').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('contenido-reporte').style.display = 'block';
+            document.getElementById('mensaje-vacio').style.display = 'none';
+            
             document.getElementById('d-accesos').innerText = datos.accesos;
             document.getElementById('d-arribos').innerText = datos.arribos;
             document.getElementById('d-tiempo').innerText = datos.tiempo;
@@ -170,6 +213,10 @@
             setStatus('d-cerco', datos.cerco);
             setStatus('d-interphone', datos.interphone);
         }
+        
+        // Mostrar firma solo al imprimir
+        window.onbeforeprint = function() { document.getElementById('firma-print').style.display = 'block'; }
+        window.onafterprint = function() { document.getElementById('firma-print').style.display = 'none'; }
     </script>
 </body>
 </html>
