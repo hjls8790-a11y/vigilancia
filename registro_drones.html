@@ -23,24 +23,58 @@
         .checkbox-group input { margin-right: 10px; width: auto; transform: scale(1.2); }
 
         .btn { background: #27AE60; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; font-size: 1.1em;}
+        .btn-small { background: #34495E; padding: 5px 10px; font-size: 0.85em; width: auto; margin-top: 5px; }
         .btn:hover { opacity: 0.9; }
 
         /* Estilos de la tabla de búsqueda */
         .search-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #e8ecef; padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: flex-end;}
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 0.9em; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
         th { background: #34495E; color: white; }
-        .badge { background: #27AE60; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
+        .badge { background: #27AE60; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; display: inline-block;}
+
+        /* Zona de Gafete Oculta en pantalla normal */
+        #zona-gafete { display: none; }
+
+        /* Estilos específicos para Impresión */
+        @media print {
+            body * { visibility: hidden; }
+            #zona-gafete, #zona-gafete * { visibility: visible; }
+            #zona-gafete { 
+                display: flex; 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                justify-content: center; 
+                padding-top: 20px;
+            }
+            .gafete-container {
+                border: 3px solid #2C3E50;
+                border-radius: 10px;
+                width: 320px;
+                padding: 0;
+                text-align: center;
+                font-family: Arial, sans-serif;
+                color: black;
+            }
+            .gafete-header { background-color: #2C3E50 !important; color: white !important; padding: 15px; border-radius: 6px 6px 0 0; -webkit-print-color-adjust: exact; }
+            .gafete-header h2 { margin: 0; font-size: 1.4em; letter-spacing: 1px;}
+            .gafete-header p { margin: 5px 0 0 0; font-size: 0.8em; font-weight: normal; }
+            .gafete-body { padding: 15px; text-align: left; }
+            .gafete-body p { margin: 8px 0; font-size: 0.95em; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+            .gafete-footer { background-color: #E74C3C !important; color: white !important; padding: 10px; font-weight: bold; font-size: 0.85em; border-radius: 0 0 6px 6px; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <div class="header" id="main-header">
         <h2>🚁 CONTROL DE VUELO DE DRONES - EL CIELO</h2>
         <p style="margin: 0; font-size: 0.9em;">Plataforma de Autorización y Bitácora</p>
     </div>
 
-    <div class="tabs">
+    <div class="tabs" id="main-tabs">
         <div class="tab active" onclick="mostrarPestana('registro')">1. Nuevo Registro</div>
         <div class="tab" onclick="mostrarPestana('bitacora')">2. Bitácora y Buscador</div>
     </div>
@@ -99,9 +133,8 @@
                         <th>Fecha y Hora</th>
                         <th>Piloto / Empresa</th>
                         <th>Ubicación (Mz/Lote)</th>
-                        <th>Propósito</th>
                         <th>Dron / Altitud</th>
-                        <th>Estado</th>
+                        <th>Estado y Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoTabla">
@@ -110,8 +143,29 @@
         </div>
     </div>
 
+    <div id="zona-gafete">
+        <div class="gafete-container">
+            <div class="gafete-header">
+                <h2>EL CIELO</h2>
+                <p>PARQUE RESIDENCIAL</p>
+            </div>
+            <div style="background: #f1c40f; color: black; font-weight: bold; padding: 5px; -webkit-print-color-adjust: exact;">
+                AUTORIZACIÓN VUELO DE DRON
+            </div>
+            <div class="gafete-body">
+                <p><strong>Piloto:</strong> <span id="g_piloto"></span></p>
+                <p><strong>Empresa:</strong> <span id="g_empresa"></span></p>
+                <p><strong>Fecha/Hora:</strong> <span id="g_fechahora"></span></p>
+                <p><strong>Ubicación:</strong> <span id="g_ubicacion"></span></p>
+                <p><strong>Equipo:</strong> <span id="g_equipo"></span></p>
+            </div>
+            <div class="gafete-footer">
+                PORTAR EN LUGAR VISIBLE DURANTE LA OPERACIÓN
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Inicializar fecha actual en registro
         document.getElementById('r_fecha').valueAsDate = new Date();
 
         function mostrarPestana(id) {
@@ -123,15 +177,14 @@
         }
 
         function guardarYNotificar() {
-            // Validar checkboxes
             if (!document.getElementById('cb_casas').checked || !document.getElementById('cb_limites').checked || !document.getElementById('cb_ley').checked) {
                 alert("Para registrar el vuelo, el solicitante debe aceptar TODAS las medidas de seguridad.");
                 return;
             }
 
-            // Recopilar datos
+            let idUnico = Date.now();
             let vuelo = {
-                id: Date.now(),
+                id: idUnico,
                 nombre: document.getElementById('r_nombre').value.trim() || 'No especificado',
                 empresa: document.getElementById('r_empresa').value.trim() || 'No especificada',
                 proposito: document.getElementById('r_proposito').value.trim() || 'No especificado',
@@ -142,7 +195,6 @@
                 hora: document.getElementById('r_hora').value || 'Sin hora',
                 dron: document.getElementById('r_dron').value.trim() || 'No especificado',
                 altitud: document.getElementById('r_altitud').value.trim() || 'No especificada',
-                registro_timestamp: new Date().toLocaleString()
             };
 
             if(vuelo.nombre === 'No especificado' || vuelo.direccion === 'No especificada') {
@@ -150,12 +202,10 @@
                 return;
             }
 
-            // Guardar en LocalStorage
             let bitacora = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
             bitacora.push(vuelo);
             localStorage.setItem('bitacora_drones', JSON.stringify(bitacora));
 
-            // Generar Mensaje de WhatsApp
             let textoWa = `*🚁 AUTORIZACIÓN DE VUELO DE DRON*\n*Residencial El Cielo*\n\n` +
                           `*👤 Piloto:* ${vuelo.nombre}\n` +
                           `*🏢 Empresa:* ${vuelo.empresa}\n` +
@@ -168,16 +218,21 @@
                           `Equipo: ${vuelo.dron}\n` +
                           `Altitud Max: ${vuelo.altitud}\n\n` +
                           `✅ *Reglas Aceptadas:* No volar sobre casas, respetar límites y apego a la ley.\n\n` +
-                          `_Caseta: Favor de permitir acceso y monitorear perímetro._`;
+                          `_Caseta: Favor de permitir acceso, entregar gafete y monitorear perímetro._`;
 
             let url = `https://api.whatsapp.com/send?phone=526692486726&text=${encodeURIComponent(textoWa)}`;
             
-            // Limpiar formulario
             document.querySelectorAll('input[type="text"]').forEach(i => i.value = '');
             document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
             document.getElementById('r_hora').value = '';
 
             alert("Registro guardado. Se abrirá WhatsApp para notificar a Caseta.");
+            
+            let btnGafete = confirm("¿Deseas imprimir el gafete del piloto en este momento?");
+            if(btnGafete) {
+                prepararGafete(idUnico);
+            }
+            
             window.open(url, '_blank');
         }
 
@@ -186,16 +241,13 @@
             let tbody = document.getElementById('cuerpoTabla');
             tbody.innerHTML = '';
 
-            // Obtener filtros
             let f_fecha = document.getElementById('b_fecha').value;
             let f_nombre = document.getElementById('b_nombre').value.toLowerCase();
             let f_ubi = document.getElementById('b_ubicacion').value.toLowerCase();
 
-            // Ordenar del más reciente al más antiguo
-            bitacora.reverse();
+            let bitacoraInvertida = [...bitacora].reverse();
 
-            bitacora.forEach(v => {
-                // Lógica de filtrado
+            bitacoraInvertida.forEach(v => {
                 let cumpleFecha = f_fecha === '' || v.fecha === f_fecha;
                 let cumpleNombre = f_nombre === '' || v.nombre.toLowerCase().includes(f_nombre) || v.empresa.toLowerCase().includes(f_nombre);
                 let textUbi = `${v.direccion} ${v.manzana} ${v.lote}`.toLowerCase();
@@ -207,16 +259,18 @@
                         <td><strong>${v.fecha}</strong><br><small>${v.hora}</small></td>
                         <td>${v.nombre}<br><small style="color:#7F8C8D;">${v.empresa}</small></td>
                         <td>${v.direccion}<br>Mz: ${v.manzana} | Lte: ${v.lote}</td>
-                        <td>${v.proposito}</td>
                         <td>${v.dron}<br><small>Max: ${v.altitud}</small></td>
-                        <td><span class="badge">Autorizado</span></td>
+                        <td>
+                            <span class="badge">Autorizado</span><br>
+                            <button class="btn btn-small" onclick="prepararGafete(${v.id})">🖨️ Imprimir Gafete</button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 }
             });
 
             if(tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No se encontraron registros con esos filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
             }
         }
 
@@ -225,6 +279,21 @@
             document.getElementById('b_nombre').value = '';
             document.getElementById('b_ubicacion').value = '';
             cargarTabla();
+        }
+
+        function prepararGafete(id) {
+            let bitacora = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
+            let vuelo = bitacora.find(v => v.id === id);
+            
+            if(vuelo) {
+                document.getElementById('g_piloto').innerText = vuelo.nombre;
+                document.getElementById('g_empresa').innerText = vuelo.empresa;
+                document.getElementById('g_fechahora').innerText = vuelo.fecha + ' / ' + vuelo.hora;
+                document.getElementById('g_ubicacion').innerText = `Mz ${vuelo.manzana}, Lote ${vuelo.lote}`;
+                document.getElementById('g_equipo').innerText = vuelo.dron;
+                
+                window.print();
+            }
         }
     </script>
 </body>
