@@ -3,116 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPIs Gerenciales - El Cielo</title>
+    <title>Dashboard Gerencial - El Cielo</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #EAECEE; padding: 20px; color: #1A252C; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; color: #2C3E50; font-size: 2em; }
-        .header p { color: #7F8C8D; margin-top: 5px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #2980B9; position: relative; }
-        .card h3 { margin-top: 0; color: #34495E; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; }
-        .data-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-        .num-box { text-align: center; }
-        .num { font-size: 2.5em; font-weight: bold; display: block; }
-        .label { font-size: 0.8em; color: #7F8C8D; text-transform: uppercase; }
-        .status { margin-top: 20px; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9em; text-align: center; }
-        .ok { background: #EAFAF1; color: #27AE60; border: 1px solid #A9DFBF; }
-        .bad { background: #FDEDEC; color: #C0392B; border: 1px solid #F5B7B1; }
-        .fecha-hoy { position: absolute; top: 15px; right: 20px; font-size: 0.8em; color: #95A5A6; background: #F2F3F4; padding: 4px 8px; border-radius: 4px; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #2C3E50; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #7F8C8D; }
+        .tab.active { color: #2C3E50; border-bottom: 4px solid #3498DB; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        input[type="number"], select, input[type="date"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn { background: #3498DB; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn:hover { background: #2980B9; }
+        
+        /* Dashboard Styles */
+        .kpi-box { text-align: center; padding: 15px; border-radius: 8px; color: white; }
+        .bg-green { background: #27AE60; } .bg-blue { background: #2980B9; } .bg-orange { background: #E67E22; }
+        .status-ok { color: #27AE60; font-weight: bold; } .status-fail { color: #E74C3C; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #2C3E50; color: white; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>📊 Dashboard de Mejora Continua</h1>
-        <p>Auditoría Operativa - El Cielo Parque Residencial</p>
+        <h2>📊 PLATAFORMA GERENCIAL - EL CIELO</h2>
     </div>
 
-    <div class="grid">
-        <div class="card" style="border-top-color: #3498DB;">
-            <div class="fecha-hoy" id="fecha1">Hoy</div>
-            <h3>1. Trazabilidad de Visitas</h3>
-            <div class="data-row">
-                <div class="num-box"><span class="num" id="kpi-accesos" style="color:#2980B9;">0</span><span class="label">Entradas (Caseta)</span></div>
-                <div style="font-size: 1.5em; color: #BDC3C7;">➔</div>
-                <div class="num-box"><span class="num" id="kpi-arribos" style="color:#27AE60;">0</span><span class="label">Arribos (Patrulla)</span></div>
-            </div>
-            <div id="status-trazabilidad"></div>
+    <div class="tabs">
+        <div class="tab active" onclick="mostrarPestana('captura')">1. Captura Manual de Datos</div>
+        <div class="tab" onclick="mostrarPestana('dashboard')">2. Ver Dashboard</div>
+    </div>
+
+    <div id="sec-captura">
+        <div class="card">
+            <h3>📅 Fecha del Reporte</h3>
+            <input type="date" id="fechaReporte">
         </div>
 
-        <div class="card" style="border-top-color: #9B59B6;">
-            <div class="fecha-hoy" id="fecha2">Hoy</div>
-            <h3>2. Disciplina de Turnos</h3>
-            <div class="data-row">
-                <div class="num-box"><span class="num" id="kpi-tiempo" style="color:#27AE60;">0</span><span class="label">A Tiempo</span></div>
-                <div class="num-box"><span class="num" id="kpi-retardo" style="color:#E74C3C;">0</span><span class="label">Retardos</span></div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>👥 Puntualidad (15 Elementos)</h3>
+                <label>A Tiempo</label><input type="number" id="kpi-tiempo" value="15" min="0" max="15">
+                <label>Retardos</label><input type="number" id="kpi-retardo" value="0" min="0" max="15">
+                <label>Faltas</label><input type="number" id="kpi-falta" value="0" min="0" max="15">
             </div>
-            <div id="status-puntualidad"></div>
+            
+            <div class="card">
+                <h3>🛂 Operación y Recorridos</h3>
+                <label>Total Accesos Registrados</label><input type="number" id="kpi-accesos" value="0">
+                <label>Total Arribos a Caseta</label><input type="number" id="kpi-arribos" value="0">
+                <label>Rondines Válidos (Calidad Alta)</label><input type="number" id="kpi-rondines-ok" value="0">
+                <label>Rondines Incompletos/Omitidos</label><input type="number" id="kpi-rondines-mal" value="0">
+            </div>
         </div>
 
-        <div class="card" style="border-top-color: #E67E22;">
-            <div class="fecha-hoy" id="fecha3">Hoy</div>
-            <h3>3. Calidad de Recorridos</h3>
-            <div class="data-row">
-                <div class="num-box"><span class="num" id="kpi-ron-ok" style="color:#27AE60;">0</span><span class="label">Completos (8+ pts)</span></div>
-                <div class="num-box"><span class="num" id="kpi-ron-bad" style="color:#E74C3C;">0</span><span class="label">Incompletos</span></div>
+        <div class="card">
+            <h3>⚙️ Controles de Ingeniería</h3>
+            <div class="grid-2">
+                <div><label>Pistones de Acceso</label><select id="sys-pistones"><option>Operativo</option><option>Falla Parcial</option><option>Fuera de Servicio</option></select></div>
+                <div><label>App de Acceso</label><select id="sys-app"><option>Operativo</option><option>Intermitente</option><option>Caída</option></select></div>
+                <div><label>CCTV (Cámaras)</label><select id="sys-cctv"><option>Operativo</option><option>Puntos Ciegos / Falla</option><option>Sin Grabación</option></select></div>
+                <div><label>Cerco Eléctrico</label><select id="sys-cerco"><option>Operativo</option><option>Activaciones Falsas</option><option>Línea Rota / Apagado</option></select></div>
+                <div><label>Interphone</label><select id="sys-interphone"><option>Operativo</option><option>Falla de Audio</option><option>Inoperante</option></select></div>
             </div>
-            <div id="status-rondines"></div>
+        </div>
+
+        <button class="btn" onclick="guardarKpi()">💾 GUARDAR REPORTE DEL DÍA</button>
+    </div>
+
+    <div id="sec-dashboard" style="display:none;">
+        <h3 id="dash-fecha" style="text-align:center;">Resultados del Día: --</h3>
+        
+        <div class="grid-2">
+            <div class="kpi-box bg-blue">
+                <h3>Movimientos</h3>
+                <p style="font-size: 2em; margin: 10px 0;"><span id="d-accesos">0</span></p>
+                <small>Accesos Registrados</small>
+            </div>
+            <div class="kpi-box bg-green">
+                <h3>Arribos / Patrullaje</h3>
+                <p style="font-size: 2em; margin: 10px 0;"><span id="d-arribos">0</span></p>
+                <small>Reportados</small>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3>Resumen Operativo</h3>
+            <table>
+                <tr><th>Métrica</th><th>Resultado</th></tr>
+                <tr><td>Guardias A Tiempo</td><td id="d-tiempo">0</td></tr>
+                <tr><td>Retardos / Faltas</td><td><span class="status-fail" id="d-retardos">0</span> / <span class="status-fail" id="d-faltas">0</span></td></tr>
+                <tr><td>Calidad de Rondines</td><td><span class="status-ok" id="d-ron-ok">0</span> Óptimos | <span class="status-fail" id="d-ron-mal">0</span> Incompletos</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Estado de Controles de Ingeniería</h3>
+            <table>
+                <tr><td>Pistones</td><td id="d-pistones">--</td></tr>
+                <tr><td>App de Acceso</td><td id="d-app">--</td></tr>
+                <tr><td>CCTV</td><td id="d-cctv">--</td></tr>
+                <tr><td>Cerco Eléctrico</td><td id="d-cerco">--</td></tr>
+                <tr><td>Interphone</td><td id="d-interphone">--</td></tr>
+            </table>
         </div>
     </div>
 
     <script>
-        const fechaHoy = new Date().toLocaleDateString();
-        document.getElementById('fecha1').innerText = fechaHoy;
-        document.getElementById('fecha2').innerText = fechaHoy;
-        document.getElementById('fecha3').innerText = fechaHoy;
+        document.getElementById('fechaReporte').valueAsDate = new Date();
 
-        // Leer datos silentes
-        const acc = JSON.parse(localStorage.getItem('kpi_accesos')) || {};
-        const arr = JSON.parse(localStorage.getItem('kpi_arribos')) || {};
-        const ast = JSON.parse(localStorage.getItem('kpi_asistencia')) || {};
-        const ron = JSON.parse(localStorage.getItem('kpi_rondines')) || {};
-
-        // 1. Trazabilidad
-        const hoyAcc = acc[fechaHoy] || 0;
-        const hoyArr = arr[fechaHoy] || 0;
-        document.getElementById('kpi-accesos').innerText = hoyAcc;
-        document.getElementById('kpi-arribos').innerText = hoyArr;
-        
-        const faltantes = hoyAcc - hoyArr;
-        if (hoyAcc === 0 && hoyArr === 0) {
-            document.getElementById('status-trazabilidad').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Sin actividad registrada</div>`;
-        } else if (faltantes > 0) {
-            document.getElementById('status-trazabilidad').innerHTML = `<div class="status bad">⚠️ Faltan ${faltantes} arribos por confirmar en domicilio</div>`;
-        } else {
-            document.getElementById('status-trazabilidad').innerHTML = `<div class="status ok">✔️ 100% de vehículos rastreados</div>`;
+        function mostrarPestana(id) {
+            document.getElementById('sec-captura').style.display = id === 'captura' ? 'block' : 'none';
+            document.getElementById('sec-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if(id === 'dashboard') cargarDashboard();
         }
 
-        // 2. Puntualidad
-        const hoyAst = ast[fechaHoy] || { aTiempo: 0, retardo: 0 };
-        document.getElementById('kpi-tiempo').innerText = hoyAst.aTiempo;
-        document.getElementById('kpi-retardo').innerText = hoyAst.retardo;
-        
-        if (hoyAst.aTiempo === 0 && hoyAst.retardo === 0) {
-            document.getElementById('status-puntualidad').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Esperando checadas...</div>`;
-        } else if (hoyAst.retardo > 0) {
-            document.getElementById('status-puntualidad').innerHTML = `<div class="status bad">🚨 Detectados ${hoyAst.retardo} retardos. Aplicar actas.</div>`;
-        } else {
-            document.getElementById('status-puntualidad').innerHTML = `<div class="status ok">✔️ Puntualidad impecable</div>`;
+        function guardarKpi() {
+            let datos = {
+                tiempo: document.getElementById('kpi-tiempo').value,
+                retardo: document.getElementById('kpi-retardo').value,
+                falta: document.getElementById('kpi-falta').value,
+                accesos: document.getElementById('kpi-accesos').value,
+                arribos: document.getElementById('kpi-arribos').value,
+                ronOk: document.getElementById('kpi-rondines-ok').value,
+                ronMal: document.getElementById('kpi-rondines-mal').value,
+                pistones: document.getElementById('sys-pistones').value,
+                app: document.getElementById('sys-app').value,
+                cctv: document.getElementById('sys-cctv').value,
+                cerco: document.getElementById('sys-cerco').value,
+                interphone: document.getElementById('sys-interphone').value
+            };
+            localStorage.setItem('kpi_manual', JSON.stringify(datos));
+            alert("Reporte guardado exitosamente.");
+            mostrarPestana('dashboard');
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.querySelectorAll('.tab')[0].classList.remove('active');
         }
 
-        // 3. Rondines
-        const hoyRon = ron[fechaHoy] || { validos: 0, incompletos: 0 };
-        document.getElementById('kpi-ron-ok').innerText = hoyRon.validos;
-        document.getElementById('kpi-ron-bad').innerText = hoyRon.incompletos;
-
-        if (hoyRon.validos === 0 && hoyRon.incompletos === 0) {
-            document.getElementById('status-rondines').innerHTML = `<div class="status" style="background:#F2F3F4; color:#7F8C8D;">Esperando recorridos...</div>`;
-        } else if (hoyRon.incompletos > 0) {
-            document.getElementById('status-rondines').innerHTML = `<div class="status bad">⚠️ ${hoyRon.incompletos} recorridos no cumplieron la consigna de 8 puntos</div>`;
-        } else {
-            document.getElementById('status-rondines').innerHTML = `<div class="status ok">✔️ Consigna cumplida. Cobertura total.</div>`;
+        function cargarDashboard() {
+            let datos = JSON.parse(localStorage.getItem('kpi_manual'));
+            if(!datos) return;
+            
+            document.getElementById('dash-fecha').innerText = "Resultados del Día: " + document.getElementById('fechaReporte').value;
+            document.getElementById('d-accesos').innerText = datos.accesos;
+            document.getElementById('d-arribos').innerText = datos.arribos;
+            document.getElementById('d-tiempo').innerText = datos.tiempo;
+            document.getElementById('d-retardos').innerText = datos.retardo;
+            document.getElementById('d-faltas').innerText = datos.falta;
+            document.getElementById('d-ron-ok').innerText = datos.ronOk;
+            document.getElementById('d-ron-mal').innerText = datos.ronMal;
+            
+            const setStatus = (id, val) => {
+                let el = document.getElementById(id);
+                el.innerText = val;
+                el.className = val === 'Operativo' ? 'status-ok' : 'status-fail';
+            };
+            
+            setStatus('d-pistones', datos.pistones);
+            setStatus('d-app', datos.app);
+            setStatus('d-cctv', datos.cctv);
+            setStatus('d-cerco', datos.cerco);
+            setStatus('d-interphone', datos.interphone);
         }
     </script>
 </body>
