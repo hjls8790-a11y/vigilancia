@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Roles - El Cielo</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #eef2f5; }
+        .header { background: #2C3E50; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #34495E; color: white; }
+        td.nombre { background: #27AE60; color: white; font-weight: bold; text-align: left; padding-left: 10px; }
+        select { width: 100%; padding: 5px; border: none; font-weight: bold; background: transparent; cursor: pointer; outline: none; }
+        /* Colores condicionales */
+        .descanso { background-color: #E74C3C !important; color: white; }
+        .turno1 { background-color: #85C1E9; color: black; } /* 07 a 15 */
+        .turno2 { background-color: #34495E; color: white; } /* 15 a 23 */
+        .turno3 { background-color: #D6DBDF; color: black; } /* 23 a 07 */
+        .btn { margin-top: 20px; background: #27AE60; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1em;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🗓️ ROL DE TURNOS SEMANAL - EL CIELO</h2>
+        <p>Selecciona el horario o descanso para los 15 elementos</p>
+    </div>
+
+    <table id="tablaRoles">
+        <thead>
+            <tr>
+                <th>Nombre</th><th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th><th>SÁBADO</th><th>DOMINGO</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoRoles">
+            </tbody>
+    </table>
+
+    <button class="btn" onclick="guardarRol()">💾 GUARDAR ROL SEMANAL</button>
+    <button class="btn" style="background:#2980B9;" onclick="window.print()">🖨️ IMPRIMIR / PDF</button>
+
+    <script>
+        const elementos = [
+            "ALEJANDRO", "LEROY", "ABEL", "VINALAY", "JOSE", 
+            "JULIO", "ALFONSO ACOSTA", "MARIO", "ISAEL", "LUIS CASTRO", 
+            "SANTILLAN", "ARMANDO", "SOTELO", "PIZARRO", "VICTOR CARDENA"
+        ];
+        
+        const turnos = ["07:00 A 15:00", "15:00 A 23:00", "23:00 A 07:00", "DESCANSO"];
+        const dias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+
+        function actualizarColor(selectElement) {
+            let valor = selectElement.value;
+            selectElement.parentElement.className = ""; // Limpiar clases
+            if (valor === "DESCANSO") selectElement.parentElement.classList.add("descanso");
+            else if (valor === "07:00 A 15:00") selectElement.parentElement.classList.add("turno1");
+            else if (valor === "15:00 A 23:00") selectElement.parentElement.classList.add("turno2");
+            else if (valor === "23:00 A 07:00") selectElement.parentElement.classList.add("turno3");
+        }
+
+        function generarTabla() {
+            let tbody = document.getElementById('cuerpoRoles');
+            let datosGuardados = JSON.parse(localStorage.getItem('rol_semanal')) || {};
+
+            elementos.forEach((nombre, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td class="nombre">${nombre}</td>`;
+                
+                dias.forEach(dia => {
+                    let td = document.createElement('td');
+                    let select = document.createElement('select');
+                    select.id = `${dia}_${index}`;
+                    select.onchange = function() { actualizarColor(this); };
+
+                    turnos.forEach(t => {
+                        let option = document.createElement('option');
+                        option.value = t;
+                        option.innerText = t;
+                        select.appendChild(option);
+                    });
+
+                    // Cargar dato guardado si existe, si no, poner el primer turno
+                    select.value = datosGuardados[`${dia}_${index}`] || "07:00 A 15:00";
+                    td.appendChild(select);
+                    tr.appendChild(td);
+                    
+                    // Inicializar color
+                    actualizarColor(select);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        function guardarRol() {
+            let datos = {};
+            elementos.forEach((_, index) => {
+                dias.forEach(dia => {
+                    datos[`${dia}_${index}`] = document.getElementById(`${dia}_${index}`).value;
+                });
+            });
+            localStorage.setItem('rol_semanal', JSON.stringify(datos));
+            alert("Rol guardado exitosamente. Se mantendrá aunque cierres la pestaña.");
+        }
+
+        // Iniciar
+        generarTabla();
+    </script>
+</body>
+</html>
