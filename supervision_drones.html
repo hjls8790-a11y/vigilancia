@@ -137,17 +137,14 @@
         
         // Obtenemos la fecha de hoy para las estadísticas
         const hoy = new Date();
-        // Ajuste de zona horaria para obtener formato YYYY-MM-DD correcto localmente
         const hoyString = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
         // Mostramos del más reciente al más antiguo
         let registrosInvertidos = [...registros].reverse();
 
         registrosInvertidos.forEach(v => {
-            // Si el vuelo no tiene la propiedad 'finalizado', asumimos que sigue en vuelo
             const statusVuelo = v.finalizado ? 'FINALIZADO' : 'EN VUELO';
             
-            // Evaluamos si el registro cumple con los filtros
             const matchFecha = !fFecha || v.fecha === fFecha;
             const matchNombre = v.nombre.toLowerCase().includes(fNombre) || v.empresa.toLowerCase().includes(fNombre);
             const matchStatus = fStatus === 'TODOS' || statusVuelo === fStatus;
@@ -159,7 +156,6 @@
 
                 const tr = document.createElement('tr');
                 
-                // Mensaje predeterminado para WhatsApp a la caseta
                 const mensajeWa = encodeURIComponent(`Revisión de seguridad: ¿Me confirman estatus del dron piloteado por ${v.nombre} en Mz ${v.manzana} Lote ${v.lote}?`);
                 const enlaceWa = `https://api.whatsapp.com/send?phone=526692486726&text=${mensajeWa}`;
 
@@ -183,35 +179,44 @@
             }
         });
 
-        // Actualizar los números en el panel superior
         document.getElementById('total-vuelos').innerText = contTotal;
         document.getElementById('en-vuelo').innerText = contVuelo;
         document.getElementById('hoy-vuelos').innerText = contHoy;
-
-        // Mostrar mensaje si no hay resultados
         document.getElementById('mensaje-vacio').style.display = contTotal === 0 ? 'block' : 'none';
     }
 
-    // Función para cambiar el estatus en la base de datos
     function cerrarVuelo(id) {
         if(confirm("¿Confirmas que este dron ya aterrizó y finalizó sus operaciones en el residencial?")) {
             let registros = JSON.parse(localStorage.getItem('bitacora_drones')) || [];
-            
-            // Buscamos el vuelo exacto por su ID
             const index = registros.findIndex(v => v.id === id);
             
             if (index !== -1) {
-                // Actualizamos el estado
                 registros[index].finalizado = true;
-                // Guardamos de vuelta en la base de datos local
                 localStorage.setItem('bitacora_drones', JSON.stringify(registros));
-                // Refrescamos la tabla para que desaparezca de "En vuelo"
                 actualizarTabla();
             }
         }
     }
 
-    // Cargar la tabla en cuanto se abra la página
+    /* =========================================
+       NUEVAS FUNCIONES DE SINCRONIZACIÓN AUTOMÁTICA
+       ========================================= */
+
+    // 1. Escuchar si otra pestaña modifica la base de datos (Ej. al hacer un nuevo registro)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'bitacora_drones') {
+            actualizarTabla();
+        }
+    });
+
+    // 2. Refrescar los datos automáticamente cada vez que regresas a ver esta pestaña
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden) {
+            actualizarTabla();
+        }
+    });
+
+    // Cargar la tabla en cuanto se abra la página por primera vez
     window.onload = actualizarTabla;
 </script>
 
