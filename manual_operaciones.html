@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Manual de Operaciones - El Cielo</title>
+    <style>
+        :root {
+            --primary: #1A252F;
+            --secondary: #2C3E50;
+            --accent: #3498DB;
+            --danger: #E74C3C;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --light: #ECF0F1;
+            --text: #333333;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: var(--text); padding-bottom: 60px;}
+        
+        /* Encabezado */
+        .header { background-color: var(--primary); color: white; padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+        .header h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;}
+        .header p { margin: 5px 0 0; font-size: 0.8rem; color: #BDC3C7; }
+
+        /* Buscador Central */
+        .search-container { padding: 15px; background: white; border-bottom: 1px solid #ddd; }
+        .search-box { width: 100%; padding: 15px; font-size: 1rem; border: 2px solid var(--accent); border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);}
+        .search-box:focus { border-color: var(--secondary); box-shadow: 0 2px 8px rgba(44, 62, 80, 0.3);}
+        
+        /* Sugerencias Rápidas */
+        .quick-tags { display: flex; overflow-x: auto; gap: 10px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #eee; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .quick-tags::-webkit-scrollbar { display: none; }
+        .tag { background: var(--light); color: var(--secondary); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid #ddd;}
+        .tag.alarma { border-color: var(--danger); color: var(--danger); }
+        .tag.amarillo { border-color: var(--warning); color: #d68910; }
+        .tag.obra { border-color: var(--accent); color: var(--accent); }
+
+        /* Contenedor de Resultados */
+        .results-container { padding: 15px; }
+        .result-card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .result-category { font-size: 0.75rem; font-weight: bold; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; display: block;}
+        .result-title { font-size: 1.1rem; color: var(--primary); margin: 0 0 10px 0; }
+        .result-content { font-size: 0.95rem; line-height: 1.5; color: #555; }
+        .result-content ul { padding-left: 20px; margin-top: 5px; }
+        .result-content li { margin-bottom: 8px; }
+        
+        .no-results { text-align: center; padding: 40px 20px; color: #7f8c8d; }
+        .no-results h3 { margin: 0; color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ Manual Operativo</h1>
+        <p>Residencial El Cielo - Consulta para Agentes</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Ej. ¿Qué hacer en código amarillo?" onkeyup="ejecutarBusqueda()">
+    </div>
+
+    <div class="quick-tags">
+        <div class="tag alarma" onclick="busquedaRapida('alarma')">🚨 Alarma</div>
+        <div class="tag alarma" onclick="busquedaRapida('accidente')">🚑 Accidente</div>
+        <div class="tag amarillo" onclick="busquedaRapida('amarillo')">🚗 Código Amarillo</div>
+        <div class="tag obra" onclick="busquedaRapida('revisión')">👷 Revisión a Obra</div>
+        <div class="tag" onclick="busquedaRapida('allanamiento')">🛑 Allanamiento</div>
+        <div class="tag" onclick="busquedaRapida('jumapam')">💧 JUMAPAM / CFE</div>
+    </div>
+
+    <div class="results-container" id="resultsArea">
+        <div class="no-results">
+            <h3>Bienvenido al Manual Digital</h3>
+            <p>Escribe tu duda en el buscador o selecciona una etiqueta rápida para encontrar el protocolo.</p>
+        </div>
+    </div>
+
+    <script>
+        // Base de Datos del Manual (Seccionada para responder preguntas)
+        const manualDB = [
+            {
+                categoria: "General",
+                titulo: "Objetivo General y Específicos",
+                tags: "objetivo, mision, prevencion, proteger, residentes",
+                contenido: `<strong>Objetivo General:</strong> Proteger la integridad física y patrimonial de los residentes, garantizando un entorno seguro.<br>
+                <strong>Específicos:</strong>
+                <ul>
+                    <li>Prevenir y disuadir acciones infractoras.</li>
+                    <li>Proteger a residentes y trabajadores.</li>
+                    <li>Mantener el orden y la tranquilidad.</li>
+                    <li>Colaborar con autoridades.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Seguimiento a Proveedores de Obra (Código Amarillo)",
+                tags: "proveedor, obra, amarillo, escolta, velocidad, derrames, calzas",
+                contenido: `<strong>Protocolo:</strong>
+                <ul>
+                    <li>Agente se dirige al filtro. Toma el frente marcando el paso a <strong>20 km/h</strong>.</li>
+                    <li>Si es vehículo pesado con riesgo de derrame, el Agente va a la <strong>retaguardia</strong> asegurando vialidades (Código Amarillo).</li>
+                    <li>Al llegar, asegurarse que el proveedor coloque <strong>calzas al vehículo</strong>.</li>
+                    <li>Tomar evidencia y subirla a la bitácora digital.</li>
+                    <li>Asegurar que el proveedor deje el material dentro del tapial y se retire o permanezca solo en áreas asignadas.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Seguimiento a Autoridades (JUMAPAM, CFE, Basura)",
+                tags: "autoridades, jumapam, cfe, basura, escolta, ayuntamiento",
+                contenido: `<strong>Protocolo:</strong>
+                <ul>
+                    <li>Patrullero se dirige al filtro y notifica qué actividad realizará la autoridad.</li>
+                    <li>El Agente toma el frente y dirige a la autoridad al domicilio indicado.</li>
+                    <li>Tomar <strong>evidencia</strong> de la visita para la bitácora.</li>
+                    <li>Reportar novedades relevantes.</li>
+                    <li>Asegurarse de la salida de la autoridad y reportar al filtro.</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Alarma Activa",
+                tags: "alarma, sirena, cerco, activacion",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Reportar a monitoreo y compañeros en turno de inmediato.</li>
+                    <li>Iniciar recorrido por la barda perimetral según la sección asignada.</li>
+                    <li>Detectar daños o alteraciones en el cerco electrificado.</li>
+                    <li>Confirmar o descartar allanamiento.</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Allanamiento (Intruso)",
+                tags: "allanamiento, intruso, barda, cerco, persona sospechosa, salto",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Mantener distancia táctica de <strong>21 pies (6.5m)</strong>.</li>
+                    <li>Alertar a Monitoreo para llamar al 911 y Jefe de Vigilancia (Abrir portones para autoridades).</li>
+                    <li>Si eres detectado, persuadir verbalmente a que se retire.</li>
+                    <li>Cerrar puntos designados con patrullaje para evitar ingreso a casas.</li>
+                    <li>Hacer estadía en la zona vulnerable para descartar riesgos en casas solas.</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Accidente (Ambulancia)",
+                tags: "accidente, choque, herido, medico, ambulancia, emergencia",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Alertar a Monitoreo (Ellos llaman al 911 con datos del paciente).</li>
+                    <li>Un Agente se posiciona en <strong>Av. Sábalo Cerritos</strong> a esperar a la ambulancia.</li>
+                    <li>Otro Agente actúa como primer respondiente en el lugar.</li>
+                    <li>Monitoreo abre carril central.</li>
+                    <li>El Agente en Av. Sábalo escolta a la ambulancia hasta el incidente y acompaña en la evacuación rápida.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Rondas, Velocidad y Abordaje de Infractores",
+                tags: "rondas, velocidad, ebrio, infractor, abordaje, presentacion, molestia",
+                contenido: `<strong>Rondas:</strong> Inician 18:00 hrs. Enfocarse en casas solas, bardas y fugas. <br><br>
+                <strong>Protocolo de Presentación:</strong><br>
+                <em>"Mi nombre es [Tu Nombre], soy Agente de Prevención y el acto de molestia es por motivo de: [Exceso de velocidad / Conducta inadecuada / etc.]"</em>
+                <ul>
+                    <li>El acercamiento depende del comportamiento (abordaje táctico).</li>
+                    <li>Acompañar a la salida o al domicilio autorizado.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Monitoreo",
+                titulo: "Códigos de Seguridad (Accesos)",
+                tags: "codigos, naranja, gris, verde, amarillo, colores",
+                contenido: `<ul>
+                    <li>🟠 <strong>CÓDIGO NARANJA (Bajo):</strong> Ingreso por Stickers (Propietarios). No se escolta.</li>
+                    <li>⚪ <strong>CÓDIGO GRIS (Medio-Bajo):</strong> Abre con app, pero no hay certeza de que sea el dueño. Solo se confirma a distancia que llegue al domicilio.</li>
+                    <li>🟢 <strong>CÓDIGO VERDE (Medio-Alto):</strong> Visita invitada por app. Se confirma arribo a distancia de forma discreta. Se toma evidencia.</li>
+                    <li>🟡 <strong>CÓDIGO AMARILLO (Alto):</strong> Visitas/Proveedores por interphone. Requiere <strong>escolta guiada</strong> a 20 km/h y seguimiento por Patrullaje.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Proveedores (Filtro)",
+                titulo: "Revisión e Ingreso de Trabajadores de Obra",
+                tags: "obra, albañiles, revision, filtro, mochila, alcohol, horario",
+                contenido: `<strong>Proceso:</strong>
+                <ul>
+                    <li>Escanear QR y verificar que la cara coincida con la identificación.</li>
+                    <li>Solicitar amablemente dejar pertenencias y contenido de bolsillos en la mesa.</li>
+                    <li>Buscar sustancias prohibidas, alcohol, armas o bocinas.</li>
+                    <li><strong>Horarios Libres:</strong> 07:30 a 09:00 o 11:30 a 13:00.</li>
+                    <li><strong>Horario Restringido:</strong> 09:00 a 11:29 y 13:00 a 16:30 (Deben esperar al supervisor de obra para que los acompañe).</li>
+                    <li>Después de 16:30 hrs solo ingreso para recoger personal.</li>
+                </ul>`
+            },
+            {
+                categoria: "División Monitoreo",
+                titulo: "Altas de Trabajadores (Requisitos)",
+                tags: "altas, requisitos, ine, curp, foto",
+                contenido: `<strong>Para aprobar altas en plataforma:</strong>
+                <ul>
+                    <li>Foto sin gorra.</li>
+                    <li>INE por ambos lados.</li>
+                    <li>CURP digitado correctamente.</li>
+                    <li>Revisar si tiene permisos de supervisor o si está en lista negra.</li>
+                </ul>`
+            }
+        ];
+
+        // Función para limpiar texto (quitar acentos y mayúsculas para buscar mejor)
+        function normalizarTexto(texto) {
+            return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
+        // Función principal de búsqueda
+        function ejecutarBusqueda() {
+            let input = normalizarTexto(document.getElementById('searchInput').value);
+            let areaResultados = document.getElementById('resultsArea');
+            areaResultados.innerHTML = "";
+
+            if (input.trim() === "") {
+                areaResultados.innerHTML = `
+                <div class="no-results">
+                    <h3>Consulta Rápida</h3>
+                    <p>Escribe tu duda en el buscador. Por ejemplo: "velocidad", "alarma", "revisión de mochila".</p>
+                </div>`;
+                return;
+            }
+
+            // Filtrar la base de datos
+            // Buscamos si las palabras clave están en el título, tags o contenido
+            let resultados = manualDB.filter(item => {
+                let textoCompleto = normalizarTexto(item.titulo + " " + item.tags + " " + item.contenido);
+                // Dividir la búsqueda por espacios para buscar palabras individuales
+                let palabrasBusqueda = input.split(" ");
+                // Verificar que todas las palabras buscadas estén en el texto
+                return palabrasBusqueda.every(palabra => textoCompleto.includes(palabra));
+            });
+
+            // Mostrar resultados
+            if (resultados.length > 0) {
+                resultados.forEach(res => {
+                    let div = document.createElement('div');
+                    div.className = 'result-card';
+                    div.innerHTML = `
+                        <span class="result-category">${res.categoria}</span>
+                        <h2 class="result-title">${res.titulo}</h2>
+                        <div class="result-content">${res.contenido}</div>
+                    `;
+                    areaResultados.appendChild(div);
+                });
+            } else {
+                areaResultados.innerHTML = `
+                <div class="no-results">
+                    <h3>Sin resultados</h3>
+                    <p>No encontré información sobre "${document.getElementById('searchInput').value}". Intenta buscar con otras palabras como "accidente" o "código".</p>
+                </div>`;
+            }
+        }
+
+        // Función para los botones de sugerencia rápida
+        function busquedaRapida(termino) {
+            document.getElementById('searchInput').value = termino;
+            ejecutarBusqueda();
+        }
+    </script>
+</body>
+</html>
