@@ -5,86 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminal de Operaciones - El Cielo</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; color: #333; }
-        .panel { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        select { width: 100%; padding: 15px; font-size: 1.2em; margin-bottom: 20px; border: 2px solid #3498DB; border-radius: 5px; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        button { padding: 15px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s;}
-        .btn-in { background: #27AE60; } .btn-out { background: #E74C3C; }
-        .btn-patrol-start { background: #F39C12; } .btn-patrol-end { background: #2980B9; }
-        button:active { transform: scale(0.95); }
-        #mensaje { margin-top: 20px; font-weight: bold; color: #2C3E50; }
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh;}
+        .panel { background: var(--w); width: 100%; max-width: 550px; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--p); }
+        .header h2 { margin: 0; color: var(--p); }
+        .header p { color: #7f8c8d; margin: 5px 0 25px 0; font-size: 0.9em; }
+        
+        /* Buscador Inteligente */
+        label { display: block; text-align: left; font-weight: bold; margin-bottom: 5px; color: var(--p); font-size: 0.9em; }
+        .agente-input { width: 100%; padding: 15px; font-size: 1.1em; margin-bottom: 25px; border: 2px solid var(--s); border-radius: 8px; box-sizing: border-box; outline: none; }
+        .agente-input:focus { border-color: var(--p); background: #fbfdff; }
+
+        /* Grillas de Botones */
+        .seccion-label { text-align: left; font-size: 0.8em; text-transform: uppercase; color: #95a5a6; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        button { padding: 18px; font-size: 1em; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--w); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        button:active { transform: scale(0.96); opacity: 0.9; }
+        
+        /* Colores de botones */
+        .btn-check { background: var(--g); grid-column: span 1;}
+        .btn-out { background: #95a5a6; grid-column: span 1;}
+        .btn-arribo { background: var(--s); grid-column: span 2;}
+        .btn-rondin { background: var(--o); grid-column: span 1; padding: 12px;}
+
+        /* Zona Desempeño */
+        .rating-box { background: var(--t); padding: 15px; border-radius: 8px; margin-bottom: 20px;}
+        .rating-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;}
+        .btn-rate { padding: 12px; font-size: 0.9em; opacity: 0.8; }
+        .btn-rate.selected { opacity: 1; border: 3px solid var(--p); transform: scale(1.05);}
+        
+        #status-bar { background: var(--p); color: white; padding: 15px; border-radius: 8px; margin-top: 20px; font-weight: bold; min-height: 1.2em; display: none; animation: fadeIn 0.3s;}
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="panel">
-        <h2 style="color: #2C3E50; margin-top:0;">🛡️ Terminal Operativa</h2>
-        <p style="color: #7f8c8d; margin-bottom: 20px;">Selecciona tu nombre y registra la acción</p>
-
-        <select id="nombre_agente">
-            <option value="">-- Selecciona tu Nombre --</option>
-            <option value="Agente Garcia">Agente García</option>
-            <option value="Agente Martinez">Agente Martínez</option>
-            <option value="Agente Lopez">Agente López</option>
-            </select>
-
-        <div class="btn-grid">
-            <button class="btn-in" onclick="registrarAsistencia('ENTRADA')">📍 Registrar Entrada</button>
-            <button class="btn-out" onclick="registrarAsistencia('SALIDA')">👋 Registrar Salida</button>
+        <div class="header">
+            <h2>🛡️ Terminal Operativa Gerencial</h2>
+            <p>Residencial El Cielo - Registro Rápido de Jornada</p>
         </div>
 
+        <label>Escribe tu Nombre para buscarte:</label>
+        <input type="text" id="agente_busca" list="lista_agentes" class="agente-input" placeholder="Ej. Garcia" onchange="verificarSeleccion()">
+        
+        <datalist id="lista_agentes">
+            <option value="AGENTE GARCIA">García</option>
+            <option value="AGENTE MARTINEZ">Martínez</option>
+            <option value="AGENTE LOPEZ">López</option>
+            <option value="AGENTE SANCHEZ">Sánchez</option>
+            <option value="AGENTE RODRIGUEZ">Rodríguez</option>
+            </datalist>
+
+        <div class="seccion-label">Entrada y Salida</div>
         <div class="btn-grid">
-            <button class="btn-patrol-start" onclick="registrarRondin('INICIO')">🔦 Iniciar Rondín</button>
-            <button class="btn-patrol-end" onclick="registrarRondin('FIN')">✅ Finalizar Rondín</button>
+            <button class="btn-check" onclick="registrarPuntualidad('ENTRADA')">📍 Entrar</button>
+            <button class="btn-out" onclick="registrarPuntualidad('SALIDA')">👋 Salir</button>
         </div>
 
-        <div id="mensaje"></div>
+        <div class="seccion-label">Confirmación de Operaciones</div>
+        <div class="btn-grid">
+            <button class="btn-arribo" onclick="registrarOperacion('ARRIBO CONFIRMADO')">✅ Confirmar Arribo (Visita/Prov)</button>
+        </div>
+
+        <div class="seccion-label">Rondines de Patrullaje</div>
+        <div class="btn-grid" style="grid-template-columns: 1fr 1fr;">
+            <button class="btn-rondin" onclick="registrarRondin('INICIO')">🔦 Iniciar Rondín</button>
+            <button class="btn-rondin" style="background:#2980B9;" onclick="registrarRondin('FIN')">🛑 Finalizar Rondín</button>
+        </div>
+
+        <div class="rating-box">
+            <label style="text-align: center; color:#7f8c8d;">¿Cómo calificas tu desempeño HOY?</label>
+            <div class="rating-grid">
+                <button class="btn-rate selected" style="background:var(--g);" onclick="seleccionarRating(this, 'EXCELENTE')">😄 Exc.</button>
+                <button class="btn-rate" style="background:var(--o);" onclick="seleccionarRating(this, 'BUENO')">😐 Bueno</button>
+                <button class="btn-rate" style="background:var(--r);" onclick="seleccionarRating(this, 'MALO')">😞 Malo</button>
+            </div>
+        </div>
+
+        <div id="status-bar"></div>
     </div>
 
     <script>
-        // Función para Asistencia y Puntualidad
-        function registrarAsistencia(tipo) {
-            const agente = document.getElementById('nombre_agente').value;
-            if(!agente) return alert("Por favor, selecciona tu nombre.");
+        let ratingGlobal = "EXCELENTE"; // Valor por defecto
 
+        function obtenerAgente() {
+            const val = document.getElementById('agente_busca').value.trim();
+            if (!val) { alert("🚨 Por favor, escribe y selecciona tu nombre."); return null; }
+            return val;
+        }
+
+        // --- KPI 1: PUNTUALIDAD Y ASISTENCIA AUTOMÁTICA ---
+        function registrarPuntualidad(tipo) {
+            const agente = obtenerAgente(); if (!agente) return;
             const ahora = new Date();
             const hora = ahora.getHours();
-            const minutos = ahora.getMinutes();
+            const min = ahora.getMinutes();
             let estatus = "A TIEMPO";
 
-            // Lógica automática de turnos (07:00, 15:00, 23:00) con 10 min de tolerancia
+            // Turnos: 07:00, 15:00, 23:00 con 10 min de tolerancia (ej. 07:11 ya es retardo)
             if (tipo === 'ENTRADA') {
-                if ((hora === 7 && minutos > 10) || (hora === 15 && minutos > 10) || (hora === 23 && minutos > 10)) {
+                if ((hora === 7 && min > 10) || (hora === 15 && min > 10) || (hora === 23 && min > 10) || hora === 8 || hora === 16 || hora === 0) {
                     estatus = "RETARDO";
                 }
             }
 
             const registro = {
+                id: Date.now(),
                 agente: agente,
                 tipo: tipo,
                 fecha: ahora.toLocaleDateString(),
                 hora: ahora.toLocaleTimeString(),
                 estatus: estatus,
-                timestamp: ahora.getTime()
+                rating: (tipo === 'SALIDA') ? ratingGlobal : 'N/A' // Solo registra el rating al salir
             };
 
-            // Guardar en la base de datos local para el Dashboard
-            let db = JSON.parse(localStorage.getItem('kpi_asistencia')) || [];
+            // Guarda en DB de Asistencia
+            let db = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
             db.push(registro);
-            localStorage.setItem('kpi_asistencia', JSON.stringify(db));
+            localStorage.setItem('bd_asistencia', JSON.stringify(db));
 
-            mostrarMensaje(`${tipo} registrada: ${agente} a las ${registro.hora} (${estatus})`);
+            // Limpia buscador y rating si es salida
+            if(tipo === 'SALIDA') document.getElementById('agente_busca').value = '';
+
+            mostrarStatusBar(`✅ ${tipo} registrada: ${agente} (${estatus})`);
         }
 
-        // Función para Recorridos Efectivos
-        function registrarRondin(estado) {
-            const agente = document.getElementById('nombre_agente').value;
-            if(!agente) return alert("Por favor, selecciona tu nombre.");
-
+        // --- KPI 2: CONFIRMACIÓN DE ARRIBOS (CÓDIGO AMARILLO) ---
+        function registrarOperacion(accion) {
+            const agente = obtenerAgente(); if (!agente) return;
             const ahora = new Date();
-            
+
             const registro = {
+                id: Date.now(),
+                agente: agente,
+                accion: accion, // Ej. "ARRIBO CONFIRMADO"
+                fecha: ahora.toLocaleDateString(),
+                hora: ahora.toLocaleTimeString()
+            };
+
+            // Guarda en DB de Operaciones
+            let db = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
+            db.push(registro);
+            localStorage.setItem('bd_operaciones', JSON.stringify(db));
+
+            mostrarStatusBar(`📍 ${accion} por ${agente}`);
+        }
+
+        // --- KPI 3: RECORRIDOS EFECTIVOS (PATRULLAJE) ---
+        function registrarRondin(estado) {
+            const agente = obtenerAgente(); if (!agente) return;
+            const ahora = new Date();
+
+            const registro = {
+                id: Date.now(),
                 agente: agente,
                 estado: estado, // 'INICIO' o 'FIN'
                 fecha: ahora.toLocaleDateString(),
@@ -92,17 +166,40 @@
                 timestamp: ahora.getTime()
             };
 
-            let db = JSON.parse(localStorage.getItem('kpi_recorridos')) || [];
+            // Guarda en DB de Recorridos
+            let db = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
             db.push(registro);
-            localStorage.setItem('kpi_recorridos', JSON.stringify(db));
+            localStorage.setItem('bd_recorridos', JSON.stringify(db));
 
-            mostrarMensaje(`Rondín ${estado}: ${agente} a las ${registro.hora}`);
+            mostrarStatusBar(`🔦 Rondín ${estado}: ${agente}`);
         }
 
-        function mostrarMensaje(texto) {
-            const msj = document.getElementById('mensaje');
-            msj.innerText = texto;
-            setTimeout(() => msj.innerText = '', 4000);
+        // Función auxiliar para el rating
+        function seleccionarRating(btn, valor) {
+            document.querySelectorAll('.btn-rate').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            ratingGlobal = valor;
+        }
+
+        function mostrarStatusBar(texto) {
+            const bar = document.getElementById('status-bar');
+            bar.innerText = texto;
+            bar.style.display = 'block';
+            setTimeout(() => bar.style.display = 'none', 5000);
+        }
+
+        // Valida que el nombre escrito esté en la lista
+        function verificarSeleccion() {
+            const input = document.getElementById('agente_busca');
+            const list = document.getElementById('lista_agentes');
+            let exist = false;
+            for (let i = 0; i < list.options.length; i++) {
+                if (input.value === list.options[i].value) { exist = true; break; }
+            }
+            if (!exist && input.value !== "") {
+                alert("🚨 Nombre no válido. Selecciona uno de la lista.");
+                input.value = "";
+            }
         }
     </script>
 </body>
