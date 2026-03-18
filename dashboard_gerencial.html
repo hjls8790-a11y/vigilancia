@@ -7,14 +7,13 @@
     <style>
         :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #EAECEE; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
-        .header { text-align: center; margin-bottom: 25px; }
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .header { text-align: center; margin-bottom: 25px; background: var(--w); padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;}
         .kpi-card { background: var(--w); padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-top: 5px solid var(--p); position: relative; }
         .kpi-title { margin: 0; font-size: 0.85rem; color: #7F8C8D; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;}
         .kpi-num { font-size: 3rem; font-weight: bold; color: var(--p); margin: 10px 0; display: block; }
         .kpi-small { font-size: 0.9em; color: #7F8C8D; display: block; margin-top:-5px; margin-bottom: 10px;}
         
-        /* Alertas Gerenciales */
         .alerta-proactiva { font-size: 0.85em; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center;}
         .status-ok { background: #EAFAF1; color: var(--g); border: 1px solid #A9DFBF; }
         .status-warn { background: #FEF9E7; color: #d68910; border: 1px solid #F9E79F; }
@@ -22,20 +21,35 @@
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
         
-        .agente-lista { font-size: 0.8rem; color: #555; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .badge-r { padding: 2px 5px; border-radius: 3px; color: white; font-weight: bold;}
+        /* Buscador de fecha */
+        .search-bar { display: inline-flex; align-items: center; gap: 10px; background: var(--t); padding: 10px 20px; border-radius: 8px; margin-top: 15px;}
+        .search-bar input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; color: var(--p); outline: none;}
+        
+        /* Tabla de Auditoría */
+        .audit-section { background: var(--w); padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .audit-section h2 { margin-top: 0; font-size: 1.2em; border-bottom: 2px solid var(--t); padding-bottom: 10px; color: var(--p);}
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em;}
+        th { background: var(--p); color: var(--w); padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f9f9f9; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; color: white;}
+        .b-ok { background: var(--g); } .b-fail { background: var(--r); } .b-warn { background: var(--o); } .b-neu { background: #95a5a6; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1 style="margin:0;">📊 Panel Gerencial El Cielo</h1>
-        <p style="margin:5px 0 0 0; color:#7F8C8D; font-weight:bold;">Control Total de Disciplina y Operaciones | <span id="fecha-actual"></span></p>
+        <p style="margin:5px 0 0 0; color:#7F8C8D; font-weight:bold;">Auditoría y Desempeño Operativo</p>
+        <div class="search-bar">
+            <label>Evaluar Desempeño del Día:</label>
+            <input type="date" id="fecha_filtro" onchange="auditarDashboard()">
+        </div>
     </div>
 
     <div class="grid-kpi">
         <div class="kpi-card" style="border-top-color: var(--r);">
-            <p class="kpi-title">Disciplina (Puntualidad de Hoy)</p>
+            <p class="kpi-title">Disciplina (Puntualidad)</p>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="kpi-num" id="pct-puntualidad" style="color:var(--r);">--%</span>
                 <span id="kpi-icon-pun">🚨</span>
@@ -45,12 +59,12 @@
         </div>
 
         <div class="kpi-card" style="border-top-color: var(--s);">
-            <p class="kpi-title">Cobertura de Arribos (Seguridad Alta)</p>
+            <p class="kpi-title">Cobertura de Arribos</p>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="kpi-num" id="val-arribos" style="color:var(--s);">0</span>
                 <span style="font-size:3em;">📍</span>
             </div>
-            <span class="kpi-small">Confirmaciones en domicilio hoy (Patrulla)</span>
+            <span class="kpi-small">Confirmaciones en domicilio (Patrulla)</span>
             <div id="alert-arribos"></div>
         </div>
 
@@ -60,32 +74,67 @@
                 <span class="kpi-num" id="val-rondines" style="color:var(--o);">0 / 0</span>
                 <span style="font-size:3em;">🔦</span>
             </div>
-            <span class="kpi-small">Rondines Completados / Iniciados Hoy</span>
+            <span class="kpi-small">Rondines Completados / Iniciados</span>
             <div id="alert-rondines"></div>
         </div>
         
         <div class="kpi-card" style="border-top-color: var(--g);">
-            <p class="kpi-title">Desempeño Autoevaluado (Firmeza)</p>
+            <p class="kpi-title">Clima y Desempeño</p>
             <div id="rating-results" style="margin-top:15px; text-align:center;">
                 <span style="font-size:1.1em;">😄 <strong id="r-exc" style="color:var(--g);">0</strong></span>
                 <span style="font-size:1.1em; margin: 0 15px;">😐 <strong id="r-bue" style="color:var(--o);">0</strong></span>
                 <span style="font-size:1.1em;">😞 <strong id="r-mal" style="color:var(--r);">0</strong></span>
             </div>
-            <span class="kpi-small" style="text-align:center;">Autocalificación de la jornada</span>
+            <span class="kpi-small" style="text-align:center; margin-top:10px;">Autocalificación de la jornada</span>
+        </div>
+    </div>
+
+    <div class="audit-section">
+        <h2>📋 Desglose de Desempeño por Agente</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>AGENTE</th>
+                        <th>ENTRADA</th>
+                        <th>SALIDA</th>
+                        <th>RONDINES (FIN/INI)</th>
+                        <th>ARRIBOS CONFIRMADOS</th>
+                        <th>CALIFICACIÓN</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-agentes">
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString();
+        window.onload = function() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            document.getElementById('fecha_filtro').value = `${yyyy}-${mm}-${dd}`;
+            auditarDashboard();
+        };
 
         function auditarDashboard() {
-            const hoy = new Date().toLocaleDateString();
+            const fechaConsulta = document.getElementById('fecha_filtro').value;
             
-            // 1. CHUPAR DB ASISTENCIA -> PUNTUALIDAD
             const bdAst = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
-            const entradasHoy = bdAst.filter(r => r.fecha === hoy && r.tipo === 'ENTRADA');
+            const bdOps = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
+            const bdRoc = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
+
+            // FILTROS GLOBALES
+            const astHoy = bdAst.filter(r => r.fecha === fechaConsulta);
+            const entradasHoy = astHoy.filter(r => r.tipo === 'ENTRADA');
+            const salidasHoy = astHoy.filter(r => r.tipo === 'SALIDA');
+            const arribosHoy = bdOps.filter(r => r.fecha === fechaConsulta && r.accion === 'ARRIBO CONFIRMADO');
+            const recorridosHoy = bdRoc.filter(r => r.fecha === fechaConsulta);
+
+            // KPI 1: PUNTUALIDAD
             const retadosHoy = entradasHoy.filter(r => r.estatus === 'RETARDO');
-            
             if (entradasHoy.length > 0) {
                 const aTiempoCount = entradasHoy.length - retadosHoy.length;
                 const pct = Math.round((aTiempoCount / entradasHoy.length) * 100);
@@ -93,60 +142,99 @@
                 document.getElementById('pct-puntualidad').innerText = pct + "%";
                 document.getElementById('pct-puntualidad').style.color = (pct >= 90) ? 'var(--g)' : 'var(--r)';
                 document.getElementById('kpi-icon-pun').innerText = (pct >= 90) ? '✔️' : '🚨';
-                document.getElementById('det-asistencia').innerText = `${entradasHoy.length} Agentes entraron, ${retadosHoy.length} llegaron tarde.`;
+                document.getElementById('det-asistencia').innerText = `${entradasHoy.length} Entradas | ${retadosHoy.length} Retardos.`;
 
                 let alertObj = document.getElementById('alert-puntualidad');
                 if (retadosHoy.length > 0) {
-                    let listaNombres = retadosHoy.map(r => r.agente.replace('AGENTE ', '')).join(', ');
-                    alertObj.innerHTML = `<div class="alerta-proactiva status-fail">🚨 ATENCIÓN: Retardos de ${listaNombres}. Aplicar correctivo.</div>`;
+                    alertObj.innerHTML = `<div class="alerta-proactiva status-fail">🚨 Retardos detectados. Revise la tabla inferior.</div>`;
                 } else {
-                    alertObj.innerHTML = `<div class="alerta-proactiva status-ok">✔️ Todo el equipo puntual hoy.</div>`;
+                    alertObj.innerHTML = `<div class="alerta-proactiva status-ok">✔️ Puntualidad óptima.</div>`;
                 }
+            } else {
+                document.getElementById('pct-puntualidad').innerText = "--%";
+                document.getElementById('alert-puntualidad').innerHTML = `<div class="alerta-proactiva status-warn">Sin registros de entrada.</div>`;
             }
 
-            // 2. CHUPAR DB OPERACIONES -> ARRIBOS
-            const bdOps = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
-            const arribosHoy = bdOps.filter(r => r.fecha === hoy && r.accion === 'ARRIBO CONFIRMADO');
+            // KPI 2: ARRIBOS
             document.getElementById('val-arribos').innerText = arribosHoy.length;
+            document.getElementById('alert-arribos').innerHTML = arribosHoy.length === 0 
+                ? `<div class="alerta-proactiva status-warn">⚠️ Sin confirmaciones registradas.</div>`
+                : `<div class="alerta-proactiva status-ok">✔️ Operaciones activas.</div>`;
+
+            // KPI 3: PATRULLAJE
+            const inis = recorridosHoy.filter(r => r.estado === 'INICIO').length;
+            const fins = recorridosHoy.filter(r => r.estado === 'FIN').length;
+            document.getElementById('val-rondines').innerText = `${fins} / ${inis}`;
+            document.getElementById('val-rondines').style.color = (fins < inis || inis === 0) ? 'var(--r)' : 'var(--o)';
             
-            let alertOps = document.getElementById('alert-arribos');
-            if (arribosHoy.length === 0) {
-                alertOps.innerHTML = `<div class="alerta-proactiva status-warn">⚠️ Sin confirmaciones de arribo aún. Verificar Caseta.</div>`;
-            } else {
-                alertOps.innerHTML = `<div class="alerta-proactiva status-ok">✔️ Operaciones activas.</div>`;
-            }
-
-            // 3. CHUPAR DB RECORRIDOS -> PATRULLAJE
-            const bdRoc = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
-            const recorridosHoy = bdRoc.filter(r => r.fecha === hoy);
-            const inicios = recorridosHoy.filter(r => r.estado === 'INICIO').length;
-            const fines = recorridosHoy.filter(r => r.estado === 'FIN').length;
-
-            document.getElementById('val-rondines').innerText = `${fines} / ${inicios}`;
-            document.getElementById('val-rondines').style.color = (fines < inicios) ? 'var(--r)' : 'var(--o)';
-
             let alertRoc = document.getElementById('alert-rondines');
-            if (inicios === 0) {
-                alertRoc.innerHTML = `<div class="alerta-proactiva status-fail">🛑 ALERTA: No se han iniciado rondines de patrullaje.</div>`;
-            } else if (fines < inicios) {
-                alertRoc.innerHTML = `<div class="alerta-proactiva status-warn">⚠️ Hay ${inicios - fines} rondín(es) en curso o incompletos.</div>`;
-            } else {
-                alertRoc.innerHTML = `<div class="alerta-proactiva status-ok">✔️ Patrullaje constante.</div>`;
-            }
+            if (inis === 0) alertRoc.innerHTML = `<div class="alerta-proactiva status-fail">🛑 No hay rondines registrados.</div>`;
+            else if (fins < inis) alertRoc.innerHTML = `<div class="alerta-proactiva status-warn">⚠️ Rondines incompletos en ruta.</div>`;
+            else alertRoc.innerHTML = `<div class="alerta-proactiva status-ok">✔️ Patrullaje completado.</div>`;
 
-            // 4. DESEMPEÑO
-            const salidasHoy = bdAst.filter(r => r.fecha === hoy && r.tipo === 'SALIDA');
-            const rExc = salidasHoy.filter(r => r.rating === 'EXCELENTE').length;
-            const rBue = salidasHoy.filter(r => r.rating === 'BUENO').length;
-            const rMal = salidasHoy.filter(r => r.rating === 'MALO').length;
+            // KPI 4: DESEMPEÑO
+            document.getElementById('r-exc').innerText = salidasHoy.filter(r => r.rating === 'EXCELENTE').length;
+            document.getElementById('r-bue').innerText = salidasHoy.filter(r => r.rating === 'BUENO').length;
+            document.getElementById('r-mal').innerText = salidasHoy.filter(r => r.rating === 'MALO').length;
 
-            document.getElementById('r-exc').innerText = rExc;
-            document.getElementById('r-bue').innerText = rBue;
-            document.getElementById('r-mal').innerText = rMal;
+            // GENERAR TABLA POR AGENTES
+            generarTablaAgentes(astHoy, arribosHoy, recorridosHoy);
         }
 
-        // Auditar automáticamente al abrir
-        window.onload = auditarDashboard;
+        function generarTablaAgentes(ast, arr, rec) {
+            const tbody = document.getElementById('tabla-agentes');
+            tbody.innerHTML = '';
+
+            // Obtener lista de agentes únicos que tuvieron actividad este día
+            let agentesUnicos = new Set();
+            ast.forEach(r => agentesUnicos.add(r.agente));
+            arr.forEach(r => agentesUnicos.add(r.agente));
+            rec.forEach(r => agentesUnicos.add(r.agente));
+
+            if(agentesUnicos.size === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">No hay actividad registrada para esta fecha.</td></tr>`;
+                return;
+            }
+
+            agentesUnicos.forEach(nombre => {
+                // Datos del agente específico
+                const entradas = ast.filter(a => a.agente === nombre && a.tipo === 'ENTRADA');
+                const salidas = ast.filter(a => a.agente === nombre && a.tipo === 'SALIDA');
+                const arribos = arr.filter(a => a.agente === nombre).length;
+                const r_ini = rec.filter(a => a.agente === nombre && a.estado === 'INICIO').length;
+                const r_fin = rec.filter(a => a.agente === nombre && a.estado === 'FIN').length;
+
+                // Formateo de Entrada
+                let txtEntrada = '<span class="badge b-neu">Sin registro</span>';
+                if(entradas.length > 0) {
+                    const ult = entradas[entradas.length - 1];
+                    const bColor = ult.estatus === 'A TIEMPO' ? 'b-ok' : 'b-fail';
+                    txtEntrada = `${ult.hora} <span class="badge ${bColor}">${ult.estatus}</span>`;
+                }
+
+                // Formateo de Salida
+                let txtSalida = '<span class="badge b-neu">Sin registro</span>';
+                let rating = '---';
+                if(salidas.length > 0) {
+                    const ult = salidas[salidas.length - 1];
+                    txtSalida = `${ult.hora}`;
+                    if(ult.rating === 'EXCELENTE') rating = '😄 Excelente';
+                    if(ult.rating === 'BUENO') rating = '😐 Bueno';
+                    if(ult.rating === 'MALO') rating = '😞 Malo';
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${nombre.replace('AGENTE ', '')}</strong></td>
+                    <td>${txtEntrada}</td>
+                    <td>${txtSalida}</td>
+                    <td>${r_fin} / ${r_ini}</td>
+                    <td>${arribos}</td>
+                    <td>${rating}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     </script>
 </body>
 </html>
