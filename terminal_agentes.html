@@ -11,31 +11,29 @@
         .header h2 { margin: 0; color: var(--p); }
         .header p { color: #7f8c8d; margin: 5px 0 25px 0; font-size: 0.9em; }
         
-        /* Buscador Inteligente */
         label { display: block; text-align: left; font-weight: bold; margin-bottom: 5px; color: var(--p); font-size: 0.9em; }
-        .agente-input { width: 100%; padding: 15px; font-size: 1.1em; margin-bottom: 25px; border: 2px solid var(--s); border-radius: 8px; box-sizing: border-box; outline: none; }
+        .agente-input { width: 100%; padding: 15px; font-size: 1.1em; margin-bottom: 20px; border: 2px solid var(--s); border-radius: 8px; box-sizing: border-box; outline: none; }
         .agente-input:focus { border-color: var(--p); background: #fbfdff; }
 
-        /* Grillas de Botones */
         .seccion-label { text-align: left; font-size: 0.8em; text-transform: uppercase; color: #95a5a6; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
         button { padding: 18px; font-size: 1em; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--w); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
         button:active { transform: scale(0.96); opacity: 0.9; }
         
-        /* Colores de botones */
         .btn-check { background: var(--g); grid-column: span 1;}
         .btn-out { background: #95a5a6; grid-column: span 1;}
         .btn-arribo { background: var(--s); grid-column: span 2;}
         .btn-rondin { background: var(--o); grid-column: span 1; padding: 12px;}
 
-        /* Zona Desempeño */
         .rating-box { background: var(--t); padding: 15px; border-radius: 8px; margin-bottom: 20px;}
         .rating-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;}
-        .btn-rate { padding: 12px; font-size: 0.9em; opacity: 0.8; }
+        .btn-rate { padding: 12px; font-size: 0.9em; opacity: 0.8; color: white;}
         .btn-rate.selected { opacity: 1; border: 3px solid var(--p); transform: scale(1.05);}
         
         #status-bar { background: var(--p); color: white; padding: 15px; border-radius: 8px; margin-top: 20px; font-weight: bold; min-height: 1.2em; display: none; animation: fadeIn 0.3s;}
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     </style>
 </head>
 <body>
@@ -46,10 +44,18 @@
             <p>Residencial El Cielo - Registro Rápido de Jornada</p>
         </div>
 
-        <label>Escribe tu Nombre para buscarte:</label>
-        <input type="text" id="agente_busca" list="lista_agentes" class="agente-input" placeholder="Ej. Garcia" onchange="verificarSeleccion()">
+        <div class="grid-2">
+            <div>
+                <label>📅 Fecha del Registro:</label>
+                <input type="date" id="fecha_registro" class="agente-input">
+            </div>
+            <div>
+                <label>👤 Nombre del Agente:</label>
+                <input type="text" id="agente_busca" list="lista_agentes" class="agente-input" placeholder="Ej. Alejandro" onchange="verificarSeleccion()">
+            </div>
+        </div>
         
-       <datalist id="lista_agentes">
+        <datalist id="lista_agentes">
             <option value="AGENTE ALEJANDRO">Alejandro</option>
             <option value="AGENTE LEROY">Leroy</option>
             <option value="AGENTE ABEL">Abel</option>
@@ -97,23 +103,34 @@
     </div>
 
     <script>
-        let ratingGlobal = "EXCELENTE"; // Valor por defecto
+        let ratingGlobal = "EXCELENTE"; 
+
+        window.onload = function() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            document.getElementById('fecha_registro').value = `${yyyy}-${mm}-${dd}`;
+        };
 
         function obtenerAgente() {
             const val = document.getElementById('agente_busca').value.trim();
             if (!val) { alert("🚨 Por favor, escribe y selecciona tu nombre."); return null; }
             return val;
         }
+        
+        function obtenerFecha() {
+            return document.getElementById('fecha_registro').value;
+        }
 
-        // --- KPI 1: PUNTUALIDAD Y ASISTENCIA AUTOMÁTICA ---
         function registrarPuntualidad(tipo) {
             const agente = obtenerAgente(); if (!agente) return;
+            const fechaVal = obtenerFecha();
             const ahora = new Date();
             const hora = ahora.getHours();
             const min = ahora.getMinutes();
             let estatus = "A TIEMPO";
 
-            // Turnos: 07:00, 15:00, 23:00 con 10 min de tolerancia (ej. 07:11 ya es retardo)
             if (tipo === 'ENTRADA') {
                 if ((hora === 7 && min > 10) || (hora === 15 && min > 10) || (hora === 23 && min > 10) || hora === 8 || hora === 16 || hora === 0) {
                     estatus = "RETARDO";
@@ -124,37 +141,34 @@
                 id: Date.now(),
                 agente: agente,
                 tipo: tipo,
-                fecha: ahora.toLocaleDateString(),
-                hora: ahora.toLocaleTimeString(),
+                fecha: fechaVal,
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 estatus: estatus,
-                rating: (tipo === 'SALIDA') ? ratingGlobal : 'N/A' // Solo registra el rating al salir
+                rating: (tipo === 'SALIDA') ? ratingGlobal : 'N/A'
             };
 
-            // Guarda en DB de Asistencia
             let db = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
             db.push(registro);
             localStorage.setItem('bd_asistencia', JSON.stringify(db));
 
-            // Limpia buscador y rating si es salida
             if(tipo === 'SALIDA') document.getElementById('agente_busca').value = '';
 
-            mostrarStatusBar(`✅ ${tipo} registrada: ${agente} (${estatus})`);
+            mostrarStatusBar(`✅ ${tipo} registrada: ${agente} (${estatus}) para la fecha ${fechaVal}`);
         }
 
-        // --- KPI 2: CONFIRMACIÓN DE ARRIBOS (CÓDIGO AMARILLO) ---
         function registrarOperacion(accion) {
             const agente = obtenerAgente(); if (!agente) return;
+            const fechaVal = obtenerFecha();
             const ahora = new Date();
 
             const registro = {
                 id: Date.now(),
                 agente: agente,
-                accion: accion, // Ej. "ARRIBO CONFIRMADO"
-                fecha: ahora.toLocaleDateString(),
-                hora: ahora.toLocaleTimeString()
+                accion: accion, 
+                fecha: fechaVal,
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             };
 
-            // Guarda en DB de Operaciones
             let db = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
             db.push(registro);
             localStorage.setItem('bd_operaciones', JSON.stringify(db));
@@ -162,21 +176,19 @@
             mostrarStatusBar(`📍 ${accion} por ${agente}`);
         }
 
-        // --- KPI 3: RECORRIDOS EFECTIVOS (PATRULLAJE) ---
         function registrarRondin(estado) {
             const agente = obtenerAgente(); if (!agente) return;
+            const fechaVal = obtenerFecha();
             const ahora = new Date();
 
             const registro = {
                 id: Date.now(),
                 agente: agente,
-                estado: estado, // 'INICIO' o 'FIN'
-                fecha: ahora.toLocaleDateString(),
-                hora: ahora.toLocaleTimeString(),
-                timestamp: ahora.getTime()
+                estado: estado,
+                fecha: fechaVal,
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             };
 
-            // Guarda en DB de Recorridos
             let db = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
             db.push(registro);
             localStorage.setItem('bd_recorridos', JSON.stringify(db));
@@ -184,7 +196,6 @@
             mostrarStatusBar(`🔦 Rondín ${estado}: ${agente}`);
         }
 
-        // Función auxiliar para el rating
         function seleccionarRating(btn, valor) {
             document.querySelectorAll('.btn-rate').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -198,7 +209,6 @@
             setTimeout(() => bar.style.display = 'none', 5000);
         }
 
-        // Valida que el nombre escrito esté en la lista
         function verificarSeleccion() {
             const input = document.getElementById('agente_busca');
             const list = document.getElementById('lista_agentes');
