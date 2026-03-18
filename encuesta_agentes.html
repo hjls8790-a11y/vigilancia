@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta Operativa - El Cielo</title>
+    <style>
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --w: #fff; --t: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .container { max-width: 600px; margin: auto; background: var(--w); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--s); }
+        .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: var(--p); }
+        .header p { color: #7f8c8d; font-size: 0.9em; margin-top: 5px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.95em; }
+        input[type="text"], select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 1em; transition: border 0.3s; }
+        input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--s); outline: none; }
+        
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; }
+        .radio-label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; background: #f9f9f9; padding: 10px 15px; border-radius: 6px; border: 1px solid #ddd; flex: 1; justify-content: center; transition: 0.2s;}
+        .radio-label:hover { background: #e8f4f8; border-color: var(--s); }
+        input[type="radio"] { accent-color: var(--s); transform: scale(1.2); }
+
+        button { width: 100%; padding: 15px; background: var(--p); color: white; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:hover { background: #1a252f; }
+        
+        #mensaje-exito { display: none; background: #EAFAF1; color: var(--g); padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; border: 2px solid var(--g); margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="form-container">
+        <div class="header">
+            <h2>📋 Reporte y Evaluación Operativa</h2>
+            <p>El Cielo Parque Residencial - Ayúdanos a mejorar el servicio</p>
+        </div>
+
+        <div class="form-group">
+            <label>1. Nombre del Agente:</label>
+            <input type="text" id="agente" list="lista_agentes" placeholder="Escribe tu nombre..." autocomplete="off">
+            <datalist id="lista_agentes">
+                <option value="AGENTE ALEJANDRO"></option>
+                <option value="AGENTE LEROY"></option>
+                <option value="AGENTE ABEL"></option>
+                <option value="AGENTE VINALAY"></option>
+                <option value="AGENTE JOSE"></option>
+                <option value="AGENTE JULIO"></option>
+                <option value="AGENTE ALFONSO"></option>
+                <option value="AGENTE MARIO"></option>
+                <option value="AGENTE ISAEL"></option>
+                <option value="AGENTE LUIS"></option>
+                <option value="AGENTE SANTILLAN"></option>
+                <option value="AGENTE ARMANDO"></option>
+                <option value="AGENTE SOTELO"></option>
+                <option value="AGENTE PIZARRO"></option>
+                <option value="AGENTE VICTOR"></option>
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label>2. Turno Actual:</label>
+            <select id="turno">
+                <option value="">-- Selecciona --</option>
+                <option value="07:00 a 15:00">Día (07:00 - 15:00)</option>
+                <option value="15:00 a 23:00">Tarde (15:00 - 23:00)</option>
+                <option value="23:00 a 07:00">Noche (23:00 - 07:00)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>3. ¿En qué estado se encuentra tu equipo de trabajo (Radio, lámpara, fornitura)?</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="equipo" value="Optimo"> Óptimo</label>
+                <label class="radio-label"><input type="radio" name="equipo" value="Regular"> Regular</label>
+                <label class="radio-label"><input type="radio" name="equipo" value="Deficiente"> Deficiente</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. ¿Las consignas y protocolos (Manual Operativo) son claros para ti?</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="protocolos" value="Si, todo claro"> Sí, todo claro</label>
+                <label class="radio-label"><input type="radio" name="protocolos" value="Tengo dudas"> Tengo dudas</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>5. ¿Has detectado alguna vulnerabilidad en el perímetro o caseta recientemente?</label>
+            <textarea id="vulnerabilidad" rows="3" placeholder="Ej. Foco fundido en barda norte, puerta trasera no cierra bien... (Deja en blanco si todo está bien)"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>6. Comentarios adicionales o solicitudes al Jefe de Vigilancia:</label>
+            <textarea id="comentarios" rows="3" placeholder="Sugerencias, reportes de trato con residentes, permisos..."></textarea>
+        </div>
+
+        <button onclick="guardarEncuesta()">📤 Enviar Reporte</button>
+    </div>
+
+    <div class="container" id="mensaje-exito">
+        ✅ ¡Reporte enviado con éxito!<br><br>
+        <span style="font-weight:normal; color:#2C3E50;">Gracias por tu retroalimentación. Esto nos ayuda a mantener un entorno seguro y profesional.</span><br><br>
+        <button style="background:var(--s); width:auto; padding:10px 20px;" onclick="location.reload()">Registrar otro</button>
+    </div>
+
+    <script>
+        function guardarEncuesta() {
+            const agente = document.getElementById('agente').value;
+            const turno = document.getElementById('turno').value;
+            const equipo = document.querySelector('input[name="equipo"]:checked');
+            const protocolos = document.querySelector('input[name="protocolos"]:checked');
+            const vulnerabilidad = document.getElementById('vulnerabilidad').value;
+            const comentarios = document.getElementById('comentarios').value;
+
+            if(!agente || !turno || !equipo || !protocolos) {
+                alert("🚨 Por favor, llena tu nombre, turno y selecciona las opciones de equipo y protocolos.");
+                return;
+            }
+
+            const registro = {
+                id: Date.now(),
+                fecha: new Date().toLocaleDateString(),
+                hora: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                agente: agente,
+                turno: turno,
+                equipo: equipo.value,
+                protocolos: protocolos.value,
+                vulnerabilidad: vulnerabilidad || 'Ninguna',
+                comentarios: comentarios || 'Sin comentarios'
+            };
+
+            let db = JSON.parse(localStorage.getItem('bd_encuestas')) || [];
+            db.push(registro);
+            localStorage.setItem('bd_encuestas', JSON.stringify(db));
+
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('mensaje-exito').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
