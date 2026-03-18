@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Clima Operativo - El Cielo</title>
+    <style>
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #EAECEE; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .header { background: var(--w); padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; border-left: 8px solid var(--p);}
+        .header h1 { margin: 0; font-size: 1.8em; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .kpi-card { background: var(--w); padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .kpi-card h3 { margin: 0 0 10px 0; font-size: 0.9em; color: #7f8c8d; text-transform: uppercase; }
+        .kpi-val { font-size: 2.5em; font-weight: bold; }
+        
+        .table-container { background: var(--w); padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { background: var(--p); color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+        tr:hover { background: #f9f9f9; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
+        .b-ok { background: #EAFAF1; color: var(--g); border: 1px solid #A9DFBF; }
+        .b-warn { background: #FEF9E7; color: var(--o); border: 1px solid #F9E79F; }
+        .b-fail { background: #FDEDEC; color: var(--r); border: 1px solid #F5B7B1; }
+        
+        .texto-largo { max-width: 250px; font-style: italic; color: #555; }
+        .btn-limpiar { background: var(--r); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; float: right;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📊 Auditoría de Encuestas Operativas</h1>
+        <p>Buzón de elementos y detección de vulnerabilidades</p>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>Total de Respuestas</h3>
+            <div class="kpi-val" id="kpi-total" style="color:var(--p);">0</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Equipo Deficiente</h3>
+            <div class="kpi-val" id="kpi-equipo" style="color:var(--r);">0</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Dudas en Protocolos</h3>
+            <div class="kpi-val" id="kpi-dudas" style="color:var(--o);">0</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <button class="btn-limpiar" onclick="limpiarRegistros()">🗑️ Borrar Historial</button>
+        <h2 style="margin-top: 0; color: var(--p);">Respuestas Detalladas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>FECHA / HORA</th>
+                    <th>AGENTE</th>
+                    <th>TURNO</th>
+                    <th>ESTADO EQUIPO</th>
+                    <th>CONSIGNAS</th>
+                    <th>VULNERABILIDADES REPORTADAS</th>
+                    <th>COMENTARIOS</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-resultados">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        function cargarDatos() {
+            const db = JSON.parse(localStorage.getItem('bd_encuestas')) || [];
+            
+            // KPIs
+            document.getElementById('kpi-total').innerText = db.length;
+            document.getElementById('kpi-equipo').innerText = db.filter(r => r.equipo === 'Deficiente').length;
+            document.getElementById('kpi-dudas').innerText = db.filter(r => r.protocolos === 'Tengo dudas').length;
+
+            const tbody = document.getElementById('tabla-resultados');
+            tbody.innerHTML = '';
+
+            if (db.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay encuestas registradas aún.</td></tr>';
+                return;
+            }
+
+            // Invertir para ver las más recientes primero
+            db.slice().reverse().forEach(row => {
+                let badgeEquipo = 'b-ok';
+                if(row.equipo === 'Regular') badgeEquipo = 'b-warn';
+                if(row.equipo === 'Deficiente') badgeEquipo = 'b-fail';
+
+                let badgeProt = row.protocolos === 'Si, todo claro' ? 'b-ok' : 'b-warn';
+
+                let vulnText = row.vulnerabilidad === 'Ninguna' ? '<span style="color:#bdc3c7;">Ninguna</span>' : `<strong style="color:var(--r);">${row.vulnerabilidad}</strong>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.fecha}</strong><br><span style="font-size:0.8em; color:#7f8c8d;">${row.hora}</span></td>
+                    <td><strong>${row.agente.replace('AGENTE ', '')}</strong></td>
+                    <td>${row.turno}</td>
+                    <td><span class="badge ${badgeEquipo}">${row.equipo}</span></td>
+                    <td><span class="badge ${badgeProt}">${row.protocolos}</span></td>
+                    <td class="texto-largo">${vulnText}</td>
+                    <td class="texto-largo">${row.comentarios}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function limpiarRegistros() {
+            if(confirm("🚨 ¿Estás seguro de que deseas eliminar todas las encuestas? Esta acción no se puede deshacer.")) {
+                localStorage.removeItem('bd_encuestas');
+                cargarDatos();
+            }
+        }
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
