@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal de Operaciones - El Cielo</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; color: #333; }
+        .panel { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        select { width: 100%; padding: 15px; font-size: 1.2em; margin-bottom: 20px; border: 2px solid #3498DB; border-radius: 5px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        button { padding: 15px; font-size: 1.1em; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s;}
+        .btn-in { background: #27AE60; } .btn-out { background: #E74C3C; }
+        .btn-patrol-start { background: #F39C12; } .btn-patrol-end { background: #2980B9; }
+        button:active { transform: scale(0.95); }
+        #mensaje { margin-top: 20px; font-weight: bold; color: #2C3E50; }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h2 style="color: #2C3E50; margin-top:0;">🛡️ Terminal Operativa</h2>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">Selecciona tu nombre y registra la acción</p>
+
+        <select id="nombre_agente">
+            <option value="">-- Selecciona tu Nombre --</option>
+            <option value="Agente Garcia">Agente García</option>
+            <option value="Agente Martinez">Agente Martínez</option>
+            <option value="Agente Lopez">Agente López</option>
+            </select>
+
+        <div class="btn-grid">
+            <button class="btn-in" onclick="registrarAsistencia('ENTRADA')">📍 Registrar Entrada</button>
+            <button class="btn-out" onclick="registrarAsistencia('SALIDA')">👋 Registrar Salida</button>
+        </div>
+
+        <div class="btn-grid">
+            <button class="btn-patrol-start" onclick="registrarRondin('INICIO')">🔦 Iniciar Rondín</button>
+            <button class="btn-patrol-end" onclick="registrarRondin('FIN')">✅ Finalizar Rondín</button>
+        </div>
+
+        <div id="mensaje"></div>
+    </div>
+
+    <script>
+        // Función para Asistencia y Puntualidad
+        function registrarAsistencia(tipo) {
+            const agente = document.getElementById('nombre_agente').value;
+            if(!agente) return alert("Por favor, selecciona tu nombre.");
+
+            const ahora = new Date();
+            const hora = ahora.getHours();
+            const minutos = ahora.getMinutes();
+            let estatus = "A TIEMPO";
+
+            // Lógica automática de turnos (07:00, 15:00, 23:00) con 10 min de tolerancia
+            if (tipo === 'ENTRADA') {
+                if ((hora === 7 && minutos > 10) || (hora === 15 && minutos > 10) || (hora === 23 && minutos > 10)) {
+                    estatus = "RETARDO";
+                }
+            }
+
+            const registro = {
+                agente: agente,
+                tipo: tipo,
+                fecha: ahora.toLocaleDateString(),
+                hora: ahora.toLocaleTimeString(),
+                estatus: estatus,
+                timestamp: ahora.getTime()
+            };
+
+            // Guardar en la base de datos local para el Dashboard
+            let db = JSON.parse(localStorage.getItem('kpi_asistencia')) || [];
+            db.push(registro);
+            localStorage.setItem('kpi_asistencia', JSON.stringify(db));
+
+            mostrarMensaje(`${tipo} registrada: ${agente} a las ${registro.hora} (${estatus})`);
+        }
+
+        // Función para Recorridos Efectivos
+        function registrarRondin(estado) {
+            const agente = document.getElementById('nombre_agente').value;
+            if(!agente) return alert("Por favor, selecciona tu nombre.");
+
+            const ahora = new Date();
+            
+            const registro = {
+                agente: agente,
+                estado: estado, // 'INICIO' o 'FIN'
+                fecha: ahora.toLocaleDateString(),
+                hora: ahora.toLocaleTimeString(),
+                timestamp: ahora.getTime()
+            };
+
+            let db = JSON.parse(localStorage.getItem('kpi_recorridos')) || [];
+            db.push(registro);
+            localStorage.setItem('kpi_recorridos', JSON.stringify(db));
+
+            mostrarMensaje(`Rondín ${estado}: ${agente} a las ${registro.hora}`);
+        }
+
+        function mostrarMensaje(texto) {
+            const msj = document.getElementById('mensaje');
+            msj.innerText = texto;
+            setTimeout(() => msj.innerText = '', 4000);
+        }
+    </script>
+</body>
+</html>
