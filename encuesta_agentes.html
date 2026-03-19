@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encuesta Operativa - El Cielo</title>
     <style>
-        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --w: #fff; --t: #f4f7f6; }
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #f4f7f6; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
         .container { max-width: 600px; margin: auto; background: var(--w); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--s); }
         .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
@@ -17,8 +17,8 @@
         input[type="text"], select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 1em; transition: border 0.3s; }
         input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--s); outline: none; }
         
-        .radio-group { display: flex; gap: 15px; margin-top: 5px; }
-        .radio-label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; background: #f9f9f9; padding: 10px 15px; border-radius: 6px; border: 1px solid #ddd; flex: 1; justify-content: center; transition: 0.2s;}
+        .radio-group { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap;}
+        .radio-label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #ddd; flex: 1; justify-content: center; text-align: center; transition: 0.2s;}
         .radio-label:hover { background: #e8f4f8; border-color: var(--s); }
         input[type="radio"] { accent-color: var(--s); transform: scale(1.2); }
 
@@ -69,7 +69,16 @@
         </div>
 
         <div class="form-group">
-            <label>3. ¿En qué estado se encuentra tu equipo de trabajo (Radio, lámpara, fornitura)?</label>
+            <label>3. ¿Cuál es tu estado de ánimo general respecto a tu trabajo en este momento?</label>
+            <div class="radio-group">
+                <label class="radio-label" style="border-left: 4px solid var(--g);"><input type="radio" name="animo" value="Motivado"> 😄 Motivado / Bien</label>
+                <label class="radio-label" style="border-left: 4px solid var(--o);"><input type="radio" name="animo" value="Cansado"> 😐 Cansado / Estresado</label>
+                <label class="radio-label" style="border-left: 4px solid var(--r);"><input type="radio" name="animo" value="Desmotivado"> 😞 Desmotivado</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>4. ¿En qué estado se encuentra tu equipo (Radio, lámpara)?</label>
             <div class="radio-group">
                 <label class="radio-label"><input type="radio" name="equipo" value="Optimo"> Óptimo</label>
                 <label class="radio-label"><input type="radio" name="equipo" value="Regular"> Regular</label>
@@ -78,7 +87,7 @@
         </div>
 
         <div class="form-group">
-            <label>4. ¿Las consignas y protocolos (Manual Operativo) son claros para ti?</label>
+            <label>5. ¿Las consignas (Manual Operativo) son claras para ti?</label>
             <div class="radio-group">
                 <label class="radio-label"><input type="radio" name="protocolos" value="Si, todo claro"> Sí, todo claro</label>
                 <label class="radio-label"><input type="radio" name="protocolos" value="Tengo dudas"> Tengo dudas</label>
@@ -86,48 +95,59 @@
         </div>
 
         <div class="form-group">
-            <label>5. ¿Has detectado alguna vulnerabilidad en el perímetro o caseta recientemente?</label>
-            <textarea id="vulnerabilidad" rows="3" placeholder="Ej. Foco fundido en barda norte, puerta trasera no cierra bien... (Deja en blanco si todo está bien)"></textarea>
+            <label>6. ¿Has detectado alguna vulnerabilidad en el perímetro o caseta?</label>
+            <textarea id="vulnerabilidad" rows="3" placeholder="Ej. Foco fundido, barda baja, puerta dañada... (Deja en blanco si no hay novedades)"></textarea>
         </div>
 
         <div class="form-group">
-            <label>6. Comentarios adicionales o solicitudes al Jefe de Vigilancia:</label>
-            <textarea id="comentarios" rows="3" placeholder="Sugerencias, reportes de trato con residentes, permisos..."></textarea>
+            <label>7. Comentarios o solicitudes al Jefe de Vigilancia (Confidencial):</label>
+            <textarea id="comentarios" rows="3" placeholder="Sugerencias, permisos, problemas con residentes o compañeros..."></textarea>
         </div>
 
-        <button onclick="guardarEncuesta()">📤 Enviar Reporte</button>
+        <button onclick="guardarEncuesta()">📤 Enviar Reporte Confidencial</button>
     </div>
 
     <div class="container" id="mensaje-exito">
         ✅ ¡Reporte enviado con éxito!<br><br>
-        <span style="font-weight:normal; color:#2C3E50;">Gracias por tu retroalimentación. Esto nos ayuda a mantener un entorno seguro y profesional.</span><br><br>
+        <span style="font-weight:normal; color:#2C3E50;">Gracias por tu retroalimentación. Esto nos ayuda a mantener un entorno seguro.</span><br><br>
         <button style="background:var(--s); width:auto; padding:10px 20px;" onclick="location.reload()">Registrar otro</button>
     </div>
 
     <script>
+        // Formateo de fecha para que coincida exactamente con el Dashboard Gerencial (YYYY-MM-DD)
+        function getFechaISO() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
         function guardarEncuesta() {
             const agente = document.getElementById('agente').value;
             const turno = document.getElementById('turno').value;
+            const animo = document.querySelector('input[name="animo"]:checked');
             const equipo = document.querySelector('input[name="equipo"]:checked');
             const protocolos = document.querySelector('input[name="protocolos"]:checked');
             const vulnerabilidad = document.getElementById('vulnerabilidad').value;
             const comentarios = document.getElementById('comentarios').value;
 
-            if(!agente || !turno || !equipo || !protocolos) {
-                alert("🚨 Por favor, llena tu nombre, turno y selecciona las opciones de equipo y protocolos.");
+            if(!agente || !turno || !animo || !equipo || !protocolos) {
+                alert("🚨 Por favor, completa tu nombre, turno y las preguntas de opción múltiple.");
                 return;
             }
 
             const registro = {
                 id: Date.now(),
-                fecha: new Date().toLocaleDateString(),
+                fecha: getFechaISO(), 
                 hora: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 agente: agente,
                 turno: turno,
+                animo: animo.value,
                 equipo: equipo.value,
                 protocolos: protocolos.value,
-                vulnerabilidad: vulnerabilidad || 'Ninguna',
-                comentarios: comentarios || 'Sin comentarios'
+                vulnerabilidad: vulnerabilidad.trim() === '' ? 'Ninguna' : vulnerabilidad,
+                comentarios: comentarios.trim() === '' ? 'Sin comentarios' : comentarios
             };
 
             let db = JSON.parse(localStorage.getItem('bd_encuestas')) || [];
