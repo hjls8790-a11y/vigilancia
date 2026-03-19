@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Comando CCTV - El Cielo</title>
+    <style>
+        :root { --bg: #111418; --panel: #1e242b; --text: #e0e6ed; --p: #3498DB; --active: #2980B9; --border: #2c3e50;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Barra lateral (Menú) */
+        .sidebar { width: 260px; background-color: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; box-sizing: border-box; z-index: 10; }
+        .logo-area { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .logo-area h2 { margin: 0; color: #fff; font-size: 1.2em; }
+        .logo-area p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .menu-label { font-size: 0.75em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
+        .menu-btn { background: transparent; color: var(--text); border: 1px solid transparent; width: 100%; text-align: left; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 0.95em; transition: 0.2s; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .menu-btn:hover { background: rgba(52, 152, 219, 0.1); border-color: var(--p); }
+        .menu-btn.active { background: var(--p); color: white; border-color: var(--active); font-weight: bold; }
+        
+        /* Área principal de trabajo */
+        .workspace { flex: 1; padding: 20px; overflow-y: auto; background-color: #0b0d0f; box-sizing: border-box; }
+        .workspace-title { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 15px; color: #fff; display: flex; justify-content: space-between; align-items: center;}
+        
+        /* Cuadrículas para los iframes */
+        .grid-container { display: none; gap: 20px; width: 100%; height: calc(100% - 60px); }
+        .grid-container.active { display: grid; }
+        
+        /* Configuraciones de cuadrícula según el turno */
+        .grid-7 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); } /* Se ajusta solo, ideal para 7 */
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); } /* Ideal para 3 */
+        .grid-1 { grid-template-columns: 1fr; height: 100%; }
+        
+        iframe { width: 100%; height: 800px; border: 2px solid var(--border); border-radius: 12px; background: white; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        .iframe-wrapper { position: relative; }
+        .iframe-label { position: absolute; top: -12px; left: 15px; background: var(--p); color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.8em; font-weight: bold; z-index: 5; }
+        
+        /* Ajuste de altura para pantallas completas */
+        .full-height-iframe { height: calc(100vh - 120px); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>🛡️ Monitorista CCTV</h2>
+            <p>Parque Residencial</p>
+        </div>
+
+        <div class="menu-label">Operación en Vivo</div>
+        <button class="menu-btn active" onclick="cambiarVista('vista-manana', this)">☀️ Turno Mañana (7 Agentes)</button>
+        <button class="menu-btn" onclick="cambiarVista('vista-tarde', this)">🌙 Turno Tarde/Noche (3 Ag.)</button>
+
+        <div class="menu-label" style="margin-top: 25px;">Gerencia y Auditoría</div>
+        <button class="menu-btn" onclick="cambiarVista('vista-dashboard', this)">📊 Dashboard General</button>
+        <button class="menu-btn" onclick="cambiarVista('vista-auditoria', this)">📋 Auditoría Encuestas</button>
+
+        <div class="menu-label" style="margin-top: 25px;">Herramientas Auxiliares</div>
+        <button class="menu-btn" onclick="window.open('encuesta_agentes.html', '_blank')">🔗 Abrir Encuesta Agentes</button>
+    </div>
+
+    <div class="workspace">
+        <h2 class="workspace-title" id="titulo-vista">☀️ Control Operativo: Turno Mañana (7 Ventanas)</h2>
+        
+        <div id="vista-manana" class="grid-container grid-7 active">
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 1</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 2</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 3</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 4</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 5</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 6</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 7</div><iframe src="terminal_agentes.html"></iframe></div>
+        </div>
+
+        <div id="vista-tarde" class="grid-container grid-3">
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 1</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 2</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 3</div><iframe src="terminal_agentes.html"></iframe></div>
+        </div>
+
+        <div id="vista-dashboard" class="grid-container grid-1">
+            <iframe class="full-height-iframe" src="dashboard_gerencial.html"></iframe>
+        </div>
+
+        <div id="vista-auditoria" class="grid-container grid-1">
+            <iframe class="full-height-iframe" src="auditoria_encuestas.html"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function cambiarVista(idVista, boton) {
+            // Quitar clase activa de todos los botones y ocultar vistas
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(grid => grid.classList.remove('active'));
+            
+            // Activar botón clickeado y mostrar vista correspondiente
+            boton.classList.add('active');
+            document.getElementById(idVista).classList.add('active');
+
+            // Cambiar título superior según el botón
+            document.getElementById('titulo-vista').innerText = boton.innerText;
+
+            // Recargar los iframes de Dashboard y Auditoría al abrirlos para que muestren datos frescos
+            if(idVista === 'vista-dashboard' || idVista === 'vista-auditoria') {
+                const iframe = document.querySelector(`#${idVista} iframe`);
+                iframe.src = iframe.src; 
+            }
+        }
+    </script>
+</body>
+</html>
