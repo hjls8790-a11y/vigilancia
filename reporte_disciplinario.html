@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Disciplinario de Obras - El Cielo</title>
+    <style>
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --w: #fff; --t: #f4f7f6; --gray: #bdc3c7;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 15px; color: var(--p); }
+        .container { max-width: 800px; margin: auto; background: var(--w); padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--p); }
+        .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: var(--p); text-transform: uppercase; font-size: 1.4em; }
+        .section-title { background: #e8eaed; padding: 8px 12px; font-weight: bold; margin: 20px 0 15px 0; border-radius: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85em; color: #555;}
+        input[type="text"], input[type="time"], input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .checkbox-label { display: flex; align-items: flex-start; gap: 8px; font-size: 0.85em; cursor: pointer; padding: 8px; background: #f9f9f9; border-radius: 4px; border: 1px solid #eee;}
+        .checkbox-label:hover { background: #e8f4f8; border-color: var(--s); }
+        input[type="checkbox"] { transform: scale(1.2); margin-top: 2px; accent-color: var(--r);}
+
+        /* Estilos para Firmas en Canvas */
+        .signature-area { border: 2px dashed #ccc; border-radius: 6px; background: #fafafa; margin-bottom: 5px; position: relative; }
+        canvas { width: 100%; height: 150px; cursor: crosshair; touch-action: none; }
+        .btn-limpiar { position: absolute; top: 5px; right: 5px; background: var(--gray); color: white; border: none; padding: 4px 8px; font-size: 0.7em; border-radius: 4px; cursor: pointer;}
+        
+        button.submit-btn { width: 100%; padding: 15px; background: var(--r); color: white; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase;}
+        button.submit-btn:hover { background: #c0392b; }
+        
+        @media (max-width: 600px) { .grid-2, .grid-3, .checkbox-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="form-container">
+        <div class="header">
+            <h2>🦅 Reporte Disciplinario de Obras</h2>
+            <p style="margin:5px 0 0 0; color:#7f8c8d; font-size:0.9em;">El Cielo Parque Residencial</p>
+        </div>
+
+        <div class="section-title">Información del Empleado y Ubicación</div>
+        <div class="form-group">
+            <label>Nombre del empleado infractor:</label>
+            <input type="text" id="nombre_empleado" placeholder="Nombre completo...">
+        </div>
+        <div class="grid-3">
+            <div class="form-group"><label>Manzana:</label><input type="text" id="manzana"></div>
+            <div class="form-group"><label>Lote:</label><input type="text" id="lote"></div>
+            <div class="form-group"><label>Dirección:</label><input type="text" id="direccion"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label>Puesto del trabajador:</label><input type="text" id="puesto_empleado"></div>
+            <div class="form-group"><label>Departamento / Contratista:</label><input type="text" id="departamento"></div>
+            <div class="form-group"><label>Nombre Jefe Inmediato:</label><input type="text" id="jefe_inmediato"></div>
+            <div class="form-group"><label>Puesto del Jefe:</label><input type="text" id="puesto_jefe"></div>
+            <div class="form-group"><label>Fecha del Incidente:</label><input type="date" id="fecha" readonly></div>
+            <div class="form-group"><label>Hora del Incidente:</label><input type="time" id="hora" readonly></div>
+        </div>
+
+        <div class="section-title">Naturaleza del Incidente</div>
+        <div class="checkbox-grid" id="naturaleza-grid">
+            <label class="checkbox-label"><input type="checkbox" value="Personal en obra sin registro"> Personal en obra sin registro</label>
+            <label class="checkbox-label"><input type="checkbox" value="Abuso o daños en el residencial"> Abuso o daños en el residencial</label>
+            <label class="checkbox-label"><input type="checkbox" value="Personal sin chaleco"> Personal sin chaleco</label>
+            <label class="checkbox-label"><input type="checkbox" value="Exceder el límite de velocidad"> Exceder el límite de velocidad permitido</label>
+            <label class="checkbox-label"><input type="checkbox" value="Conducta Inadecuada"> Conducta Inadecuada</label>
+            <label class="checkbox-label"><input type="checkbox" value="Amenazar o cometer actos de violencia"> Amenazar o cometer actos de violencia</label>
+            <label class="checkbox-label"><input type="checkbox" value="Personal fuera de obra"> Personal fuera de obra</label>
+            <label class="checkbox-label"><input type="checkbox" value="Violación de reglas de seguridad"> Violación de reglas de seguridad</label>
+            <label class="checkbox-label"><input type="checkbox" value="Vehículo mal estacionado"> Vehículo mal estacionado</label>
+            <label class="checkbox-label"><input type="checkbox" value="Trabajos fuera de horario permitido"> Realizar trabajos fuera de horario permitido</label>
+            <label class="checkbox-label"><input type="checkbox" value="Violación del reglamento de El Cielo"> Violación del reglamento de El Cielo</label>
+            <label class="checkbox-label"><input type="checkbox" value="Basura o residuos en vialidades"> Basura o residuos de construcción en obra/vialidades</label>
+            <label class="checkbox-label"><input type="checkbox" value="Exceder número de vehículos"> Exceder el número de vehículos permitidos</label>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+            <label>Otro (Especifique):</label>
+            <input type="text" id="otro_incidente" placeholder="Describa si no está en la lista anterior...">
+        </div>
+
+        <div class="section-title">Hechos del Incidente (Narrativa)</div>
+        <div class="form-group">
+            <textarea id="hechos" rows="4" placeholder="Describa detalladamente cómo ocurrieron los hechos..."></textarea>
+        </div>
+
+        <div class="section-title">Validación y Firmas</div>
+        <div class="form-group">
+            <label>Agente que elabora el reporte:</label>
+            <select id="agente_reporta">
+                <option value="">-- Selecciona tu nombre --</option>
+                <option>Alejandro</option><option>Leroy</option><option>Abel</option><option>Vinalay</option>
+                <option>Jose</option><option>Julio</option><option>Alfonso</option><option>Mario</option>
+                <option>Isael</option><option>Luis</option><option>Santillan</option><option>Armando</option>
+                <option>Sotelo</option><option>Pizarro</option><option>Victor</option>
+            </select>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label>Firma del Empleado Infractor (Enterado):</label>
+                <div class="signature-area">
+                    <button class="btn-limpiar" onclick="limpiarCanvas(ctxEmpleado, canvasEmpleado)">Limpiar</button>
+                    <canvas id="firmaEmpleado"></canvas>
+                </div>
+            </div>
+            <div>
+                <label>Firma del Agente de Seguridad:</label>
+                <div class="signature-area">
+                    <button class="btn-limpiar" onclick="limpiarCanvas(ctxAgente, canvasAgente)">Limpiar</button>
+                    <canvas id="firmaAgente"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="guardarReporte()">🚨 Generar y Guardar Reporte</button>
+    </div>
+
+    <script>
+        // Setear fecha y hora actual automáticamente
+        const hoy = new Date();
+        document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
+        document.getElementById('hora').value = hoy.toTimeString().split(' ')[0].substring(0,5);
+
+        // Configuración de Canvas para Firmas
+        function setupCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth; 
+            
+            let painting = false;
+
+            function startPosition(e) { painting = true; draw(e); }
+            function endPosition() { painting = false; ctx.beginPath(); }
+            function draw(e) {
+                if (!painting) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mouseup', endPosition);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startPosition);
+            canvas.addEventListener('touchend', endPosition);
+            canvas.addEventListener('touchmove', draw);
+
+            return { canvas, ctx };
+        }
+
+        const { canvas: canvasEmpleado, ctx: ctxEmpleado } = setupCanvas('firmaEmpleado');
+        const { canvas: canvasAgente, ctx: ctxAgente } = setupCanvas('firmaAgente');
+
+        function limpiarCanvas(ctx, canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasBlank(canvas) {
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width; blank.height = canvas.height;
+            return canvas.toDataURL() === blank.toDataURL();
+        }
+
+        function guardarReporte() {
+            const empleado = document.getElementById('nombre_empleado').value;
+            const agente = document.getElementById('agente_reporta').value;
+            
+            if(!empleado || !agente) {
+                alert("🚨 El nombre del empleado y el agente que reporta son obligatorios.");
+                return;
+            }
+
+            // Recopilar checkboxes
+            const faltas = [];
+            document.querySelectorAll('#naturaleza-grid input:checked').forEach(cb => faltas.push(cb.value));
+            const otro = document.getElementById('otro_incidente').value;
+            if(otro) faltas.push(`Otro: ${otro}`);
+
+            const reporte = {
+                id: 'REP-' + Date.now(),
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value,
+                empleado: empleado,
+                manzana: document.getElementById('manzana').value,
+                lote: document.getElementById('lote').value,
+                direccion: document.getElementById('direccion').value,
+                puesto_empleado: document.getElementById('puesto_empleado').value,
+                departamento: document.getElementById('departamento').value,
+                jefe: document.getElementById('jefe_inmediato').value,
+                faltas: faltas,
+                hechos: document.getElementById('hechos').value,
+                agente: agente,
+                // Guardar firmas en formato imagen Base64
+                firma_empleado: isCanvasBlank(canvasEmpleado) ? null : canvasEmpleado.toDataURL(),
+                firma_agente: isCanvasBlank(canvasAgente) ? null : canvasAgente.toDataURL()
+            };
+
+            let db = JSON.parse(localStorage.getItem('bd_reportes_obra')) || [];
+            db.push(reporte);
+            localStorage.setItem('bd_reportes_obra', JSON.stringify(db));
+
+            alert("✅ Reporte Disciplinario guardado exitosamente.");
+            location.reload();
+        }
+    </script>
+</body>
+</html>
