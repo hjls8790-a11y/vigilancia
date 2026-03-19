@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Domicilios y Personal - El Cielo</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --w: #fff; --bg: #ECF0F1; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--p); }
+        .container { max-width: 900px; margin: auto; background: var(--w); padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1, h2 { border-bottom: 2px solid var(--p); padding-bottom: 10px; text-transform: uppercase; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #555;}
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: var(--p); color: var(--w); border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px;}
+        button:hover { background: var(--s); }
+        .panel { background: #f9f9f9; padding: 15px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 20px;}
+        
+        /* Estilo del Gafete QR */
+        #gafete-resultado { display: none; text-align: center; margin-top: 20px; padding: 20px; border: 2px dashed var(--s); border-radius: 8px; background: #fff;}
+        #qr-code { display: flex; justify-content: center; margin: 15px 0; }
+        .foto-gafete { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--p); margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏢 Alta de Domicilios y Trabajadores</h1>
+
+    <div class="panel">
+        <h2>1. Datos del Domicilio</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>Manzana</label><input type="text" id="manzana" placeholder="Ej. 2"></div>
+            <div class="form-group"><label>Lote</label><input type="text" id="lote" placeholder="Ej. 15"></div>
+            <div class="form-group">
+                <label>Estatus de la Propiedad</label>
+                <select id="estatus">
+                    <option value="Construcción">En Construcción</option>
+                    <option value="Remodelación">En Remodelación</option>
+                    <option value="Habitada (Propietario)">Habitada (Propietario)</option>
+                    <option value="Rentada">Rentada</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Número de Interphone</label><input type="text" id="interphone" placeholder="Si aplica..."></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>2. Alta de Personal / Visitas</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombre_trabajador"></div>
+            <div class="form-group"><label>CURP (Identificador Único)</label><input type="text" id="curp"></div>
+            <div class="form-group">
+                <label>Tipo de Ingreso</label>
+                <select id="tipo_persona">
+                    <option value="Trabajador de Obra">Trabajador de Obra</option>
+                    <option value="Trabajador Doméstico">Trabajador Doméstico</option>
+                    <option value="Visita Frecuente">Visita Frecuente</option>
+                    <option value="Proveedor de Materiales">Proveedor de Materiales</option>
+                </select>
+            </div>
+            <div class="form-group"><label>URL de Fotografía (Link de imagen)</label><input type="text" id="foto_url" placeholder="https://ejemplo.com/foto.jpg"></div>
+        </div>
+        <button onclick="guardarYGenerarQR()">💾 Guardar en Nube y Generar QR</button>
+    </div>
+
+    <div id="gafete-resultado">
+        <h2 style="color:var(--p); margin-top:0;">Gafete de Acceso - El Cielo</h2>
+        <img id="gafete-img" src="" class="foto-gafete" alt="Foto">
+        <h3 id="gafete-nombre" style="margin:5px 0;"></h3>
+        <p id="gafete-puesto" style="margin:0; color:#7f8c8d;"></p>
+        <p id="gafete-ubicacion" style="font-weight:bold;"></p>
+        <div id="qr-code"></div>
+        <p style="font-size:0.8em; color:#aaa;">Escanea este código en caseta</p>
+    </div>
+</div>
+
+<script>
+    // --- CONEXIÓN A TU PROYECTO DE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY_AQUI", // Copia tu API Key de la configuración de Firebase
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.appspot.com",
+        messagingSenderId: "TU_SENDER_ID_AQUI", // Copia de tu configuración
+        appId: "TU_APP_ID_AQUI" // Copia de tu configuración
+    };
+    
+    // Inicializar Firebase
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+
+    function guardarYGenerarQR() {
+        const curp = document.getElementById('curp').value.toUpperCase().trim();
+        const mza = document.getElementById('manzana').value.trim();
+        const lote = document.getElementById('lote').value.trim();
+        
+        if(!curp || !mza || !lote) { alert("CURP, Manzana y Lote son obligatorios."); return; }
+
+        const datos = {
+            manzana: mza,
+            lote: lote,
+            estatus_lote: document.getElementById('estatus').value,
+            interphone: document.getElementById('interphone').value || 'N/A',
+            nombre: document.getElementById('nombre_trabajador').value.trim(),
+            curp: curp,
+            tipo: document.getElementById('tipo_persona').value,
+            foto: document.getElementById('foto_url').value || 'https://via.placeholder.com/150/cccccc/ffffff?text=Sin+Foto'
+        };
+
+        // Guardar en la Realtime Database
+        db.ref('personal_accesos/' + curp).set(datos).then(() => {
+            alert("✅ Datos guardados exitosamente en sistema-vigilancia-6851e");
+            mostrarGafete(datos);
+        }).catch(error => {
+            console.error("Error Firebase:", error);
+            alert("Hubo un error de conexión: " + error.message);
+        });
+    }
+
+    function mostrarGafete(datos) {
+        document.getElementById('gafete-resultado').style.display = 'block';
+        document.getElementById('gafete-img').src = datos.foto;
+        document.getElementById('gafete-nombre').innerText = datos.nombre;
+        document.getElementById('gafete-puesto').innerText = datos.tipo;
+        document.getElementById('gafete-ubicacion').innerText = `Dirige a: Mza ${datos.manzana} - Lte ${datos.lote}`;
+        
+        document.getElementById('qr-code').innerHTML = '';
+        new QRCode(document.getElementById("qr-code"), {
+            text: datos.curp,
+            width: 150,
+            height: 150,
+            colorDark : "#2C3E50",
+            colorLight : "#ffffff",
+        });
+    }
+</script>
+</body>
+</html>
