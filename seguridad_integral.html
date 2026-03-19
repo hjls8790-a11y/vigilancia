@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacitación Interactiva | El Cielo Parque Residencial</title>
+    <style>
+        :root {
+            --primary: #1a252f;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --text-light: #ecf0f1;
+            --success: #27ae60;
+            --info: #3498db;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            background-color: var(--primary);
+            color: var(--text-light);
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        header p {
+            margin: 10px 0 0;
+            font-size: 1.2rem;
+            color: #bdc3c7;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: var(--secondary);
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+        nav button:hover, nav button.active {
+            background-color: var(--accent);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 {
+            color: var(--secondary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        .module {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-left: 4px solid var(--secondary);
+            background-color: #f9f9f9;
+        }
+        .module h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        
+        /* Estilos para el Selector de Agentes y Dashboard */
+        .agent-selector-container {
+            background-color: #e8f4f8;
+            border-left: 4px solid var(--info);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 30px;
+        }
+        .agent-dropdown {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            margin-top: 10px;
+            background-color: white;
+        }
+        .btn-submit {
+            background-color: var(--success);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        .btn-submit:hover {
+            background-color: #219653;
+        }
+
+        .quiz-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .quiz-question {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .quiz-options {
+            list-style: none;
+            padding: 0;
+        }
+        .quiz-options li {
+            margin-bottom: 10px;
+        }
+        .quiz-options button {
+            width: 100%;
+            text-align: left;
+            padding: 12px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 1rem;
+        }
+        .quiz-options button:hover {
+            background: #e9ecef;
+        }
+        .quiz-options button:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .feedback {
+            display: none;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Masterclass: Ingeniería Social</h1>
+        <p>Academia de Prevención - El Cielo Parque Residencial</p>
+    </header>
+
+    <nav>
+        <button class="active" onclick="showSection('teoria')">📚 Temario y Módulos</button>
+        <button onclick="showSection('practica')">🎯 Simulador Táctico</button>
+        <button onclick="showSection('consignas')">🛡️ Consignas y Consejos</button>
+    </nav>
+
+    <div class="container">
+        <div id="teoria" class="section active">
+            <h2>Defensa y Táctica contra la Ingeniería Social</h2>
+            <p>La ingeniería social es el arte de hackear la mente humana. Es la manipulación psicológica de las personas para que realicen acciones o divulguen información confidencial. No ataca a los servidores; ataca a la empatía, al miedo, a la urgencia y al respeto por la autoridad.</p>
+            
+            <div class="module">
+                <h3>Módulo 1: La Psicología del Atacante</h3>
+                <p>Los ingenieros sociales rara vez improvisan. Explotan sesgos cognitivos utilizando cuatro palancas principales:</p>
+                <ul>
+                    <li><strong>Autoridad:</strong> El atacante se hace pasar por un superior, exigiendo una acción inmediata.</li>
+                    <li><strong>Urgencia/Miedo:</strong> Se crea un escenario de crisis para anular el pensamiento lógico.</li>
+                    <li><strong>Familiaridad/Confianza:</strong> Menciona nombres reales o proveedores conocidos.</li>
+                    <li><strong>Reciprocidad:</strong> Ofrecen un pequeño favor para que la víctima se sienta obligada a devolverlo.</li>
+                </ul>
+            </div>
+
+            <div class="module">
+                <h3>Módulo 2: Vulnerabilidades Físicas y Control de Accesos</h3>
+                <ul>
+                    <li><strong>Tailgating (Infiltración):</strong> Caminar apresuradamente detrás de un residente para evadir controles.</li>
+                    <li><strong>Impersonación de Proveedores:</strong> Supuesto técnico con orden de trabajo falsa.</li>
+                    <li><strong>La Defensa Técnica:</strong> Protocolo de "Zero Trust". Aplicar "Reto y Respuesta".</li>
+                </ul>
+            </div>
+
+            <div class="module">
+                <h3>Módulo 3: Vectores Digitales - Phishing, Vishing y Whaling</h3>
+                <ul>
+                    <li><strong>Phishing:</strong> Correos simulando ser oficiales pidiendo credenciales.</li>
+                    <li><strong>Whaling:</strong> Ataque dirigido a tomadores de decisiones o Comité de Vigilancia.</li>
+                    <li><strong>Vishing:</strong> Llamadas clonando voz de ejecutivos exigiendo accesos.</li>
+                </ul>
+            </div>
+
+            <div class="module">
+                <h3>Módulo 4: El Firewall Humano</h3>
+                <ul>
+                    <li><strong>Entrenamiento Basado en Escenarios:</strong> Simulacros en vivo ante estrés.</li>
+                    <li><strong>Canales de Verificación Fuera de Banda:</strong> Confirmar órdenes inusuales por otro medio.</li>
+                    <li><strong>Cultura de "No Represalias":</strong> Respaldo total al detener accesos para verificar protocolos.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="practica" class="section">
+            <h2>Simulador de Escenarios (Evaluación)</h2>
+            
+            <div class="agent-selector-container">
+                <h3>Paso 1: Identificación Operativa</h3>
+                <p>Selecciona tu nombre de la plantilla de agentes para que tu calificación se registre automáticamente en el panel de control de KPIs.</p>
+                <select id="agente-select" class="agent-dropdown">
+                    <option value="">-- Selecciona tu nombre en la plantilla --</option>
+                    <option value="Alejandro">Alejandro</option>
+                    <option value="Leroy">Leroy</option>
+                    <option value="Abel">Abel</option>
+                    <option value="Vinalay">Vinalay</option>
+                    <option value="Jose">Jose</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Alfonso">Alfonso</option>
+                    <option value="Mario">Mario</option>
+                    <option value="Isael">Isael</option>
+                    <option value="Luis">Luis</option>
+                    <option value="Santillan">Santillan</option>
+                    <option value="Armando">Armando</option>
+                    <option value="Sotelo">Sotelo</option>
+                    <option value="Pizarro">Pizarro</option>
+                    <option value="Victor">Victor</option>
+                </select>
+            </div>
+
+            <p><strong>Paso 2: Resolución de Escenarios.</strong> Lee cuidadosamente y elige la acción que se apegue a los protocolos.</p>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 1: Estás en la caseta durante el cambio de turno de las 23:00 hrs. Llega un técnico afirmando que hay una falla crítica en la fibra óptica perimetral y exige acceso inmediato porque "el sistema se apagará en 5 minutos". Trae uniforme oficial. ¿Qué debes hacer?</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q1', false, this)">A) Darle acceso rápido para evitar que el sistema perimetral colapse, anotando sus placas.</button></li>
+                    <li><button onclick="checkAnswer('q1', true, this)">B) Pedirle que estacione el vehículo, aplicar la regla "Reto y Respuesta", y llamar al supervisor de turno o contacto interno para validar la orden de trabajo antes de abrir.</button></li>
+                    <li><button onclick="checkAnswer('q1', false, this)">C) Pedirle una identificación, tomarle una foto y dejarlo pasar acompañado de un elemento.</button></li>
+                </ul>
+                <div id="feedback-q1" class="feedback"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 2: Recibes una llamada directa en el centro de monitoreo. La persona se identifica como miembro del Comité de Vigilancia, suena muy molesto y exige que se autorice la entrada de una mudanza fuera de horario porque "él da las órdenes". ¿Cuál es el protocolo?</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q2', false, this)">A) Autorizar la entrada inmediatamente para evitar problemas o reportes con el Comité.</button></li>
+                    <li><button onclick="checkAnswer('q2', false, this)">B) Discutir con él por teléfono indicando que el reglamento lo prohíbe terminantemente.</button></li>
+                    <li><button onclick="checkAnswer('q2', true, this)">C) Usar la técnica del disco rayado con amabilidad, colgar y aplicar el "Tercer Ojo": verificar la instrucción llamando directamente al número registrado del miembro del Comité.</button></li>
+                </ul>
+                <div id="feedback-q2" class="feedback"></div>
+            </div>
+
+            <button class="btn-submit" onclick="enviarDashboardKPI()">📡 Enviar Resultados al Dashboard de KPIs</button>
+        </div>
+
+        <div id="consignas" class="section">
+            <h2>Consignas Generales y Consejos de Seguridad</h2>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🛡️ Consignas para Agentes</h3>
+                    <ul>
+                        <li><strong>Cero Confianza (Zero Trust):</strong> La amabilidad no sustituye la revisión.</li>
+                        <li><strong>Control de Emociones:</strong> No ceder ante gritos, amenazas o urgencias.</li>
+                        <li><strong>Reporte Inmediato:</strong> Registrar en bitácora cualquier anomalía.</li>
+                        <li><strong>Verificación Fuera de Banda:</strong> Nunca confirmar una instrucción por el mismo medio que se recibió.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>💡 Consejos Prácticos</h3>
+                    <ul>
+                        <li><strong>Cultura de No Represalias:</strong> Tienes respaldo total de gerencia por retrasar un acceso para verificar.</li>
+                        <li><strong>Protección de Información:</strong> No compartas horarios de rondines o fallas de cámaras.</li>
+                        <li><strong>Atención al Entorno:</strong> Durante los relevos, mantener el 100% de atención en accesos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables para almacenar las métricas del agente
+        let metricas = {
+            aciertos: 0,
+            errores: 0,
+            preguntasRespondidas: 0
+        };
+        const totalPreguntas = 2; // Actualizar si agregas más escenarios
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function checkAnswer(questionId, isCorrect, btnElement) {
+            const feedbackElement = document.getElementById('feedback-' + questionId);
+            const allButtons = btnElement.parentElement.parentElement.querySelectorAll('button');
+            
+            // Bloquear opciones una vez respondida
+            allButtons.forEach(btn => btn.disabled = true);
+            metricas.preguntasRespondidas++;
+            
+            feedbackElement.style.display = 'block';
+            
+            if (isCorrect) {
+                metricas.aciertos++;
+                feedbackElement.className = 'feedback correct';
+                feedbackElement.innerHTML = '✅ ¡Correcto! Has aplicado exitosamente el protocolo para neutralizar el intento de ingeniería social.';
+                btnElement.style.backgroundColor = '#d4edda';
+                btnElement.style.borderColor = '#c3e6cb';
+            } else {
+                metricas.errores++;
+                feedbackElement.className = 'feedback incorrect';
+                feedbackElement.innerHTML = '❌ Incorrecto. Al ceder a la presión, permitiste que el ingeniero social vulnerara el sistema. Recuerda siempre priorizar la verificación sobre la urgencia.';
+                btnElement.style.backgroundColor = '#f8d7da';
+                btnElement.style.borderColor = '#f5c6cb';
+            }
+        }
+
+        function enviarDashboardKPI() {
+            const nombreAgente = document.getElementById('agente-select').value;
+            
+            // Validaciones antes de enviar
+            if (nombreAgente === "") {
+                alert("⚠️ Error: Debes seleccionar tu nombre en el Paso 1 antes de enviar los resultados.");
+                return;
+            }
+            if (metricas.preguntasRespondidas < totalPreguntas) {
+                alert("⚠️ Error: Debes responder todos los escenarios antes de finalizar el entrenamiento.");
+                return;
+            }
+
+            // Aquí se estructuran los datos (JSON) listos para ser enviados mediante un Webhook a tu Dashboard (ej. PowerBI, Google Sheets, o base de datos propia)
+            const payloadKPI = {
+                agente: nombreAgente,
+                fecha: new Date().toLocaleString('es-MX'),
+                modulo_capacitacion: "Ingeniería Social",
+                aciertos: metricas.aciertos,
+                errores: metricas.errores,
+                calificacion_porcentaje: (metricas.aciertos / totalPreguntas) * 100
+            };
+
+            // Simulación en la consola del navegador de lo que recibiría tu base de datos
+            console.log("=== DATOS ENVIADOS AL DASHBOARD ===");
+            console.table(payloadKPI);
+
+            // Mensaje de éxito visual para el guardia
+            alert(`✅ ¡Registro Exitoso en Dashboard!\n\nAgente: ${payloadKPI.agente}\nCalificación: ${payloadKPI.calificacion_porcentaje}%\nAciertos: ${payloadKPI.aciertos} | Errores: ${payloadKPI.errores}\n\nLos datos han sido actualizados en las métricas gerenciales de la plantilla.`);
+            
+            // Opcional: Recargar página para el siguiente agente
+            // window.location.reload();
+        }
+    </script>
+</body>
+</html>
