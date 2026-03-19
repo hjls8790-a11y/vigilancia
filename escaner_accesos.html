@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caseta: Control de Accesos QR</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <style>
+        :root { --bg: #111418; --panel: #1e242b; --text: #e0e6ed; --g: #27AE60; --r: #E74C3C; --p: #3498DB;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px;}
+        .container { max-width: 600px; margin: auto; }
+        
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; border: 2px solid var(--p); margin-bottom: 20px; background: #fff; color: #333;}
+        
+        /* Tarjeta de resultado del escaneo */
+        .result-card { background: var(--panel); padding: 20px; border-radius: 8px; text-align: center; display: none; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);}
+        .r-foto { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--text); margin-bottom: 15px;}
+        .r-nombre { font-size: 1.4em; font-weight: bold; margin: 0; }
+        .r-datos { color: #bdc3c7; font-size: 0.9em; margin: 5px 0 15px 0;}
+        .r-destino { background: #2c3e50; padding: 10px; border-radius: 6px; font-weight: bold; color: #f1c40f;}
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;}
+        button { border: none; padding: 15px; border-radius: 6px; font-weight: bold; font-size: 1.1em; cursor: pointer; color: white; transition: 0.2s;}
+        button:active { transform: scale(0.95); }
+        .btn-entrada { background: var(--g); }
+        .btn-salida { background: var(--r); }
+        
+        /* Tabla de bitácora en vivo */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85em; background: var(--panel); border-radius: 8px; overflow: hidden;}
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { background: #2c3e50; color: #fff;}
+        .badge-e { background: var(--g); padding: 3px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: white;}
+        .badge-s { background: var(--r); padding: 3px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: white;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align:center; border-bottom:1px solid #333; padding-bottom:10px; margin-top:0;">🛡️ Escáner Caseta - El Cielo</h2>
+
+    <div id="reader"></div>
+
+    <div id="info-trabajador" class="result-card">
+        <img id="res-foto" src="" class="r-foto">
+        <p id="res-nombre" class="r-nombre">Cargando...</p>
+        <p id="res-datos" class="r-datos"></p>
+        <div id="res-destino" class="r-destino"></div>
+        
+        <div class="btn-grid">
+            <button class="btn-entrada" onclick="registrarMovimiento('ENTRADA')">🟢 Registrar Entrada</button>
+            <button class="btn-salida" onclick="registrarMovimiento('SALIDA')">🔴 Registrar Salida</button>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 30px;">Últimos Movimientos</h3>
+    <table>
+        <thead><tr><th>Hora</th><th>Mov</th><th>Nombre</th><th>Destino</th></tr></thead>
+        <tbody id="tabla-bitacora">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // --- CONEXIÓN A TU PROYECTO DE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY_AQUI", 
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.appspot.com",
+        messagingSenderId: "TU_SENDER_ID_AQUI",
+        appId: "TU_APP_ID_AQUI" 
+    };
+    
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+
+    let trabajadorActual = null;
+    let html5QrcodeScanner = null;
+
+    // Iniciar el escáner al cargar la página
+    window.onload = function() {
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    };
+
+    function onScanSuccess(codigoEscaneado) {
+        html5QrcodeScanner.pause(); 
+        
+        // Consultar la base de datos de "personal_accesos"
+        db.ref('personal_accesos/' + codigoEscaneado).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                trabajadorActual = snapshot.val();
+                mostrarTarjetaInfo(trabajadorActual);
+            } else {
+                alert("❌ Código no reconocido. El trabajador no está dado de alta o el CURP es incorrecto.");
+                html5QrcodeScanner.resume(); 
+            }
+        }).catch(err => {
+            alert("Error de conexión: " + err.message);
+            html5QrcodeScanner.resume();
+        });
+    }
+
+    function onScanFailure(error) { /* Ignorar errores de lectura continua */ }
+
+    function mostrarTarjetaInfo(datos) {
+        document.getElementById('info-trabajador').style.display = 'block';
+        document.getElementById('res-foto').src = datos.foto;
+        document.getElementById('res-nombre').innerText = datos.nombre;
+        document.getElementById('res-datos').innerText = `${datos.tipo} | CURP: ${datos.curp}`;
+        document.getElementById('res-destino').innerText = `Autorizado a: Mza ${datos.manzana} Lte ${datos.lote}`;
+    }
+
+    function registrarMovimiento(tipo) {
+        if(!trabajadorActual) return;
+
+        const fecha = new Date();
+        const movimiento = {
+            tipo: tipo,
+            curp: trabajadorActual.curp,
+            nombre: trabajadorActual.nombre,
+            manzana: trabajadorActual.manzana,
+            lote: trabajadorActual.lote,
+            fecha: fecha.toLocaleDateString(),
+            hora: fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            timestamp: fecha.getTime()
+        };
+
+        // Guardar movimiento en la bitácora
+        db.ref('bitacora_accesos_qr').push(movimiento).then(() => {
+            document.getElementById('info-trabajador').style.display = 'none';
+            trabajadorActual = null;
+            html5QrcodeScanner.resume(); 
+        }).catch(err => alert("Error al registrar movimiento: " + err.message));
+    }
+
+    // --- LEER BITÁCORA EN TIEMPO REAL ---
+    db.ref('bitacora_accesos_qr').orderByChild('timestamp').limitToLast(10).on('value', (snapshot) => {
+        const tbody = document.getElementById('tabla-bitacora');
+        tbody.innerHTML = '';
+        
+        const registros = [];
+        snapshot.forEach(child => { registros.push(child.val()); });
+        registros.reverse(); 
+
+        registros.forEach(reg => {
+            const badge = reg.tipo === 'ENTRADA' ? '<span class="badge-e">ENT</span>' : '<span class="badge-s">SAL</span>';
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${reg.hora}</strong></td>
+                    <td>${badge}</td>
+                    <td>${reg.nombre}</td>
+                    <td>M${reg.manzana}-L${reg.lote}</td>
+                </tr>
+            `;
+        });
+    });
+</script>
+</body>
+</html>
