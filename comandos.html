@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Comando | Emisión de Instrucciones</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #1a252f;
@@ -14,6 +15,7 @@
             --info: #3498db;
             --warning: #f39c12;
             --wa-color: #25D366;
+            --pdf-color: #c0392b;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,6 +47,7 @@
 
         @media (max-width: 768px) {
             .container { grid-template-columns: 1fr; }
+            header { flex-direction: column; text-align: center; gap: 10px; }
         }
 
         /* Panel de Emisión */
@@ -60,11 +63,12 @@
             color: var(--primary);
             border-bottom: 2px solid #ecf0f1;
             padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             font-weight: bold;
@@ -103,6 +107,19 @@
         }
         .btn-wa:hover { background-color: #128C7E; }
 
+        .btn-pdf-global {
+            background-color: var(--pdf-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-pdf-global:hover { background-color: #a93226; }
+
         /* Panel de Auditoría */
         .audit-panel { border-top-color: var(--info); }
         .search-bar {
@@ -137,20 +154,26 @@
         .log-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 0.9rem;
             color: #7f8c8d;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: bold;
         }
-        .log-body { font-size: 1rem; color: #333; white-space: pre-wrap; }
+        .log-body { font-size: 1rem; color: #333; white-space: pre-wrap; margin-bottom: 10px; }
         .log-footer {
             margin-top: 10px;
             font-size: 0.85rem;
             color: #95a5a6;
-            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
         }
+        
         .badge {
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
             color: white;
             font-size: 0.8rem;
@@ -159,6 +182,22 @@
         .b-monitoreo { background: var(--info); }
         .b-proveedores { background: var(--warning); }
         .b-general { background: #7f8c8d; }
+
+        .btn-pdf-mini {
+            background-color: white;
+            color: var(--pdf-color);
+            border: 1px solid var(--pdf-color);
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-pdf-mini:hover {
+            background-color: var(--pdf-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -206,7 +245,10 @@
         </div>
 
         <div class="panel audit-panel">
-            <h2>🗂️ Bitácora y Auditoría de Instrucciones</h2>
+            <h2>
+                🗂️ Bitácora de Auditoría
+                <button class="btn-pdf-global" onclick="exportarBitacoraGlobalPDF()">📄 Exportar Todo</button>
+            </h2>
             <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar por fecha, área, o palabra clave..." onkeyup="filtrarBitacora()">
             
             <div id="logContainer" class="log-list">
@@ -216,7 +258,7 @@
 
     <script>
         // Configuración Inicial
-        const NUMERO_CASETA = "526692486726"; // Número de la caseta de WhatsApp
+        const NUMERO_CASETA = "526692486726"; 
         const EMISOR = "Cmdt. Hugo Lizárraga";
 
         // Reloj en vivo
@@ -237,18 +279,15 @@
                 return;
             }
 
-            // Fechas
             const ahora = new Date();
             const fechaStr = ahora.toLocaleDateString('es-MX');
             const horaStr = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
             const idUnico = "ID-" + ahora.getTime();
 
-            // Configurar íconos según prioridad
             let iconoPrioridad = "🟢";
             if (prioridad === "Alta") iconoPrioridad = "🟡";
             if (prioridad === "Crítica") iconoPrioridad = "🚨";
 
-            // 1. Crear el mensaje formateado para WhatsApp
             const mensajeWa = 
 `${iconoPrioridad} *NUEVA INSTRUCCIÓN OPERATIVA* ${iconoPrioridad}
 🏢 *El Cielo Parque Residencial*
@@ -263,7 +302,6 @@ ${texto}
 👤 Emite: ${EMISOR}
 _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
 
-            // 2. Guardar en la Bitácora Local (Auditoría)
             const nuevaOrden = {
                 id: idUnico,
                 fecha: fechaStr,
@@ -276,21 +314,16 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
             };
 
             guardarEnLocal(nuevaOrden);
-
-            // 3. Limpiar formulario y actualizar vista
             document.getElementById('instruccionText').value = "";
             cargarBitacora();
 
-            // 4. Abrir WhatsApp Click-to-Chat
             const urlWa = `https://wa.me/${NUMERO_CASETA}?text=${encodeURIComponent(mensajeWa)}`;
             window.open(urlWa, '_blank');
         }
 
-        // --- FUNCIONES DE BASE DE DATOS LOCAL (Bitácora) ---
-
         function guardarEnLocal(orden) {
             let bitacora = JSON.parse(localStorage.getItem('bitacoraInstrucciones')) || [];
-            bitacora.unshift(orden); // Agregar al inicio (más reciente primero)
+            bitacora.unshift(orden); 
             localStorage.setItem('bitacoraInstrucciones', JSON.stringify(bitacora));
         }
 
@@ -298,7 +331,7 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
             const container = document.getElementById('logContainer');
             let bitacora = JSON.parse(localStorage.getItem('bitacoraInstrucciones')) || [];
             
-            container.innerHTML = ""; // Limpiar vista
+            container.innerHTML = ""; 
 
             if (bitacora.length === 0) {
                 container.innerHTML = "<p style='text-align:center; color:#95a5a6;'>No hay instrucciones registradas en la bitácora aún.</p>";
@@ -306,7 +339,6 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
             }
 
             bitacora.forEach(orden => {
-                // Clases CSS dinámicas
                 let clasePrioridad = "";
                 if(orden.prioridad === "Alta") clasePrioridad = "alta";
                 if(orden.prioridad === "Crítica") clasePrioridad = "critica";
@@ -316,7 +348,6 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
                 if(orden.area === "Monitoreo") claseBadge = "b-monitoreo";
                 if(orden.area === "Proveedores") claseBadge = "b-proveedores";
 
-                // Crear elemento HTML
                 const div = document.createElement('div');
                 div.className = `log-item ${clasePrioridad}`;
                 div.innerHTML = `
@@ -325,7 +356,10 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
                         <span>${orden.fecha} - ${orden.hora}</span>
                     </div>
                     <div class="log-body">${orden.texto}</div>
-                    <div class="log-footer">Emisor: ${orden.emisor} | Folio: ${orden.id}</div>
+                    <div class="log-footer">
+                        <span>Folio: ${orden.id}</span>
+                        <button class="btn-pdf-mini" onclick="exportarInstruccionPDF('${orden.id}')">📄 Imprimir PDF</button>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -342,6 +376,131 @@ _Nota: Acuse de recibido obligatorio al leer este mensaje._`;
                 } else {
                     item.style.display = "none";
                 }
+            });
+        }
+
+        // --- FUNCIONES DE EXPORTACIÓN A PDF (html2pdf.js) ---
+
+        function exportarInstruccionPDF(id) {
+            let bitacora = JSON.parse(localStorage.getItem('bitacoraInstrucciones')) || [];
+            let orden = bitacora.find(o => o.id === id);
+            if(!orden) return;
+
+            // Crear un contenedor temporal con formato formal
+            let element = document.createElement('div');
+            element.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 40px; color: #333;">
+                    <h2 style="text-align: center; color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px; margin-bottom: 5px;">El Cielo Parque Residencial</h2>
+                    <h3 style="text-align: center; color: #7f8c8d; margin-top: 0;">Memorándum de Instrucción Operativa</h3>
+                    <br>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Folio de Rastreo:</strong></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${orden.id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Fecha y Hora de Emisión:</strong></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${orden.fecha} - ${orden.hora}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Área Operativa Destino:</strong></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${orden.area}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Nivel de Prioridad:</strong></td>
+                            <td style="padding: 10px; border: 1px solid #ddd; color: ${orden.prioridad === 'Crítica' ? '#e74c3c' : (orden.prioridad === 'Alta' ? '#f39c12' : '#27ae60')}; font-weight: bold;">
+                                ${orden.prioridad.toUpperCase()}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Emitido por:</strong></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${orden.emisor}</td>
+                        </tr>
+                    </table>
+                    
+                    <h4 style="color: #2c3e50; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Cuerpo de la Instrucción:</h4>
+                    <div style="background: #fdfdfd; padding: 20px; border-left: 5px solid #2c3e50; white-space: pre-wrap; font-size: 15px; line-height: 1.6;">${orden.texto}</div>
+                    
+                    <div style="margin-top: 80px; text-align: center;">
+                        <div style="width: 250px; margin: 0 auto; border-bottom: 1px solid #333;"></div>
+                        <p style="margin-top: 10px; font-size: 14px; color: #555;">Firma de Enterado / Elemento en Turno</p>
+                        <p style="font-size: 12px; color: #999;">Esta firma valida que la instrucción fue leída, comprendida y acatada según los protocolos de seguridad del residencial.</p>
+                    </div>
+                </div>
+            `;
+
+            let opt = {
+              margin:       [0.5, 0.5, 0.5, 0.5],
+              filename:     `Consigna_${orden.id}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2 },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Notificar al usuario mientras se procesa
+            let btn = event.target;
+            let originalText = btn.innerText;
+            btn.innerText = "⏳ Generando...";
+            btn.disabled = true;
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function exportarBitacoraGlobalPDF() {
+            let bitacora = JSON.parse(localStorage.getItem('bitacoraInstrucciones')) || [];
+            if(bitacora.length === 0) { 
+                alert("⚠️ No hay instrucciones registradas para exportar."); 
+                return; 
+            }
+
+            let element = document.createElement('div');
+            let htmlContent = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="text-align: center; color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px; margin-bottom: 5px;">El Cielo Parque Residencial</h2>
+                    <h3 style="text-align: center; color: #7f8c8d; margin-top: 0;">Reporte General de Bitácora Operativa</h3>
+                    <p style="text-align: right; font-size: 12px; color: #777;">Documento Generado: ${new Date().toLocaleString('es-MX')}<br>Total de registros: ${bitacora.length}</p>
+                    <hr style="margin-bottom: 30px;">
+            `;
+
+            bitacora.forEach(orden => {
+                htmlContent += `
+                    <div style="margin-bottom: 25px; border-bottom: 1px dashed #ccc; padding-bottom: 15px; page-break-inside: avoid;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: #f9f9f9; margin-bottom: 10px;">
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #ddd;"><strong>Folio:</strong> ${orden.id}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;"><strong>Fecha:</strong> ${orden.fecha} - ${orden.hora}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;"><strong>Área:</strong> ${orden.area}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;"><strong>Prioridad:</strong> ${orden.prioridad}</td>
+                            </tr>
+                        </table>
+                        <p style="margin: 0 0 10px 0; font-size: 14px; white-space: pre-wrap;"><strong>Instrucción:</strong><br>${orden.texto}</p>
+                        <p style="margin: 0; font-size: 11px; color: #777;"><em>Emitió: ${orden.emisor}</em></p>
+                    </div>
+                `;
+            });
+
+            htmlContent += `</div>`;
+            element.innerHTML = htmlContent;
+
+            let opt = {
+              margin:       0.5,
+              filename:     `Reporte_Bitacora_General_${new Date().getTime()}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2 },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            let btn = document.querySelector('.btn-pdf-global');
+            let originalText = btn.innerText;
+            btn.innerText = "⏳ Generando PDF...";
+            btn.disabled = true;
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
             });
         }
     </script>
