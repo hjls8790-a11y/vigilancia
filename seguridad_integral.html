@@ -14,6 +14,7 @@
             --info: #3498db;
             --warning: #f39c12;
             --dark: #111820;
+            --ai-color: #8e44ad; /* Color para el módulo de IA */
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -65,6 +66,9 @@
         nav button:hover, nav button.active {
             background-color: var(--accent);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        nav button.ai-btn:hover, nav button.ai-btn.active {
+            background-color: var(--ai-color);
         }
         .container {
             max-width: 1100px;
@@ -315,13 +319,41 @@
     <nav>
         <button onclick="showSection('materiales')">📁 Materiales Oficiales</button>
         <button onclick="showSection('politicas')">📜 Políticas Internas</button>
-        <button class="active" onclick="showSection('teoria')">📚 Masterclass: Ingeniería Social</button>
+        <button class="active" onclick="showSection('teoria')">📚 Masterclass</button>
         <button onclick="showSection('practica')">🎯 Simulador Táctico</button>
-        <button onclick="showSection('consignas')">🛡️ Consignas y Protocolos</button>
+        <button onclick="showSection('consignas')">🛡️ Consignas</button>
+        <button class="ai-btn" onclick="showSection('gemini-live')" style="background-color: #8e44ad; color: white;">🎙️ Capacitación en Vivo</button>
     </nav>
 
     <div class="container">
         
+        <div id="gemini-live" class="section">
+            <h2 style="color: var(--ai-color); border-bottom-color: var(--ai-color);">Entrenamiento Interactivo por Voz (IA)</h2>
+            <p>Pon a prueba tus reflejos operativos enfrentando un escenario en tiempo real. Esta herramienta abrirá un canal de voz con tu supervisor virtual para realizar un juego de roles.</p>
+            
+            <div class="module" style="border-left-color: var(--ai-color); background-color: #f9f2fc;">
+                <h3 style="color: var(--ai-color);">Instrucciones Operativas:</h3>
+                <ol>
+                    <li>Pulsa el botón <strong>"Copiar Protocolo y Abrir Gemini"</strong>.</li>
+                    <li>La aplicación de Gemini se abrirá automáticamente. <strong>Pega el texto</strong> en la barra de chat y envíalo.</li>
+                    <li>Activa el modo de voz (icono de ondas/Live) en la esquina inferior derecha.</li>
+                    <li><strong>¡Comienza la simulación!</strong> Trata a la IA como si fuera una persona real en la caseta.</li>
+                </ol>
+                
+                <p><em>El siguiente texto instruye a la IA sobre las reglas de El Cielo Parque Residencial y el escenario a simular:</em></p>
+                <textarea id="promptText" style="width: 100%; height: 180px; margin-bottom: 15px; padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 1rem; resize: vertical;" readonly>
+Actúa como mi supervisor e instructor de seguridad sumamente estricto para el residencial "El Cielo". Mi nombre es Hugo. Iniciaremos una capacitación compartida por voz. 
+Tus instrucciones son evaluar mi apego estricto a nuestras políticas internas: "Oír, ver y callar", "Firmeza no prepotencia", "No suponer nada" y aplicar "Cero Confianza" en los accesos. 
+
+Para empezar, realiza un juego de roles: tú vas a interpretar a un visitante muy insistente y un poco molesto que quiere ingresar al residencial para ver a un residente, pero te niegas rotundamente a mostrar una identificación oficial o dices que no la traes. Exígeme el acceso. 
+Evalúa cómo manejo la situación por voz. Corrígeme de forma dura y estricta si dudo, si soy grosero, o si rompo el protocolo de negarte el acceso sin ID. ¿Entendido? Inicia la simulación hablando como el visitante ahora.</textarea>
+
+                <button class="btn-submit" style="background-color: var(--ai-color);" onclick="copyAndOpenGemini()">
+                    🚀 Copiar Protocolo y Abrir Gemini
+                </button>
+            </div>
+        </div>
+
         <div id="materiales" class="section">
             <h2>Repositorio de Capacitaciones Oficiales</h2>
             <p>Accede a las presentaciones institucionales de capacitación. Asegúrate de tener instalado un visor de presentaciones (PowerPoint) para consultar los documentos.</p>
@@ -367,47 +399,43 @@
             <p>A lo largo de tu entrenamiento de hoy, vamos a desglosar cómo operan estos ataques, cómo se ven en el mundo real y, lo más importante, cómo endurecer el criterio de cualquier equipo de trabajo para neutralizarlos.</p>
 
             <div class="module">
-                <h3>Módulo 1: La Psicología del Atacante (Primer Bloque de Entrenamiento)</h3>
+                <h3>Módulo 1: La Psicología del Atacante</h3>
                 <p>Los ingenieros sociales rara vez improvisan. Su trabajo se basa en la "recopilación de inteligencia" (OSINT) y en la explotación de sesgos cognitivos. Utilizan cuatro palancas principales para doblegar la voluntad de un individuo:</p>
                 <ul>
                     <li><strong>Autoridad:</strong> El atacante se hace pasar por un superior. Un supuesto Director de área o un miembro de alto rango que exige una acción inmediata, saltándose los protocolos estándar.</li>
-                    <li><strong>Urgencia/Miedo:</strong> Se crea un escenario de crisis. "Si no verificamos este acceso ahora mismo, el sistema colapsará" o "Si no autorizas esta entrada, habrá consecuencias legales". El cerebro bajo estrés deja de pensar lógicamente y busca resolver la amenaza rápido.</li>
-                    <li><strong>Familiaridad/Confianza:</strong> El atacante estudia el entorno, aprende la jerga interna y menciona nombres reales o proveedores conocidos para bajar las defensas de su víctima.</li>
-                    <li><strong>Reciprocidad:</strong> Ofrecen un pequeño favor o ayuda técnica aparente para que la víctima se sienta obligada a devolver el favor (por ejemplo, dándoles acceso o información).</li>
+                    <li><strong>Urgencia/Miedo:</strong> Se crea un escenario de crisis. "Si no verificamos este acceso ahora mismo, el sistema colapsará". El cerebro bajo estrés deja de pensar lógicamente.</li>
+                    <li><strong>Familiaridad/Confianza:</strong> El atacante estudia el entorno, aprende la jerga interna y menciona nombres reales o proveedores conocidos.</li>
+                    <li><strong>Reciprocidad:</strong> Ofrecen un pequeño favor o ayuda técnica aparente para que la víctima se sienta obligada a devolver el favor.</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 2: Vulnerabilidades Físicas y Control de Accesos (Bloque de Fuerza)</h3>
-                <p>Aquí es donde la teoría choca con el asfalto, especialmente en entornos de control estricto como un parque residencial o un complejo corporativo.</p>
-                <p>Imagina un cambio de turno. Son las 15:00 o las 23:00 horas, los elementos están cruzando información, llenando bitácoras y ajustando el relevo. Hay fatiga y distracción. Este es el momento exacto en el que un ingeniero social físico ataca.</p>
+                <h3>Módulo 2: Vulnerabilidades Físicas y Control de Accesos</h3>
+                <p>Aquí es donde la teoría choca con el asfalto. Imagina un cambio de turno. Son las 15:00 o las 23:00 horas. Hay fatiga y distracción. Este es el momento exacto en el que un ingeniero social físico ataca.</p>
                 <ul>
-                    <li><strong>Tailgating (Infiltración por seguimiento):</strong> Un individuo con un paquete pesado en las manos, vestido con uniforme de una empresa de paquetería conocida, camina apresuradamente detrás de un residente o empleado legítimo. El instinto humano es sostener la puerta. Acaban de evadir millones de pesos en controles biométricos por simple cortesía.</li>
-                    <li><strong>Impersonación de Proveedores:</strong> Un supuesto técnico llega afirmando que viene a dar mantenimiento urgente al DVR de las cámaras o a la red de fibra óptica. Conoce el nombre del gerente en turno y trae una orden de trabajo falsa pero muy convincente. Si el elemento en caseta no verifica a través del canal oficial, el intruso tiene acceso a las entrañas del sistema.</li>
-                    <li><strong>La Defensa Técnica:</strong> Todo equipo de seguridad de primer contacto (ya sean 5 o 15 elementos en rotación) debe tener un protocolo de "Zero Trust" (Cero Confianza). La amabilidad no debe anular la verificación. Se debe implementar la regla de "Reto y Respuesta": interceptar amablemente, retener al visitante y validar con el contacto interno, sin importar quién diga ser.</li>
+                    <li><strong>Tailgating (Infiltración por seguimiento):</strong> Un individuo camina apresuradamente detrás de un residente o empleado legítimo evadiendo controles biométricos por simple cortesía.</li>
+                    <li><strong>Impersonación de Proveedores:</strong> Un supuesto técnico llega con una orden de trabajo falsa pero muy convincente.</li>
+                    <li><strong>La Defensa Técnica:</strong> Todo equipo debe tener un protocolo de "Zero Trust" (Cero Confianza). Se debe implementar la regla de "Reto y Respuesta": interceptar, retener y validar.</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 3: Vectores Digitales - Phishing, Vishing y Whaling (Cardio y Resistencia)</h3>
-                <p>Mientras mantienes el ritmo, pasemos a la trinchera digital. Los atacantes saben que los operadores y gerentes utilizan dashboards, plataformas web y bases de datos para gestionar sus KPI y logs diarios.</p>
+                <h3>Módulo 3: Vectores Digitales - Phishing, Vishing y Whaling</h3>
                 <ul>
-                    <li><strong>Phishing (Pesca de credenciales):</strong> Correos electrónicos diseñados para parecer comunicaciones internas oficiales. Un clásico es enviar un correo al personal operativo simulando ser de Recursos Humanos, anunciando una supuesta actualización en las "prestaciones de ley" y pidiendo que ingresen con sus credenciales institucionales para revisar el nuevo tabulador. Si el usuario cae, el atacante obtiene su contraseña.</li>
-                    <li><strong>Whaling (Caza de ballenas):</strong> Este es un ataque de alta precisión dirigido a los tomadores de decisiones. Los atacantes perfilan a un Director o a un miembro del Comité de Vigilancia. Envían un correo falsificado con un archivo adjunto que dice ser el "Reporte Financiero de Proyectos Anuales". Al abrirlo, instalan malware o ransomware en la red corporativa.</li>
-                    <li><strong>Vishing (Phishing por voz):</strong> Una llamada directa a la central de monitoreo. El atacante clona la voz o simplemente imita el tono de un alto ejecutivo exigiendo que se libere un acceso remoto o que se le dicte una contraseña temporal porque "está en una emergencia fuera de la ciudad".</li>
+                    <li><strong>Phishing (Pesca de credenciales):</strong> Correos electrónicos diseñados para parecer comunicaciones internas oficiales pidiendo credenciales.</li>
+                    <li><strong>Whaling (Caza de ballenas):</strong> Ataque dirigido a los tomadores de decisiones o miembros del Comité de Vigilancia mediante malware.</li>
+                    <li><strong>Vishing (Phishing por voz):</strong> Llamada clonando la voz o imitando el tono de un alto ejecutivo exigiendo accesos remotos.</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 4: El Firewall Humano (Último Bloque - Cierre y Enfriamiento)</h3>
-                <p>¿Cómo se detiene esto? La tecnología por sí sola no basta. Necesitas construir un Firewall Humano.</p>
+                <h3>Módulo 4: El Firewall Humano</h3>
                 <ul>
-                    <li><strong>Entrenamiento Basado en Escenarios:</strong> La teoría se olvida bajo presión. Las capacitaciones deben incluir simulacros en vivo. ¿Qué hace el guardia a las 07:00 am si llega un inspector del gobierno exigiendo acceso inmediato bajo amenaza de clausura? Hay que entrenar la respuesta muscular ante el estrés.</li>
-                    <li><strong>Canales de Verificación Fuera de Banda:</strong> Si se recibe una orden inusual por radio o por correo, la verificación debe hacerse por otro medio. Si llega un correo del Director pidiendo una transferencia o un cambio de clave, la confirmación se hace por llamada telefónica directa al número ya registrado, nunca respondiendo al mismo correo.</li>
-                    <li><strong>Cultura de "No Represalias" por Retrasar Operaciones:</strong> El personal de seguridad y vigilancia debe saber que está respaldado por la gerencia si deciden detener a un alto ejecutivo o a un visitante VIP para seguir el protocolo de verificación. Si el personal teme ser despedido por hacer su trabajo, la ingeniería social siempre triunfará.</li>
-                    <li><strong>Métricas de Seguridad Continua:</strong> En tus reportes y dashboards gerenciales, además de medir los tiempos de respuesta o la rotación, se deben registrar los "Intentos de Ingeniería Social Bloqueados". Reconocer al elemento que detuvo un intento de intrusión refuerza el comportamiento positivo de todo el equipo.</li>
+                    <li><strong>Entrenamiento Basado en Escenarios:</strong> La teoría se olvida bajo presión. Hay que entrenar la respuesta muscular ante el estrés.</li>
+                    <li><strong>Canales de Verificación Fuera de Banda:</strong> Confirmar órdenes inusuales por otro medio (ej. llamada directa, nunca respondiendo al mismo correo).</li>
+                    <li><strong>Cultura de "No Represalias":</strong> El personal debe saber que está respaldado si detiene a un visitante VIP para seguir el protocolo de verificación.</li>
+                    <li><strong>Métricas de Seguridad Continua:</strong> Registrar los "Intentos de Ingeniería Social Bloqueados" en los reportes gerenciales.</li>
                 </ul>
-                <p><strong>Conclusión:</strong> La seguridad integral es un ecosistema vivo. Los atacantes evolucionan y sus narrativas son cada vez más convincentes. Al terminar este entrenamiento de hoy, recuerda que el liderazgo en seguridad no solo se trata de gestionar circuitos cerrados o supervisar perímetros físicos; se trata de blindar la mente y los procedimientos de cada persona que custodia esas fronteras.</p>
             </div>
         </div>
 
@@ -527,9 +555,9 @@
                 <div class="card warning">
                     <h3>⚠️ Manejo de Hostilidad y Extorsión</h3>
                     <ul>
-                        <li><strong>Reconocer y Escuchar:</strong> Ante una persona agresiva, usa un tono calmado, no juzgues y ayúdala a expresar la situación (Resolución de conflictos).</li>
+                        <li><strong>Reconocer y Escuchar:</strong> Ante una persona agresiva, usa un tono calmado, no juzgues y ayúdala a expresar la situación.</li>
                         <li><strong>Control de Emociones:</strong> No cedas ante gritos o amenazas. El estrés es la principal arma del atacante.</li>
-                        <li><strong>Extorsión Telefónica:</strong> Es un delito de "bajo riesgo y alto beneficio" para el delincuente. Si recibes amenazas, <strong>cuelga inmediatamente</strong>, no des datos y reporta al 911.</li>
+                        <li><strong>Extorsión Telefónica:</strong> Es un delito de "bajo riesgo y alto beneficio". Si recibes amenazas, <strong>cuelga inmediatamente</strong>, no des datos y reporta al 911.</li>
                         <li><strong>Botón de Pánico:</strong> Ten siempre identificado su protocolo de activación en caso de que la hostilidad escale a violencia física.</li>
                     </ul>
                 </div>
@@ -538,8 +566,8 @@
                     <h3>📋 Procedimientos Operativos Clave</h3>
                     <ul>
                         <li><strong>Atención a Constructores:</strong> La gestión eficiente asegura la continuidad de las obras, pero nadie ingresa sin la autorización explícita del propietario.</li>
-                        <li><strong>Después de un Allanamiento:</strong> No persigas al intruso. Haz una descripción física detallada, anota rutas de huida/placas, llama al 911 y pide a los testigos que no hablen entre ellos para no contaminar testimonios.</li>
-                        <li><strong>Higiene y Prevención:</strong> Mantén control estricto de las tarjetas de acceso. No compartas información en redes sociales sobre tu puesto, fallas de cámaras o rutinas de rondines.</li>
+                        <li><strong>Después de un Allanamiento:</strong> No persigas al intruso. Haz una descripción física detallada, anota rutas de huida/placas, llama al 911 y pide a los testigos que no hablen.</li>
+                        <li><strong>Higiene y Prevención:</strong> Mantén control estricto de las tarjetas de acceso. No compartas información en redes sociales sobre tu puesto o fallas de cámaras.</li>
                     </ul>
                 </div>
             </div>
@@ -547,6 +575,19 @@
     </div>
 
     <script>
+        // Función para el Deep Link a Gemini
+        function copyAndOpenGemini() {
+            var copyText = document.getElementById("promptText");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Para móviles
+            navigator.clipboard.writeText(copyText.value);
+
+            alert("✅ Protocolo copiado correctamente.\n\nAl presionar 'Aceptar', se abrirá Gemini. Pega este texto en el chat y activa el micrófono (Gemini Live) para iniciar tu evaluación de seguridad.");
+
+            window.open("https://gemini.google.com/app", "_blank");
+        }
+
+        // Lógica de pestañas y cuestionario
         let metricas = { aciertos: 0, errores: 0, preguntasRespondidas: 0 };
         const totalPreguntas = 7; 
 
@@ -608,7 +649,7 @@
                 calificacion_porcentaje: parseFloat(calificacion)
             };
 
-            console.log("=== DATOS ENVIADOS AL DASHBOARD (WEBHOOK) ===");
+            console.log("=== DATOS ENVIADOS AL DASHBOARD ===");
             console.table(payloadKPI);
 
             alert(`✅ ¡Evaluación Registrada con Éxito!\n\nAgente: ${payloadKPI.agente}\nCalificación Final: ${payloadKPI.calificacion_porcentaje}%\nAciertos: ${payloadKPI.aciertos} | Errores: ${payloadKPI.errores}\n\nLos datos han sido enviados al tablero de control gerencial.`);
