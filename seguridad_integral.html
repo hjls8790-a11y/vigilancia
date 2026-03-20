@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capacitación Interactiva | El Cielo Parque Residencial</title>
+    <title>Capacitación Interactiva | Seguridad Integral</title>
     <style>
         :root {
             --primary: #1a252f;
@@ -12,6 +12,7 @@
             --text-light: #ecf0f1;
             --success: #27ae60;
             --info: #3498db;
+            --warning: #f39c12;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,13 +25,14 @@
         header {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 2rem 0;
+            padding: 2.5rem 0;
             text-align: center;
-            border-bottom: 4px solid var(--accent);
+            border-bottom: 5px solid var(--accent);
         }
         header h1 {
             margin: 0;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
+            letter-spacing: 1px;
         }
         header p {
             margin: 10px 0 0;
@@ -45,134 +47,187 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-wrap: wrap;
         }
         nav button {
             background: none;
             border: none;
             color: var(--text-light);
-            padding: 10px 20px;
-            margin: 0 5px;
+            padding: 12px 20px;
+            margin: 5px;
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 5px;
+            font-weight: bold;
         }
         nav button:hover, nav button.active {
             background-color: var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 30px auto;
             padding: 0 20px;
         }
         .section {
             display: none;
             background: white;
-            padding: 30px;
+            padding: 35px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            animation: fadeIn 0.4s ease-in-out;
         }
         .section.active {
             display: block;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         h2 {
             color: var(--secondary);
-            border-bottom: 2px solid var(--accent);
+            border-bottom: 3px solid var(--accent);
             padding-bottom: 10px;
+            margin-top: 0;
         }
+        
+        /* Estilos de Botones de Materiales */
+        .materials-grid {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--info);
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .btn-download:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .btn-download.supervisor {
+            background-color: var(--secondary);
+        }
+        .btn-download.supervisor:hover {
+            background-color: #1a252f;
+        }
+
         .module {
             margin-bottom: 25px;
-            padding: 15px;
-            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            border-left: 5px solid var(--secondary);
             background-color: #f9f9f9;
+            border-radius: 0 8px 8px 0;
         }
         .module h3 {
             margin-top: 0;
             color: var(--primary);
+            font-size: 1.4rem;
         }
         
-        /* Estilos para el Selector de Agentes y Dashboard */
+        /* Estilos para el Selector y Dashboard */
         .agent-selector-container {
             background-color: #e8f4f8;
-            border-left: 4px solid var(--info);
-            padding: 20px;
+            border-left: 5px solid var(--info);
+            padding: 25px;
             border-radius: 0 8px 8px 0;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
         .agent-dropdown {
             width: 100%;
             padding: 12px;
             font-size: 1.1rem;
             border: 1px solid #bdc3c7;
-            border-radius: 4px;
-            margin-top: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
             background-color: white;
+            font-weight: bold;
+            color: var(--secondary);
         }
         .btn-submit {
             background-color: var(--success);
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            padding: 15px 30px;
+            padding: 18px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             width: 100%;
             transition: background 0.3s;
-            margin-top: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
         .btn-submit:hover {
             background-color: #219653;
         }
 
+        /* Estilos del Cuestionario */
         .quiz-container {
-            background-color: #f8f9fa;
-            padding: 20px;
+            background-color: #fff;
+            padding: 25px;
             border-radius: 8px;
-            border: 1px solid #dee2e6;
-            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--secondary);
         }
         .quiz-question {
             font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--primary);
         }
         .quiz-options {
             list-style: none;
             padding: 0;
         }
         .quiz-options li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .quiz-options button {
             width: 100%;
             text-align: left;
-            padding: 12px;
-            border: 1px solid #ccc;
-            background: white;
-            border-radius: 4px;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            background: #fafafa;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
-            font-size: 1rem;
+            transition: all 0.2s;
+            font-size: 1.05rem;
+            color: #333;
         }
-        .quiz-options button:hover {
-            background: #e9ecef;
+        .quiz-options button:hover:not(:disabled) {
+            background: #f1f4f6;
+            border-color: #bdc3c7;
         }
         .quiz-options button:disabled {
             cursor: not-allowed;
-            opacity: 0.8;
+            opacity: 0.85;
         }
         .feedback {
             display: none;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 4px;
+            padding: 18px;
+            margin-top: 20px;
+            border-radius: 6px;
             font-weight: bold;
+            font-size: 1.1rem;
         }
         .feedback.correct {
             background-color: #d4edda;
@@ -184,83 +239,127 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        /* Grid de Consignas */
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
         }
         .card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-top: 4px solid var(--primary);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--primary);
+        }
+        .card.warning { border-top-color: var(--warning); }
+        .card.info { border-top-color: var(--info); }
+        .card.success { border-top-color: var(--success); }
+        
+        .card h3 {
+            margin-top: 0;
+            color: var(--secondary);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card ul {
+            padding-left: 20px;
+        }
+        .card li {
+            margin-bottom: 12px;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Masterclass: Ingeniería Social</h1>
-        <p>Academia de Prevención - El Cielo Parque Residencial</p>
+        <h1>Portal de Seguridad Integral</h1>
+        <p>Departamento de Seguridad y Prevención - El Cielo Parque Residencial</p>
     </header>
 
     <nav>
-        <button class="active" onclick="showSection('teoria')">📚 Temario y Módulos</button>
+        <button onclick="showSection('materiales')">📁 Materiales Oficiales</button>
+        <button class="active" onclick="showSection('teoria')">📚 Masterclass: Ingeniería Social</button>
         <button onclick="showSection('practica')">🎯 Simulador Táctico</button>
-        <button onclick="showSection('consignas')">🛡️ Consignas y Consejos</button>
+        <button onclick="showSection('consignas')">🛡️ Consignas y Protocolos</button>
     </nav>
 
     <div class="container">
+        
+        <div id="materiales" class="section">
+            <h2>Repositorio de Capacitaciones Oficiales</h2>
+            <p>Accede a las presentaciones institucionales de capacitación. Asegúrate de tener instalado un visor de presentaciones (PowerPoint) para consultar los documentos.</p>
+            
+            <div class="materials-grid">
+                <a href="Capacitacion AGENTES DE PREVENCIÓN CLUB CARDONES.pptx" class="btn-download" download>
+                    🛡️ Capacitación Agentes de Prevención (PPTX)
+                </a>
+                <a href="CAPACITACIÓN SUPERVISORES.pptx" class="btn-download supervisor" download>
+                    📋 Capacitación Supervisores (PPTX)
+                </a>
+            </div>
+        </div>
+
         <div id="teoria" class="section active">
             <h2>Defensa y Táctica contra la Ingeniería Social</h2>
             <p>La ingeniería social es el arte de hackear la mente humana. Es la manipulación psicológica de las personas para que realicen acciones o divulguen información confidencial. No ataca a los servidores; ataca a la empatía, al miedo, a la urgencia y al respeto por la autoridad.</p>
-            
+            <p>A lo largo de tu entrenamiento de hoy, vamos a desglosar cómo operan estos ataques, cómo se ven en el mundo real y, lo más importante, cómo endurecer el criterio de cualquier equipo de trabajo para neutralizarlos.</p>
+
             <div class="module">
-                <h3>Módulo 1: La Psicología del Atacante</h3>
-                <p>Los ingenieros sociales rara vez improvisan. Explotan sesgos cognitivos utilizando cuatro palancas principales:</p>
+                <h3>Módulo 1: La Psicología del Atacante (Primer Bloque de Entrenamiento)</h3>
+                <p>Los ingenieros sociales rara vez improvisan. Su trabajo se basa en la "recopilación de inteligencia" (OSINT) y en la explotación de sesgos cognitivos. Utilizan cuatro palancas principales para doblegar la voluntad de un individuo:</p>
                 <ul>
-                    <li><strong>Autoridad:</strong> El atacante se hace pasar por un superior, exigiendo una acción inmediata.</li>
-                    <li><strong>Urgencia/Miedo:</strong> Se crea un escenario de crisis para anular el pensamiento lógico.</li>
-                    <li><strong>Familiaridad/Confianza:</strong> Menciona nombres reales o proveedores conocidos.</li>
-                    <li><strong>Reciprocidad:</strong> Ofrecen un pequeño favor para que la víctima se sienta obligada a devolverlo.</li>
+                    <li><strong>Autoridad:</strong> El atacante se hace pasar por un superior. Un supuesto Director de área o un miembro de alto rango que exige una acción inmediata, saltándose los protocolos estándar.</li>
+                    <li><strong>Urgencia/Miedo:</strong> Se crea un escenario de crisis. "Si no verificamos este acceso ahora mismo, el sistema colapsará" o "Si no autorizas esta entrada, habrá consecuencias legales". El cerebro bajo estrés deja de pensar lógicamente y busca resolver la amenaza rápido.</li>
+                    <li><strong>Familiaridad/Confianza:</strong> El atacante estudia el entorno, aprende la jerga interna y menciona nombres reales o proveedores conocidos para bajar las defensas de su víctima.</li>
+                    <li><strong>Reciprocidad:</strong> Ofrecen un pequeño favor o ayuda técnica aparente para que la víctima se sienta obligada a devolver el favor (por ejemplo, dándoles acceso o información).</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 2: Vulnerabilidades Físicas y Control de Accesos</h3>
+                <h3>Módulo 2: Vulnerabilidades Físicas y Control de Accesos (Bloque de Fuerza)</h3>
+                <p>Aquí es donde la teoría choca con el asfalto, especialmente en entornos de control estricto como un parque residencial o un complejo corporativo.</p>
+                <p>Imagina un cambio de turno. Son las 15:00 o las 23:00 horas, los elementos están cruzando información, llenando bitácoras y ajustando el relevo. Hay fatiga y distracción. Este es el momento exacto en el que un ingeniero social físico ataca.</p>
                 <ul>
-                    <li><strong>Tailgating (Infiltración):</strong> Caminar apresuradamente detrás de un residente para evadir controles.</li>
-                    <li><strong>Impersonación de Proveedores:</strong> Supuesto técnico con orden de trabajo falsa.</li>
-                    <li><strong>La Defensa Técnica:</strong> Protocolo de "Zero Trust". Aplicar "Reto y Respuesta".</li>
+                    <li><strong>Tailgating (Infiltración por seguimiento):</strong> Un individuo con un paquete pesado en las manos, vestido con uniforme de una empresa de paquetería conocida, camina apresuradamente detrás de un residente o empleado legítimo. El instinto humano es sostener la puerta. Acaban de evadir millones de pesos en controles biométricos por simple cortesía.</li>
+                    <li><strong>Impersonación de Proveedores:</strong> Un supuesto técnico llega afirmando que viene a dar mantenimiento urgente al DVR de las cámaras o a la red de fibra óptica. Conoce el nombre del gerente en turno y trae una orden de trabajo falsa pero muy convincente. Si el elemento en caseta no verifica a través del canal oficial, el intruso tiene acceso a las entrañas del sistema.</li>
+                    <li><strong>La Defensa Técnica:</strong> Todo equipo de seguridad de primer contacto (ya sean 5 o 15 elementos en rotación) debe tener un protocolo de "Zero Trust" (Cero Confianza). La amabilidad no debe anular la verificación. Se debe implementar la regla de "Reto y Respuesta": interceptar amablemente, retener al visitante y validar con el contacto interno, sin importar quién diga ser.</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 3: Vectores Digitales - Phishing, Vishing y Whaling</h3>
+                <h3>Módulo 3: Vectores Digitales - Phishing, Vishing y Whaling (Cardio y Resistencia)</h3>
+                <p>Mientras mantienes el ritmo, pasemos a la trinchera digital. Los atacantes saben que los operadores y gerentes utilizan dashboards, plataformas web y bases de datos para gestionar sus KPI y logs diarios.</p>
                 <ul>
-                    <li><strong>Phishing:</strong> Correos simulando ser oficiales pidiendo credenciales.</li>
-                    <li><strong>Whaling:</strong> Ataque dirigido a tomadores de decisiones o Comité de Vigilancia.</li>
-                    <li><strong>Vishing:</strong> Llamadas clonando voz de ejecutivos exigiendo accesos.</li>
+                    <li><strong>Phishing (Pesca de credenciales):</strong> Correos electrónicos diseñados para parecer comunicaciones internas oficiales. Un clásico es enviar un correo al personal operativo simulando ser de Recursos Humanos, anunciando una supuesta actualización en las "prestaciones de ley" y pidiendo que ingresen con sus credenciales institucionales para revisar el nuevo tabulador. Si el usuario cae, el atacante obtiene su contraseña.</li>
+                    <li><strong>Whaling (Caza de ballenas):</strong> Este es un ataque de alta precisión dirigido a los tomadores de decisiones. Los atacantes perfilan a un Director o a un miembro del Comité de Vigilancia. Envían un correo falsificado con un archivo adjunto que dice ser el "Reporte Financiero de Proyectos Anuales". Al abrirlo, instalan malware o ransomware en la red corporativa.</li>
+                    <li><strong>Vishing (Phishing por voz):</strong> Una llamada directa a la central de monitoreo. El atacante clona la voz o simplemente imita el tono de un alto ejecutivo exigiendo que se libere un acceso remoto o que se le dicte una contraseña temporal porque "está en una emergencia fuera de la ciudad".</li>
                 </ul>
             </div>
 
             <div class="module">
-                <h3>Módulo 4: El Firewall Humano</h3>
+                <h3>Módulo 4: El Firewall Humano (Último Bloque - Cierre y Enfriamiento)</h3>
+                <p>¿Cómo se detiene esto? La tecnología por sí sola no basta. Necesitas construir un Firewall Humano.</p>
                 <ul>
-                    <li><strong>Entrenamiento Basado en Escenarios:</strong> Simulacros en vivo ante estrés.</li>
-                    <li><strong>Canales de Verificación Fuera de Banda:</strong> Confirmar órdenes inusuales por otro medio.</li>
-                    <li><strong>Cultura de "No Represalias":</strong> Respaldo total al detener accesos para verificar protocolos.</li>
+                    <li><strong>Entrenamiento Basado en Escenarios:</strong> La teoría se olvida bajo presión. Las capacitaciones deben incluir simulacros en vivo. ¿Qué hace el guardia a las 07:00 am si llega un inspector del gobierno exigiendo acceso inmediato bajo amenaza de clausura? Hay que entrenar la respuesta muscular ante el estrés.</li>
+                    <li><strong>Canales de Verificación Fuera de Banda:</strong> Si se recibe una orden inusual por radio o por correo, la verificación debe hacerse por otro medio. Si llega un correo del Director pidiendo una transferencia o un cambio de clave, la confirmación se hace por llamada telefónica directa al número ya registrado, nunca respondiendo al mismo correo.</li>
+                    <li><strong>Cultura de "No Represalias" por Retrasar Operaciones:</strong> El personal de seguridad y vigilancia debe saber que está respaldado por la gerencia si deciden detener a un alto ejecutivo o a un visitante VIP para seguir el protocolo de verificación. Si el personal teme ser despedido por hacer su trabajo, la ingeniería social siempre triunfará.</li>
+                    <li><strong>Métricas de Seguridad Continua:</strong> En tus reportes y dashboards gerenciales, además de medir los tiempos de respuesta o la rotación, se deben registrar los "Intentos de Ingeniería Social Bloqueados". Reconocer al elemento que detuvo un intento de intrusión refuerza el comportamiento positivo de todo el equipo.</li>
                 </ul>
+                <p><strong>Conclusión:</strong> La seguridad integral es un ecosistema vivo. Los atacantes evolucionan y sus narrativas son cada vez más convincentes. Al terminar este entrenamiento de hoy, recuerda que el liderazgo en seguridad no solo se trata de gestionar circuitos cerrados o supervisar perímetros físicos; se trata de blindar la mente y los procedimientos de cada persona que custodia esas fronteras.</p>
             </div>
         </div>
 
         <div id="practica" class="section">
-            <h2>Simulador de Escenarios (Evaluación)</h2>
+            <h2>Simulador Táctico Avanzado</h2>
             
             <div class="agent-selector-container">
                 <h3>Paso 1: Identificación Operativa</h3>
-                <p>Selecciona tu nombre de la plantilla de agentes para que tu calificación se registre automáticamente en el panel de control de KPIs.</p>
+                <p>Selecciona tu nombre en la plantilla para registrar tu calificación en el panel de control. <strong>Debes completar los 7 escenarios para enviar tus resultados.</strong></p>
                 <select id="agente-select" class="agent-dropdown">
                     <option value="">-- Selecciona tu nombre en la plantilla --</option>
                     <option value="Alejandro">Alejandro</option>
@@ -281,51 +380,109 @@
                 </select>
             </div>
 
-            <p><strong>Paso 2: Resolución de Escenarios.</strong> Lee cuidadosamente y elige la acción que se apegue a los protocolos.</p>
-
             <div class="quiz-container">
-                <div class="quiz-question">Escenario 1: Estás en la caseta durante el cambio de turno de las 23:00 hrs. Llega un técnico afirmando que hay una falla crítica en la fibra óptica perimetral y exige acceso inmediato porque "el sistema se apagará en 5 minutos". Trae uniforme oficial. ¿Qué debes hacer?</div>
+                <div class="quiz-question">Escenario 1 (Ingeniería Social Física): Estás en caseta durante el cambio de turno (23:00 hrs). Llega un técnico afirmando que hay una falla crítica en la fibra óptica perimetral y exige acceso inmediato porque "el sistema se apagará en 5 minutos". Trae uniforme oficial. ¿Qué haces?</div>
                 <ul class="quiz-options">
-                    <li><button onclick="checkAnswer('q1', false, this)">A) Darle acceso rápido para evitar que el sistema perimetral colapse, anotando sus placas.</button></li>
-                    <li><button onclick="checkAnswer('q1', true, this)">B) Pedirle que estacione el vehículo, aplicar la regla "Reto y Respuesta", y llamar al supervisor de turno o contacto interno para validar la orden de trabajo antes de abrir.</button></li>
-                    <li><button onclick="checkAnswer('q1', false, this)">C) Pedirle una identificación, tomarle una foto y dejarlo pasar acompañado de un elemento.</button></li>
+                    <li><button onclick="checkAnswer('q1', false, this)">A) Darle acceso rápido para evitar que el sistema colapse, anotando sus placas.</button></li>
+                    <li><button onclick="checkAnswer('q1', true, this)">B) Aplicar "Reto y Respuesta": pedirle que estacione, retenerlo amablemente y llamar al contacto interno para validar la orden antes de abrir.</button></li>
+                    <li><button onclick="checkAnswer('q1', false, this)">C) Pedirle una identificación, tomarle foto y dejarlo pasar acompañado.</button></li>
                 </ul>
                 <div id="feedback-q1" class="feedback"></div>
             </div>
 
             <div class="quiz-container">
-                <div class="quiz-question">Escenario 2: Recibes una llamada directa en el centro de monitoreo. La persona se identifica como miembro del Comité de Vigilancia, suena muy molesto y exige que se autorice la entrada de una mudanza fuera de horario porque "él da las órdenes". ¿Cuál es el protocolo?</div>
+                <div class="quiz-question">Escenario 2 (Vishing / Autoridad): Recibes una llamada en monitoreo. La persona se identifica como miembro del Comité de Vigilancia, está muy molesto y exige que autorices la entrada de una mudanza fuera de horario porque "él da las órdenes".</div>
                 <ul class="quiz-options">
-                    <li><button onclick="checkAnswer('q2', false, this)">A) Autorizar la entrada inmediatamente para evitar problemas o reportes con el Comité.</button></li>
-                    <li><button onclick="checkAnswer('q2', false, this)">B) Discutir con él por teléfono indicando que el reglamento lo prohíbe terminantemente.</button></li>
-                    <li><button onclick="checkAnswer('q2', true, this)">C) Usar la técnica del disco rayado con amabilidad, colgar y aplicar el "Tercer Ojo": verificar la instrucción llamando directamente al número registrado del miembro del Comité.</button></li>
+                    <li><button onclick="checkAnswer('q2', false, this)">A) Autorizar la entrada inmediatamente para evitar un reporte de la mesa directiva.</button></li>
+                    <li><button onclick="checkAnswer('q2', false, this)">B) Discutir con él por teléfono indicando que el reglamento lo prohíbe.</button></li>
+                    <li><button onclick="checkAnswer('q2', true, this)">C) Usar la técnica del disco rayado con amabilidad, colgar y aplicar el "Tercer Ojo": verificar la instrucción llamando al número oficial registrado del Comité.</button></li>
                 </ul>
                 <div id="feedback-q2" class="feedback"></div>
             </div>
 
-            <button class="btn-submit" onclick="enviarDashboardKPI()">📡 Enviar Resultados al Dashboard de KPIs</button>
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 3 (Resolución de Conflictos): Un residente llega a la caseta gritando e insultando porque un constructor bloqueó su cochera. Está visiblemente agresivo. Según el protocolo de "Momentos de Hostilidad", ¿cómo procedes?</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q3', false, this)">A) Levantar la voz para imponer autoridad y exigirle respeto antes de ayudarlo.</button></li>
+                    <li><button onclick="checkAnswer('q3', true, this)">B) Escuchar cuidadosamente, usar un tono calmado, no emitir juicios y ayudar a la persona a expresar la situación para desescalar el conflicto.</button></li>
+                    <li><button onclick="checkAnswer('q3', false, this)">C) Ignorarlo por completo hasta que se calme o llamar directamente a la policía sin mediar palabra.</button></li>
+                </ul>
+                <div id="feedback-q3" class="feedback"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 4 (Extorsión Telefónica): Se recibe una llamada en caseta de un individuo que dice ser comandante de un grupo delictivo, exigiendo que se le dicte la lista de residentes de la calle principal o enviarán gente armada a la caseta.</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q4', true, this)">C) Colgar inmediatamente, no proporcionar absolutamente ninguna información, registrar el número de procedencia y reportar al 911 y al supervisor.</button></li>
+                    <li><button onclick="checkAnswer('q4', false, this)">A) Dar nombres falsos inventados para ganar tiempo y mantener la línea ocupada.</button></li>
+                    <li><button onclick="checkAnswer('q4', false, this)">B) Tratar de negociar con el extorsionador para evitar que se acerquen al perímetro.</button></li>
+                </ul>
+                <div id="feedback-q4" class="feedback"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 5 (Procedimiento post-allanamiento): Un intruso logra saltar la barda perimetral, es detectado, pero logra huir corriendo hacia la avenida antes de ser interceptado. ¿Cuál es el protocolo inmediato?</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q5', false, this)">A) Abandonar el puesto y perseguirlo fuera del residencial hasta atraparlo.</button></li>
+                    <li><button onclick="checkAnswer('q5', false, this)">B) Revisar los videos de las cámaras y esperar a que llegue el supervisor al día siguiente para levantar el reporte.</button></li>
+                    <li><button onclick="checkAnswer('q5', true, this)">C) Hacer una descripción física, anotar dirección de huida, modelo de carro/matrícula (si aplica), llamar al 911 y pedir a los testigos que no hablen entre ellos.</button></li>
+                </ul>
+                <div id="feedback-q5" class="feedback"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 6 (Control de Constructores): Un contratista llega con 5 albañiles, pero en el sistema solo 3 están autorizados por el residente. El contratista asegura que los otros 2 son "de apoyo urgente" y que el dueño ya está enterado.</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q6', false, this)">A) Dejar pasar a los 5 porque el contratista asume la responsabilidad y para no retrasar la obra del residente.</button></li>
+                    <li><button onclick="checkAnswer('q6', true, this)">B) Aplicar "Cero Confianza". Permitir acceso solo a los 3 registrados y negar el acceso a los 2 restantes hasta que el residente autorice por el canal oficial.</button></li>
+                    <li><button onclick="checkAnswer('q6', false, this)">C) Dejarlos pasar a todos reteniendo una identificación oficial de cada trabajador no registrado.</button></li>
+                </ul>
+                <div id="feedback-q6" class="feedback"></div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="quiz-question">Escenario 7 (Infiltración / Tailgating): Un residente ingresa caminando por el acceso peatonal. Un repartidor de comida rápida aprovecha la puerta abierta para meterse caminando justo detrás del residente. El residente no le dice nada.</div>
+                <ul class="quiz-options">
+                    <li><button onclick="checkAnswer('q7', true, this)">A) Interceptar inmediatamente al repartidor, pedirle que regrese a la caseta, solicitar los datos del domicilio y verificar la solicitud con el residente antes de permitir el ingreso.</button></li>
+                    <li><button onclick="checkAnswer('q7', false, this)">B) Asumir que el repartidor va a la casa de ese residente porque entraron juntos y no hubo problema.</button></li>
+                    <li><button onclick="checkAnswer('q7', false, this)">C) Anotar en la bitácora que un repartidor entró sin registro y seguir vigilando los monitores.</button></li>
+                </ul>
+                <div id="feedback-q7" class="feedback"></div>
+            </div>
+
+            <button class="btn-submit" onclick="enviarDashboardKPI()">📡 Enviar Calificación al Dashboard de KPIs</button>
         </div>
 
         <div id="consignas" class="section">
-            <h2>Consignas Generales y Consejos de Seguridad</h2>
+            <h2>Consignas Generales y Protocolos de Seguridad</h2>
             
             <div class="card-grid">
-                <div class="card">
-                    <h3>🛡️ Consignas para Agentes</h3>
+                <div class="card info">
+                    <h3>🛡️ Reglas de Oro en Caseta</h3>
                     <ul>
-                        <li><strong>Cero Confianza (Zero Trust):</strong> La amabilidad no sustituye la revisión.</li>
-                        <li><strong>Control de Emociones:</strong> No ceder ante gritos, amenazas o urgencias.</li>
-                        <li><strong>Reporte Inmediato:</strong> Registrar en bitácora cualquier anomalía.</li>
-                        <li><strong>Verificación Fuera de Banda:</strong> Nunca confirmar una instrucción por el mismo medio que se recibió.</li>
+                        <li><strong>Cero Confianza (Zero Trust):</strong> La amabilidad no sustituye la revisión exhaustiva. Todo ingreso se valida.</li>
+                        <li><strong>Verificación Fuera de Banda:</strong> Nunca confirmar una instrucción dudosa por el mismo canal o medio que se recibió.</li>
+                        <li><strong>Triage de Seguridad:</strong> Evalúa y prioriza las situaciones según el nivel de riesgo para la comunidad. El bien común prevalece.</li>
+                        <li><strong>Cultura de No Represalias:</strong> Cuentas con el respaldo total de gerencia si retrasas un acceso VIP para cumplir el protocolo de verificación.</li>
                     </ul>
                 </div>
                 
-                <div class="card">
-                    <h3>💡 Consejos Prácticos</h3>
+                <div class="card warning">
+                    <h3>⚠️ Manejo de Hostilidad y Extorsión</h3>
                     <ul>
-                        <li><strong>Cultura de No Represalias:</strong> Tienes respaldo total de gerencia por retrasar un acceso para verificar.</li>
-                        <li><strong>Protección de Información:</strong> No compartas horarios de rondines o fallas de cámaras.</li>
-                        <li><strong>Atención al Entorno:</strong> Durante los relevos, mantener el 100% de atención en accesos.</li>
+                        <li><strong>Reconocer y Escuchar:</strong> Ante una persona agresiva, usa un tono calmado, no juzgues y ayúdala a expresar la situación (Resolución de conflictos).</li>
+                        <li><strong>Control de Emociones:</strong> No cedas ante gritos o amenazas. El estrés es la principal arma del atacante.</li>
+                        <li><strong>Extorsión Telefónica:</strong> Es un delito de "bajo riesgo y alto beneficio" para el delincuente. Si recibes amenazas, <strong>cuelga inmediatamente</strong>, no des datos y reporta al 911.</li>
+                        <li><strong>Botón de Pánico:</strong> Ten siempre identificado su protocolo de activación en caso de que la hostilidad escale a violencia física.</li>
+                    </ul>
+                </div>
+
+                <div class="card success">
+                    <h3>📋 Procedimientos Operativos Clave</h3>
+                    <ul>
+                        <li><strong>Atención a Constructores:</strong> La gestión eficiente asegura la continuidad de las obras, pero nadie ingresa sin la autorización explícita del propietario.</li>
+                        <li><strong>Después de un Allanamiento:</strong> No persigas al intruso. Haz una descripción física detallada, anota rutas de huida/placas, llama al 911 y pide a los testigos que no hablen entre ellos para no contaminar testimonios.</li>
+                        <li><strong>Higiene y Prevención:</strong> Mantén control estricto de las tarjetas de acceso. No compartas información en redes sociales sobre tu puesto, fallas de cámaras o rutinas de rondines.</li>
                     </ul>
                 </div>
             </div>
@@ -333,13 +490,8 @@
     </div>
 
     <script>
-        // Variables para almacenar las métricas del agente
-        let metricas = {
-            aciertos: 0,
-            errores: 0,
-            preguntasRespondidas: 0
-        };
-        const totalPreguntas = 2; // Actualizar si agregas más escenarios
+        let metricas = { aciertos: 0, errores: 0, preguntasRespondidas: 0 };
+        const totalPreguntas = 7; // Actualizado a 7 escenarios
 
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
@@ -356,7 +508,6 @@
             const feedbackElement = document.getElementById('feedback-' + questionId);
             const allButtons = btnElement.parentElement.parentElement.querySelectorAll('button');
             
-            // Bloquear opciones una vez respondida
             allButtons.forEach(btn => btn.disabled = true);
             metricas.preguntasRespondidas++;
             
@@ -365,13 +516,13 @@
             if (isCorrect) {
                 metricas.aciertos++;
                 feedbackElement.className = 'feedback correct';
-                feedbackElement.innerHTML = '✅ ¡Correcto! Has aplicado exitosamente el protocolo para neutralizar el intento de ingeniería social.';
+                feedbackElement.innerHTML = '✅ ¡Correcto! Has aplicado exitosamente el protocolo operativo y neutralizado el riesgo.';
                 btnElement.style.backgroundColor = '#d4edda';
                 btnElement.style.borderColor = '#c3e6cb';
             } else {
                 metricas.errores++;
                 feedbackElement.className = 'feedback incorrect';
-                feedbackElement.innerHTML = '❌ Incorrecto. Al ceder a la presión, permitiste que el ingeniero social vulnerara el sistema. Recuerda siempre priorizar la verificación sobre la urgencia.';
+                feedbackElement.innerHTML = '❌ Incorrecto. Esta acción vulnera la seguridad física y patrimonial del residencial. Revisa los protocolos.';
                 btnElement.style.backgroundColor = '#f8d7da';
                 btnElement.style.borderColor = '#f5c6cb';
             }
@@ -380,35 +531,30 @@
         function enviarDashboardKPI() {
             const nombreAgente = document.getElementById('agente-select').value;
             
-            // Validaciones antes de enviar
             if (nombreAgente === "") {
-                alert("⚠️ Error: Debes seleccionar tu nombre en el Paso 1 antes de enviar los resultados.");
+                alert("⚠️ Error: Selecciona tu nombre en el Paso 1 antes de finalizar.");
                 return;
             }
             if (metricas.preguntasRespondidas < totalPreguntas) {
-                alert("⚠️ Error: Debes responder todos los escenarios antes de finalizar el entrenamiento.");
+                alert(`⚠️ Error: Has respondido ${metricas.preguntasRespondidas} de ${totalPreguntas} escenarios. Completa todos para enviar tu evaluación.`);
                 return;
             }
 
-            // Aquí se estructuran los datos (JSON) listos para ser enviados mediante un Webhook a tu Dashboard (ej. PowerBI, Google Sheets, o base de datos propia)
+            const calificacion = ((metricas.aciertos / totalPreguntas) * 100).toFixed(1);
+            
             const payloadKPI = {
                 agente: nombreAgente,
                 fecha: new Date().toLocaleString('es-MX'),
-                modulo_capacitacion: "Ingeniería Social",
+                modulo_capacitacion: "Seguridad Integral y Protocolos",
                 aciertos: metricas.aciertos,
                 errores: metricas.errores,
-                calificacion_porcentaje: (metricas.aciertos / totalPreguntas) * 100
+                calificacion_porcentaje: parseFloat(calificacion)
             };
 
-            // Simulación en la consola del navegador de lo que recibiría tu base de datos
-            console.log("=== DATOS ENVIADOS AL DASHBOARD ===");
+            console.log("=== DATOS ENVIADOS AL DASHBOARD (WEBHOOK) ===");
             console.table(payloadKPI);
 
-            // Mensaje de éxito visual para el guardia
-            alert(`✅ ¡Registro Exitoso en Dashboard!\n\nAgente: ${payloadKPI.agente}\nCalificación: ${payloadKPI.calificacion_porcentaje}%\nAciertos: ${payloadKPI.aciertos} | Errores: ${payloadKPI.errores}\n\nLos datos han sido actualizados en las métricas gerenciales de la plantilla.`);
-            
-            // Opcional: Recargar página para el siguiente agente
-            // window.location.reload();
+            alert(`✅ ¡Evaluación Registrada con Éxito!\n\nAgente: ${payloadKPI.agente}\nCalificación Final: ${payloadKPI.calificacion_porcentaje}%\nAciertos: ${payloadKPI.aciertos} | Errores: ${payloadKPI.errores}\n\nLos datos han sido enviados al tablero de control gerencial.`);
         }
     </script>
 </body>
