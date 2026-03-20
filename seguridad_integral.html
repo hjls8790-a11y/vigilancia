@@ -13,6 +13,7 @@
             --success: #27ae60;
             --info: #3498db;
             --warning: #f39c12;
+            --dark: #111820;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -240,7 +241,7 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Grid de Consignas */
+        /* Grid de Consignas y Políticas */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -257,6 +258,7 @@
         .card.warning { border-top-color: var(--warning); }
         .card.info { border-top-color: var(--info); }
         .card.success { border-top-color: var(--success); }
+        .card.dark { border-top-color: var(--dark); background-color: #fdfdfd; }
         
         .card h3 {
             margin-top: 0;
@@ -272,6 +274,35 @@
         .card li {
             margin-bottom: 12px;
         }
+
+        /* Estilo específico para las políticas internas */
+        .policy-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .policy-list li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: #f4f7f6;
+            border-left: 4px solid var(--primary);
+            border-radius: 0 4px 4px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--secondary);
+            transition: transform 0.2s ease;
+        }
+        .policy-list li:hover {
+            transform: translateX(5px);
+            background-color: #e8ecef;
+        }
+        .policy-list li span {
+            font-weight: normal;
+            color: #555;
+            display: block;
+            font-size: 0.95rem;
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
@@ -283,6 +314,7 @@
 
     <nav>
         <button onclick="showSection('materiales')">📁 Materiales Oficiales</button>
+        <button onclick="showSection('politicas')">📜 Políticas Internas</button>
         <button class="active" onclick="showSection('teoria')">📚 Masterclass: Ingeniería Social</button>
         <button onclick="showSection('practica')">🎯 Simulador Táctico</button>
         <button onclick="showSection('consignas')">🛡️ Consignas y Protocolos</button>
@@ -301,6 +333,31 @@
                 <a href="CAPACITACIÓN SUPERVISORES.pptx" class="btn-download supervisor" download>
                     📋 Capacitación Supervisores (PPTX)
                 </a>
+            </div>
+        </div>
+
+        <div id="politicas" class="section">
+            <h2>Políticas Internas y Código de Conducta</h2>
+            <p>Los siguientes principios rigen el comportamiento, la disciplina y la actitud de cada integrante de nuestro Departamento de Seguridad. Son reglas innegociables que forman el pilar de nuestro profesionalismo.</p>
+            
+            <div class="card dark">
+                <h3>⚖️ Nuestros Valores Operativos</h3>
+                <ul class="policy-list">
+                    <li>OÍR, VER Y CALLAR <span>La discreción absoluta es vital. La información que manejas es confidencial.</span></li>
+                    <li>NO CHISMES <span>Fomentamos un ambiente de respeto mutuo y profesionalismo corporativo.</span></li>
+                    <li>NO CORRUPCIÓN <span>Integridad intachable en cada acción y decisión.</span></li>
+                    <li>FIRMEZA, NO PREPOTENCIA <span>Ejercemos autoridad y control de acceso con respeto, educación y cortesía.</span></li>
+                    <li>ÁNIMO INVENCIBLE, VOLUNTAD INQUEBRANTABLE <span>Resiliencia total ante la presión y la adversidad.</span></li>
+                    <li>RECONOCE TUS FALLAS Y APRENDE DE ELLAS <span>La humildad nos permite mejorar continuamente nuestros protocolos.</span></li>
+                    <li>NO HAGAS NADA PARA LO QUE NO FUISTE CAPACITADO <span>Actúa siempre dentro del marco de tus funciones y protocolos establecidos.</span></li>
+                    <li>EL QUE NO VIVE PARA SERVIR, NO SIRVE PARA VIVIR <span>Nuestra vocación central es el servicio, la prevención y la protección.</span></li>
+                    <li>NO SUPONGAS NADA <span>Verifica, confirma, aplica el "reto y respuesta" y asegúrate siempre.</span></li>
+                    <li>NO TE TOMES NADA PERSONAL <span>Mantén la objetividad y la calma ante situaciones hostiles o quejas.</span></li>
+                    <li>HONRA TUS PALABRAS <span>El compromiso y el cumplimiento de las consignas son tu mejor presentación.</span></li>
+                    <li>HAZ SIEMPRE LO MÁXIMO QUE PUEDAS <span>Entrega tu mejor esfuerzo y atención durante todo tu turno.</span></li>
+                    <li>TU SEGURIDAD ES PRIMERO <span>No puedes proteger a la comunidad si te pones en riesgo innecesario. Cuídate.</span></li>
+                    <li>LA SEGURIDAD NO ES CÓMODA <span>Requiere disciplina, atención constante, vigilancia y sacrificio.</span></li>
+                </ul>
             </div>
         </div>
 
@@ -491,7 +548,7 @@
 
     <script>
         let metricas = { aciertos: 0, errores: 0, preguntasRespondidas: 0 };
-        const totalPreguntas = 7; // Actualizado a 7 escenarios
+        const totalPreguntas = 7; 
 
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
