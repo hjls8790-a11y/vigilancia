@@ -3,165 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Táctico El Cielo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Consignas Tácticas - El Cielo</title>
     <style>
-        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --gray: #95A5A6; --w: #fff; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
         .main-container { display: flex; height: 100vh; }
         
-        /* Sidebar */
-        .sidebar { width: 320px; background: var(--p); color: var(--w); overflow-y: auto; padding: 20px; box-sizing: border-box; z-index: 10; }
-        .sidebar h2 { font-size: 1.2em; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        /* Panel Lateral */
+        .sidebar { width: 340px; background: var(--p); color: var(--w); overflow-y: auto; padding: 20px; box-sizing: border-box; z-index: 10; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.3); }
+        .sidebar h2 { font-size: 1.2em; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; }
         
-        .section { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .section h3 { font-size: 0.9em; margin-top: 0; color: var(--s); }
+        .section { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .section h3 { font-size: 0.9em; margin-top: 0; color: #BDC3C7; text-transform: uppercase; letter-spacing: 1px; }
         
-        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: none; }
-        button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        label { font-size: 0.8em; font-weight: bold; color: #ecf0f1; margin-top: 5px; display: block; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 5px; border: none; font-family: inherit; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 80px; }
         
-        .btn-pin { background: var(--s); color: white; }
-        .btn-ruta { background: var(--r); color: white; }
-        .btn-reporte { background: var(--o); color: white; }
-        .btn-export { background: var(--g); color: white; height: 50px; font-size: 1.1em; }
+        button { width: 100%; padding: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 1em; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover { opacity: 0.9; transform: scale(0.98); }
+        
+        .btn-pin { background: var(--s); margin-bottom: 10px; }
+        .btn-clear { background: #555; }
+        .btn-wa { background: #25D366; margin-top: auto; padding: 15px; font-size: 1.1em; }
 
         /* Área del Mapa */
-        .map-viewport { flex: 1; position: relative; background: #ccc; overflow: hidden; cursor: crosshair; }
+        .map-viewport { flex: 1; position: relative; background: #e5e3df; overflow: auto; /* Permite scroll si la imagen es muy grande */ }
         
-        /* Fondo del Mapa (Aquí puedes poner el link de la imagen de tu mapa real) */
+        /* INSTRUCCIÓN: Asegúrate de guardar el plano que me mandaste en la misma carpeta que este archivo con el nombre "mapa_el_cielo.jpg" */
         #map-canvas { 
             position: absolute; top: 0; left: 0; 
-            width: 2000px; height: 2000px; 
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/e4/Lat-Long_Grid_Lines.png'); /* Sustituir por tu imagen */
-            background-color: #e5e3df;
-            transform-origin: 0 0;
+            width: 2000px; /* Ajusta esto según el tamaño de tu imagen */
+            height: 1500px; /* Ajusta esto según el tamaño de tu imagen */
+            background-image: url('mapa_el_cielo.jpg'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #fff;
         }
 
-        .marker { position: absolute; width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        /* Pines */
+        .marker { position: absolute; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.5); cursor: pointer; transition: 0.2s; z-index: 2; }
+        .marker:hover { transform: translate(-50%, -50%) scale(1.2); z-index: 3; }
+
+        /* Tarjeta de Lectura de Consigna (Oculta por defecto) */
+        #tarjeta-consigna {
+            display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: white; color: #333; padding: 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px; border-left: 8px solid var(--p); z-index: 1000;
+        }
+        #tarjeta-consigna h4 { margin: 0 0 10px 0; font-size: 1.2em; color: var(--p); border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        #tarjeta-consigna p { margin: 0 0 15px 0; font-size: 0.95em; line-height: 1.4; }
+        #tarjeta-consigna button { background: var(--p); padding: 8px; font-size: 0.9em; width: auto; float: right; }
         
-        /* Modal Reporte */
-        #modal-reporte { display: none; position: fixed; top: 5%; left: 10%; width: 80%; height: 85%; background: white; z-index: 2000; padding: 30px; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); overflow-y: auto; color: #333; }
+        /* Mensaje de estado flotante */
+        #status-msg { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; display: none; pointer-events: none; z-index: 2000; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="main-container">
     <div class="sidebar">
-        <h2>🦅 EL CIELO TÁCTICO</h2>
+        <h2>🦅 CONSIGNAS EL CIELO</h2>
         
         <div class="section">
-            <h3>1. UBICACIÓN DE LOTE</h3>
-            <input type="text" id="lote-id" placeholder="Mza - Lote">
-            <select id="lote-status">
-                <option value="#27AE60">Habitada (Propietario)</option>
-                <option value="#F39C12">En Construcción</option>
-                <option value="#3498DB">En Renta</option>
-                <option value="#95A5A6">Vaciá / Terminada</option>
+            <h3>NUEVA CONSIGNA</h3>
+            
+            <label>Identificador (Mza - Lote):</label>
+            <input type="text" id="lote-id" placeholder="Ej. Mza 2 Lote 14" autocomplete="off">
+            
+            <label>Nivel de Atención:</label>
+            <select id="tipo-consigna">
+                <option value="#E74C3C|🔴|Alerta Estricta">🔴 Alerta / Revisión Estricta (Rojo)</option>
+                <option value="#F39C12|🟠|Precaución">🟠 Obra / Precaución (Naranja)</option>
+                <option value="#3498DB|🔵|Monitoreo">🔵 Renta / Monitoreo (Azul)</option>
+                <option value="#95A5A6|⚪|Rondín Normal">⚪ Casa Sola / Rondín Normal (Gris)</option>
             </select>
-            <button class="btn-pin" onclick="setModo('pin')">📍 Marcar en Mapa</button>
+
+            <label>Instrucción para el Guardia:</label>
+            <textarea id="texto-consigna" placeholder="Escribe la tarea específica que el guardia debe realizar en este punto..."></textarea>
+            
+            <button class="btn-pin" onclick="prepararPin()">📍 Colocar Pin en Mapa</button>
+            <button class="btn-clear" onclick="limpiarMapa()">🗑️ Limpiar Mapa</button>
         </div>
 
-        <div class="section">
-            <h3>2. RONDINES / VULNERABILIDAD</h3>
-            <button class="btn-ruta" onclick="setModo('ruta')">🖍️ Trazar Línea Roja</button>
-            <button style="background:#555; color:white;" onclick="limpiarTrazos()">🗑️ Borrar Trazos</button>
-        </div>
-
-        <div class="section">
-            <h3>3. REPORTE DISCIPLINARIO</h3>
-            <button class="btn-reporte" onclick="abrirReporte()">📝 Generar Acta de Obra</button>
-        </div>
-
-        <button class="btn-export" onclick="exportarImagen()">📲 EXPORTAR A WHATSAPP</button>
+        <button class="btn-wa" onclick="enviarWhatsApp()">📲 Enviar Consignas (WA)</button>
     </div>
 
     <div class="map-viewport" id="viewport">
-        <div id="map-canvas" onclick="manejarClick(event)">
-            <svg id="svg-rutas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                <polyline id="linea-ruta" points="" style="fill:none;stroke:red;stroke-width:5;stroke-opacity:0.7" />
-            </svg>
+        <div id="status-msg">Haz clic en el mapa para colocar la consigna</div>
+        
+        <div id="map-canvas" onclick="colocarPin(event)">
             </div>
-    </div>
-</div>
 
-<div id="modal-reporte">
-    <div style="text-align:right"><button onclick="cerrarReporte()" style="width:100px; background:red;">Cerrar</button></div>
-    <h1 style="text-align:center">REPORTE DISCIPLINARIO DE OBRAS</h1>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div>
-            <label>Nombre del Empleado:</label><input type="text" style="border-bottom:1px solid #000">
-            <label>Obra (Mza/Lote):</label><input type="text" style="border-bottom:1px solid #000">
-        </div>
-        <div>
-            <label>Fecha:</label><input type="date">
-            <label>Hora:</label><input type="time">
+        <div id="tarjeta-consigna">
+            <h4 id="tc-titulo">Mza - Lote</h4>
+            <p id="tc-texto">Aquí va la instrucción para el guardia...</p>
+            <button onclick="cerrarTarjeta()">Cerrar</button>
         </div>
     </div>
-    <h3 style="background:#eee; padding:5px; margin-top:20px;">NATURALEZA DEL INCIDENTE</h3>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; font-size: 0.9em;">
-        <div><input type="checkbox"> Personal sin registro</div>
-        <div><input type="checkbox"> Exceso de velocidad</div>
-        <div><input type="checkbox"> Personal sin chaleco</div>
-        <div><input type="checkbox"> Violación reglas seguridad</div>
-        <div><input type="checkbox"> Conducta inadecuada</div>
-        <div><input type="checkbox"> Basura en vialidades</div>
-    </div>
-    <h3>HECHOS DEL INCIDENTE</h3>
-    <textarea rows="5" style="border:1px solid #ccc"></textarea>
-    <button class="btn-export" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
 </div>
 
 <script>
-    let modo = null;
-    let puntosRuta = [];
+    let modoColocar = false;
+    let listaConsignas = [];
     const canvas = document.getElementById('map-canvas');
-    const svgLinea = document.getElementById('linea-ruta');
+    const statusMsg = document.getElementById('status-msg');
 
-    function setModo(m) {
-        modo = m;
-        alert("Modo " + m + " activado. Haz clic en el mapa.");
+    function prepararPin() {
+        const lote = document.getElementById('lote-id').value.trim();
+        const texto = document.getElementById('texto-consigna').value.trim();
+        
+        if (!lote || !texto) {
+            alert("⚠️ Por favor, escribe el Lote y la Instrucción antes de colocar el pin.");
+            return;
+        }
+
+        modoColocar = true;
+        canvas.style.cursor = 'crosshair';
+        statusMsg.style.display = 'block';
     }
 
-    function manejarClick(e) {
+    function colocarPin(e) {
+        // Solo acciona si el botón de colocar pin fue presionado previamente
+        if (!modoColocar) return;
+
+        // Validar que no se haya hecho clic sobre otro pin
+        if (e.target.classList.contains('marker')) return;
+
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        if (modo === 'pin') {
-            const id = document.getElementById('lote-id').value || '?';
-            const color = document.getElementById('lote-status').value;
-            const pin = document.createElement('div');
-            pin.className = 'marker';
-            pin.style.left = x + 'px';
-            pin.style.top = y + 'px';
-            pin.style.backgroundColor = color;
-            pin.innerText = id;
-            canvas.appendChild(pin);
-            modo = null;
-        } 
-        else if (modo === 'ruta') {
-            puntosRuta.push(`${x},${y}`);
-            svgLinea.setAttribute('points', puntosRuta.join(' '));
+        const lote = document.getElementById('lote-id').value.trim().toUpperCase();
+        const texto = document.getElementById('texto-consigna').value.trim();
+        const selectorValue = document.getElementById('tipo-consigna').value.split('|');
+        const color = selectorValue;
+        const emoji = selectorValue;
+        const categoria = selectorValue;
+
+        // Guardar en la base de datos temporal
+        const nuevaConsigna = { id: Date.now(), lote, color, emoji, categoria, texto, x, y };
+        listaConsignas.push(nuevaConsigna);
+
+        // Crear elemento visual (Pin)
+        const pin = document.createElement('div');
+        pin.className = 'marker';
+        pin.style.left = x + 'px';
+        pin.style.top = y + 'px';
+        pin.style.backgroundColor = color;
+        // pin.innerText = lote.substring(0,2); // Opcional: mostrar iniciales en el pin
+        
+        // Evento para leer la consigna al darle clic al pin
+        pin.onclick = function(evento) {
+            evento.stopPropagation(); // Evita que se dispare el evento del mapa
+            abrirTarjeta(color, lote, categoria, texto);
+        };
+
+        canvas.appendChild(pin);
+
+        // Reiniciar controles
+        modoColocar = false;
+        canvas.style.cursor = 'default';
+        statusMsg.style.display = 'none';
+        document.getElementById('lote-id').value = '';
+        document.getElementById('texto-consigna').value = '';
+    }
+
+    function abrirTarjeta(color, lote, categoria, texto) {
+        const tarjeta = document.getElementById('tarjeta-consigna');
+        document.getElementById('tc-titulo').innerText = `${lote} - ${categoria}`;
+        document.getElementById('tc-texto').innerText = texto;
+        tarjeta.style.borderLeftColor = color;
+        tarjeta.style.display = 'block';
+    }
+
+    function cerrarTarjeta() {
+        document.getElementById('tarjeta-consigna').style.display = 'none';
+    }
+
+    function limpiarMapa() {
+        if(confirm("¿Estás seguro de borrar todas las consignas actuales del mapa?")) {
+            listaConsignas = [];
+            document.querySelectorAll('.marker').forEach(m => m.remove());
+            cerrarTarjeta();
         }
     }
 
-    function limpiarTrazos() {
-        puntosRuta = [];
-        svgLinea.setAttribute('points', '');
-        document.querySelectorAll('.marker').forEach(m => m.remove());
-    }
+    function enviarWhatsApp() {
+        if (listaConsignas.length === 0) {
+            alert("No hay consignas marcadas en el mapa para enviar.");
+            return;
+        }
 
-    function abrirReporte() { document.getElementById('modal-reporte').style.display = 'block'; }
-    function cerrarReporte() { document.getElementById('modal-reporte').style.display = 'none'; }
+        let msg = "*🛡️ CONSIGNAS DE TURNO - EL CIELO*\n\n";
+        msg += "Atención guardia en turno, favor de dar cumplimiento a las siguientes instrucciones por zona:\n\n";
 
-    function exportarImagen() {
-        html2canvas(document.getElementById('viewport')).then(canvasImg => {
-            const link = document.createElement('a');
-            link.download = 'Consigna_ElCielo.png';
-            link.href = canvasImg.toDataURL();
-            link.click();
+        listaConsignas.forEach(c => {
+            msg += `${c.emoji} *${c.lote}* (${c.categoria})\n`;
+            msg += `📋 *Misión:* ${c.texto}\n\n`;
         });
+
+        msg += "⚠️ Responde *ENTERADO* a este mensaje al iniciar tu turno e informa novedades de estos puntos.";
+
+        const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
     }
 </script>
 </body>
