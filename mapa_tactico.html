@@ -3,209 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Táctico - El Cielo Parque Residencial</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    
+    <title>Sistema Táctico El Cielo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <style>
-        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --gray: #95A5A6; }
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
         
-        /* Ajuste estricto para evitar que el mapa se ponga gris/invisible */
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; background: #e5e3df; }
+        .main-container { display: flex; height: 100vh; }
         
-        /* Panel Lateral Fijado */
-        .sidebar { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 1000; display: flex; flex-direction: column; }
+        /* Sidebar */
+        .sidebar { width: 320px; background: var(--p); color: var(--w); overflow-y: auto; padding: 20px; box-sizing: border-box; z-index: 10; }
+        .sidebar h2 { font-size: 1.2em; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; }
         
-        .header { background: var(--p); color: white; padding: 20px; text-align: center; }
-        .header h2 { margin: 0; font-size: 1.2em; text-transform: uppercase; }
-        .header p { margin: 5px 0 0 0; font-size: 0.8em; color: #BDC3C7; }
+        .section { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .section h3 { font-size: 0.9em; margin-top: 0; color: var(--s); }
         
-        .panel-content { padding: 20px; overflow-y: auto; flex: 1; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: none; }
+        button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         
-        /* Controles */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; font-size: 0.85em; color: #555; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        
-        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; margin-bottom: 10px; }
-        button:active { transform: scale(0.95); }
-        .btn-add { background: var(--p); }
-        .btn-add:hover { background: #1a252f; }
-        .btn-route { background: var(--r); }
-        .btn-clear { background: var(--gray); }
-        .btn-export { background: var(--g); margin-top: 20px; }
+        .btn-pin { background: var(--s); color: white; }
+        .btn-ruta { background: var(--r); color: white; }
+        .btn-reporte { background: var(--o); color: white; }
+        .btn-export { background: var(--g); color: white; height: 50px; font-size: 1.1em; }
 
-        /* Área del Mapa Fijada */
-        #map-container { position: absolute; top: 0; left: 320px; width: calc(100% - 320px); height: 100%; z-index: 1; }
-        #map { width: 100%; height: 100%; background: #e5e3df; }
+        /* Área del Mapa */
+        .map-viewport { flex: 1; position: relative; background: #ccc; overflow: hidden; cursor: crosshair; }
+        
+        /* Fondo del Mapa (Aquí puedes poner el link de la imagen de tu mapa real) */
+        #map-canvas { 
+            position: absolute; top: 0; left: 0; 
+            width: 2000px; height: 2000px; 
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/e4/Lat-Long_Grid_Lines.png'); /* Sustituir por tu imagen */
+            background-color: #e5e3df;
+            transform-origin: 0 0;
+        }
 
-        /* Pines */
-        .custom-pin { border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        .pin-propietario { background-color: var(--g); }
-        .pin-construccion { background-color: var(--o); }
-        .pin-vacia { background-color: var(--gray); }
-        .pin-renta { background-color: var(--s); }
-
-        /* Instrucciones */
-        #instruccion { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 2000; display: none; pointer-events: none; }
+        .marker { position: absolute; width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        
+        /* Modal Reporte */
+        #modal-reporte { display: none; position: fixed; top: 5%; left: 10%; width: 80%; height: 85%; background: white; z-index: 2000; padding: 30px; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); overflow-y: auto; color: #333; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar" id="panel-controles">
-        <div class="header">
-            <h2>🦅 Mapa Táctico</h2>
-            <p>El Cielo Parque Residencial</p>
+<div class="main-container">
+    <div class="sidebar">
+        <h2>🦅 EL CIELO TÁCTICO</h2>
+        
+        <div class="section">
+            <h3>1. UBICACIÓN DE LOTE</h3>
+            <input type="text" id="lote-id" placeholder="Mza - Lote">
+            <select id="lote-status">
+                <option value="#27AE60">Habitada (Propietario)</option>
+                <option value="#F39C12">En Construcción</option>
+                <option value="#3498DB">En Renta</option>
+                <option value="#95A5A6">Vaciá / Terminada</option>
+            </select>
+            <button class="btn-pin" onclick="setModo('pin')">📍 Marcar en Mapa</button>
         </div>
 
-        <div class="panel-content">
-            <div style="border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
-                <h3 style="margin-top: 0; color: var(--p); font-size: 1em;">1. Registrar Domicilio</h3>
-                <div class="form-group">
-                    <label>Identificador (Ej. Mza 2 Lte 14):</label>
-                    <input type="text" id="lote-id" placeholder="Mza - Lote">
-                </div>
-                <div class="form-group">
-                    <label>Estatus Operativo:</label>
-                    <select id="lote-status">
-                        <option value="propietario">Habitada por Propietario</option>
-                        <option value="construccion">En Construcción</option>
-                        <option value="renta">Casa en Renta</option>
-                        <option value="vacia">Terminada / No Habitada</option>
-                    </select>
-                </div>
-                <button class="btn-add" onclick="activarModoAgregarLote()">📍 Colocar Pin</button>
-            </div>
+        <div class="section">
+            <h3>2. RONDINES / VULNERABILIDAD</h3>
+            <button class="btn-ruta" onclick="setModo('ruta')">🖍️ Trazar Línea Roja</button>
+            <button style="background:#555; color:white;" onclick="limpiarTrazos()">🗑️ Borrar Trazos</button>
+        </div>
 
-            <div>
-                <h3 style="color: var(--p); font-size: 1em;">2. Rutas y Perímetros</h3>
-                <button class="btn-route" id="btn-trazar" onclick="toggleModoRuta()">🖍️ Activar Trazo de Ruta</button>
-                <button class="btn-clear" onclick="limpiarRuta()">🗑️ Borrar Ruta</button>
-            </div>
+        <div class="section">
+            <h3>3. REPORTE DISCIPLINARIO</h3>
+            <button class="btn-reporte" onclick="abrirReporte()">📝 Generar Acta de Obra</button>
+        </div>
 
-            <button class="btn-export" onclick="exportarParaWhatsApp()">📲 Exportar (WhatsApp)</button>
+        <button class="btn-export" onclick="exportarImagen()">📲 EXPORTAR A WHATSAPP</button>
+    </div>
+
+    <div class="map-viewport" id="viewport">
+        <div id="map-canvas" onclick="manejarClick(event)">
+            <svg id="svg-rutas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                <polyline id="linea-ruta" points="" style="fill:none;stroke:red;stroke-width:5;stroke-opacity:0.7" />
+            </svg>
+            </div>
+    </div>
+</div>
+
+<div id="modal-reporte">
+    <div style="text-align:right"><button onclick="cerrarReporte()" style="width:100px; background:red;">Cerrar</button></div>
+    <h1 style="text-align:center">REPORTE DISCIPLINARIO DE OBRAS</h1>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+            <label>Nombre del Empleado:</label><input type="text" style="border-bottom:1px solid #000">
+            <label>Obra (Mza/Lote):</label><input type="text" style="border-bottom:1px solid #000">
+        </div>
+        <div>
+            <label>Fecha:</label><input type="date">
+            <label>Hora:</label><input type="time">
         </div>
     </div>
-
-    <div id="map-container">
-        <div id="instruccion">Haz clic en el mapa para realizar la acción</div>
-        <div id="map"></div>
+    <h3 style="background:#eee; padding:5px; margin-top:20px;">NATURALEZA DEL INCIDENTE</h3>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; font-size: 0.9em;">
+        <div><input type="checkbox"> Personal sin registro</div>
+        <div><input type="checkbox"> Exceso de velocidad</div>
+        <div><input type="checkbox"> Personal sin chaleco</div>
+        <div><input type="checkbox"> Violación reglas seguridad</div>
+        <div><input type="checkbox"> Conducta inadecuada</div>
+        <div><input type="checkbox"> Basura en vialidades</div>
     </div>
+    <h3>HECHOS DEL INCIDENTE</h3>
+    <textarea rows="5" style="border:1px solid #ccc"></textarea>
+    <button class="btn-export" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
+</div>
 
-    <script>
-        // Coordenadas iniciales (Mazatlán)
-        const map = L.map('map').setView([23.3100, -106.4500], 15);
+<script>
+    let modo = null;
+    let puntosRuta = [];
+    const canvas = document.getElementById('map-canvas');
+    const svgLinea = document.getElementById('linea-ruta');
 
-        // NUEVO PROVEEDOR DE MAPAS: Esri World Street Map (Súper estable, no falla en GitHub)
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
-        }).addTo(map);
+    function setModo(m) {
+        modo = m;
+        alert("Modo " + m + " activado. Haz clic en el mapa.");
+    }
 
-        // Forzar recalcular tamaño por si hay un retraso en la carga
-        setTimeout(() => { map.invalidateSize(); }, 500);
+    function manejarClick(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
-        let modoActual = null;
-        const instruccionDiv = document.getElementById('instruccion');
-        let rutaCoordenadas = [];
-        let polylineRuta = L.polyline([], {color: '#E74C3C', weight: 5, opacity: 0.8}).addTo(map);
-
-        function activarModoAgregarLote() {
-            const idLote = document.getElementById('lote-id').value;
-            if(!idLote) { alert("Escribe el número de manzana/lote primero."); return; }
-            
-            modoActual = 'agregar_lote';
-            map.getContainer().style.cursor = 'crosshair';
-            instruccionDiv.innerText = "Haz clic en la ubicación exacta";
-            instruccionDiv.style.display = 'block';
+        if (modo === 'pin') {
+            const id = document.getElementById('lote-id').value || '?';
+            const color = document.getElementById('lote-status').value;
+            const pin = document.createElement('div');
+            pin.className = 'marker';
+            pin.style.left = x + 'px';
+            pin.style.top = y + 'px';
+            pin.style.backgroundColor = color;
+            pin.innerText = id;
+            canvas.appendChild(pin);
+            modo = null;
+        } 
+        else if (modo === 'ruta') {
+            puntosRuta.push(`${x},${y}`);
+            svgLinea.setAttribute('points', puntosRuta.join(' '));
         }
+    }
 
-        function toggleModoRuta() {
-            const btn = document.getElementById('btn-trazar');
-            if(modoActual === 'trazar_ruta') {
-                modoActual = null;
-                map.getContainer().style.cursor = '';
-                btn.style.background = 'var(--r)';
-                btn.innerHTML = '🖍️ Activar Trazo de Ruta';
-                instruccionDiv.style.display = 'none';
-            } else {
-                modoActual = 'trazar_ruta';
-                map.getContainer().style.cursor = 'crosshair';
-                btn.style.background = '#c0392b';
-                btn.innerHTML = '🛑 Terminar Trazo';
-                instruccionDiv.innerText = "Haz clics para trazar la línea roja";
-                instruccionDiv.style.display = 'block';
-            }
-        }
+    function limpiarTrazos() {
+        puntosRuta = [];
+        svgLinea.setAttribute('points', '');
+        document.querySelectorAll('.marker').forEach(m => m.remove());
+    }
 
-        function limpiarRuta() {
-            rutaCoordenadas = [];
-            polylineRuta.setLatLngs([]);
-        }
+    function abrirReporte() { document.getElementById('modal-reporte').style.display = 'block'; }
+    function cerrarReporte() { document.getElementById('modal-reporte').style.display = 'none'; }
 
-        map.on('click', function(e) {
-            if (modoActual === 'agregar_lote') {
-                const idLote = document.getElementById('lote-id').value;
-                const status = document.getElementById('lote-status').value;
-                
-                const customIcon = L.divIcon({
-                    className: `custom-pin pin-${status}`,
-                    iconSize:,
-                    popupAnchor: [0, -10]
-                });
-
-                let textoStatus = status.toUpperCase();
-                if(status === 'propietario') textoStatus = 'HABITADA';
-                if(status === 'vacia') textoStatus = 'NO HABITADA';
-
-                L.marker(e.latlng, {icon: customIcon})
-                 .addTo(map)
-                 .bindPopup(`<strong>${idLote.toUpperCase()}</strong><br><small>${textoStatus}</small>`);
-
-                modoActual = null;
-                map.getContainer().style.cursor = '';
-                instruccionDiv.style.display = 'none';
-                document.getElementById('lote-id').value = '';
-
-            } else if (modoActual === 'trazar_ruta') {
-                rutaCoordenadas.push(e.latlng);
-                polylineRuta.setLatLngs(rutaCoordenadas);
-            }
+    function exportarImagen() {
+        html2canvas(document.getElementById('viewport')).then(canvasImg => {
+            const link = document.createElement('a');
+            link.download = 'Consigna_ElCielo.png';
+            link.href = canvasImg.toDataURL();
+            link.click();
         });
-
-        function exportarParaWhatsApp() {
-            instruccionDiv.style.display = 'none';
-            document.getElementById('panel-controles').style.display = 'none';
-            document.getElementById('map-container').style.left = '0';
-            document.getElementById('map-container').style.width = '100%';
-            map.invalidateSize();
-            
-            setTimeout(() => {
-                html2canvas(document.getElementById('map'), {
-                    useCORS: true,
-                    allowTaint: true
-                }).then(canvas => {
-                    document.getElementById('panel-controles').style.display = 'flex';
-                    document.getElementById('map-container').style.left = '320px';
-                    document.getElementById('map-container').style.width = 'calc(100% - 320px)';
-                    map.invalidateSize();
-                    
-                    const enlace = document.createElement('a');
-                    enlace.download = 'Consigna_Tactica_ElCielo.png';
-                    enlace.href = canvas.toDataURL("image/png");
-                    enlace.click();
-                    
-                    alert("✅ Mapa guardado. Puedes enviarlo por WhatsApp.");
-                }).catch(err => {
-                    document.getElementById('panel-controles').style.display = 'flex';
-                    document.getElementById('map-container').style.left = '320px';
-                    document.getElementById('map-container').style.width = 'calc(100% - 320px)';
-                    alert("Error al capturar. Intenta de nuevo.");
-                });
-            }, 500);
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
