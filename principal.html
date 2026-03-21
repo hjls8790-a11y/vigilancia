@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Comando - El Cielo</title>
+    <style>
+        :root { --bg: #0B192C; --panel: #1A2B3C; --text: #E2E8F0; --accent: #3498DB; --green: #27AE60; --red: #E74C3C; --gold: #F39C12; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); color: var(--text); }
+        
+        .header { background: #07101d; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; color: var(--text); }
+        .header span { color: var(--accent); font-weight: bold; }
+        
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        
+        .section-title { font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; margin-bottom: 20px; color: var(--gold); text-transform: uppercase; }
+
+        /* Grid de Herramientas */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        
+        .card { background: var(--panel); border-radius: 10px; padding: 25px; text-align: center; text-decoration: none; color: var(--text); transition: 0.3s; border: 1px solid #2a3f54; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.4); background: #1f364d; }
+        .card .icon { font-size: 3em; margin-bottom: 15px; }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.2em; }
+        .card p { margin: 0; font-size: 0.85em; color: #95A5A6; }
+
+        /* Colores específicos de tarjetas */
+        .card-mapa:hover .icon { color: var(--accent); }
+        .card-roles:hover .icon { color: var(--green); }
+        .card-panico:hover { border-color: var(--red); }
+        .card-panico:hover .icon { color: var(--red); }
+        .card-ai { background: #132433; border-color: #8E44AD; }
+        .card-ai:hover { border-color: #9b59b6; box-shadow: 0 0 15px rgba(142, 68, 173, 0.4); }
+
+        /* Modal del Manual Operativo */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--text); color: #111; padding: 40px; border-radius: 10px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: var(--red); font-weight: bold; }
+        
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>SISTEMA INTEGRAL DE SEGURIDAD <span>EL CIELO</span></h1>
+        <div>COMANDANCIA OPERATIVA</div>
+    </div>
+
+    <div class="container">
+        <div class="section-title">🛡️ Herramientas de Operación Diaria</div>
+        <div class="grid">
+            <a href="mapa_tactico.html" class="card card-mapa">
+                <div class="icon">🗺️</div>
+                <h3>Mapa Táctico y Consignas</h3>
+                <p>Gestión de puntos de vigilancia, lotes y trazado de consignas en tiempo real.</p>
+            </a>
+
+            <a href="roles_turno.html" class="card card-roles">
+                <div class="icon">🗓️</div>
+                <h3>Rol de Turnos</h3>
+                <p>Asignación semanal de personal, horarios y envíos automáticos por WhatsApp.</p>
+            </a>
+
+            <a href="boton_panico.html" class="card card-panico">
+                <div class="icon">🚨</div>
+                <h3>Botón de Pánico</h3>
+                <p>Sistema de alerta inmediata para emergencias en el residencial.</p>
+            </a>
+
+            <a href="examenes.html" class="card">
+                <div class="icon">📝</div>
+                <h3>Control y Confianza</h3>
+                <p>Evaluaciones de permanencia y filtros de capacitación para Agentes de Prevención.</p>
+            </a>
+        </div>
+
+        <div class="section-title">🧠 Inteligencia Estratégica (Enlace a Gemini)</div>
+        <div class="grid">
+            <div class="card card-ai" onclick="abrirGemini('operativo')">
+                <div class="icon">🤖</div>
+                <h3>Briefing Operativo Diario</h3>
+                <p>Genera un resumen de KPIs, novedades del turno y recomendaciones para el pase de lista.</p>
+            </div>
+
+            <div class="card card-ai" onclick="abrirGemini('noticias')">
+                <div class="icon">📰</div>
+                <h3>Reporte de Riesgos (Sinaloa)</h3>
+                <p>Monitoreo de noticias de seguridad, vialidad y alertas en Mazatlán y el Estado.</p>
+            </div>
+
+            <div class="card" onclick="abrirManual()">
+                <div class="icon">📖</div>
+                <h3>Manual y Justificación</h3>
+                <p>Documento directivo sobre las ventajas operativas de la plataforma.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalManual" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarManual()">&times;</span>
+            <h2 style="color: #0B192C; border-bottom: 2px solid #3498DB; padding-bottom: 10px;">MANUAL OPERATIVO Y VENTAJAS TÁCTICAS</h2>
+            
+            <h3>1. Objetivo de la Plataforma</h3>
+            <p>Digitalizar, centralizar y auditar los procesos de vigilancia en "El Cielo Parque Residencial", eliminando el uso de papel, reduciendo tiempos de respuesta y mejorando la comunicación con los Agentes de Prevención.</p>
+            
+            <h3>2. Funciones de los Repositorios</h3>
+            <ul>
+                <li><strong>Mapa Táctico:</strong> Permite visualizar puntos vulnerables, casas en construcción o deshabitadas, garantizando que el guardia sepa exactamente qué revisar en cada punto.</li>
+                <li><strong>Roles de Turno:</strong> Minimiza errores de programación, evita dobles turnos accidentales y asegura que el personal confirme de enterado vía WhatsApp.</li>
+                <li><strong>Botón de Pánico:</strong> Reduce el tiempo de reacción ante intrusiones, emergencias médicas o de protección civil.</li>
+                <li><strong>Control y Confianza:</strong> Mantiene un estándar alto en el reclutamiento y asegura que el personal activo conozca los protocolos vigentes.</li>
+            </ul>
+
+            <h3>3. Ventajas Competitivas para el Proyecto</h3>
+            <ul>
+                <li><strong>Trazabilidad:</strong> Todo movimiento, consigna y rol queda registrado digitalmente.</li>
+                <li><strong>Ahorro de Recursos:</strong> Disminución drástica en impresión de formatos, bitácoras y uso de papelería.</li>
+                <li><strong>Respuesta Inmediata:</strong> Al estar montado en un servidor web (GitHub), la comandancia puede actualizar consignas desde un celular o computadora al instante.</li>
+                <li><strong>Imagen Profesional:</strong> Proyecta ante el comité de colonos y directivos un sistema de gestión de seguridad de primer nivel, moderno y eficiente.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">¡Instrucción copiada! Pegala en el chat de Gemini.</div>
+
+    <script>
+        function abrirManual() {
+            document.getElementById('modalManual').style.display = 'flex';
+        }
+
+        function cerrarManual() {
+            document.getElementById('modalManual').style.display = 'none';
+        }
+
+        // Cierra el modal si haces clic afuera del cuadro blanco
+        window.onclick = function(event) {
+            let modal = document.getElementById('modalManual');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function abrirGemini(tipo) {
+            let promptText = "";
+            
+            if (tipo === 'operativo') {
+                promptText = "Actúa como mi Analista de Seguridad. Basado en mis registros recientes, ayúdame a estructurar mi Briefing diario para los Agentes de Prevención en El Cielo Parque Residencial. Hazme preguntas sobre qué pasó en el turno de noche, cuáles son mis KPIs actuales (cobertura, incidencias) y redacta un plan de acción de 3 puntos para mi pase de lista de hoy.";
+            } else if (tipo === 'noticias') {
+                promptText = "Actúa como mi monitor de inteligencia de fuentes abiertas (OSINT). Dame un reporte resumido de las noticias más relevantes de las últimas 24 a 48 horas en Mazatlán y el estado de Sinaloa enfocadas estrictamente en: Seguridad pública, bloqueos viales, orden público y riesgos que puedan afectar la operación de vigilancia en un complejo residencial.";
+            }
+
+            // Copiar al portapapeles
+            navigator.clipboard.writeText(promptText).then(() => {
+                let toast = document.getElementById("toast");
+                toast.style.display = "block";
+                setTimeout(function(){ toast.style.display = "none"; }, 4000);
+                
+                // Abrir Gemini en otra pestaña después de 1 segundo para que el usuario lea el mensaje
+                setTimeout(function(){
+                    window.open('https://gemini.google.com/app', '_blank');
+                }, 1500);
+            }).catch(err => {
+                alert("No se pudo copiar el texto. Intenta abrir Gemini manualmente.");
+            });
+        }
+    </script>
+</body>
+</html>
