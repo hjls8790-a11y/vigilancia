@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Táctico - El Cielo Parque Residencial</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --gray: #95A5A6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: #ECF0F1; }
+        
+        /* Panel Lateral Izquierdo */
+        .sidebar { width: 320px; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; z-index: 1000; }
+        .header { background: var(--p); color: white; padding: 20px; text-align: center; }
+        .header h2 { margin: 0; font-size: 1.2em; text-transform: uppercase; }
+        .header p { margin: 5px 0 0 0; font-size: 0.8em; color: #BDC3C7; }
+        
+        .panel-content { padding: 20px; overflow-y: auto; flex: 1; }
+        
+        /* Controles de Formulario */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; font-size: 0.85em; color: #555; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; margin-bottom: 10px; }
+        button:active { transform: scale(0.95); }
+        .btn-add { background: var(--p); }
+        .btn-add:hover { background: #1a252f; }
+        .btn-route { background: var(--r); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-clear { background: var(--gray); }
+        .btn-export { background: var(--g); margin-top: 20px; }
+
+        /* Área del Mapa */
+        #map-container { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; }
+
+        /* Estilos de los Marcadores (Pines) */
+        .custom-pin { border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .pin-propietario { background-color: var(--g); }
+        .pin-construccion { background-color: var(--o); }
+        .pin-vacia { background-color: var(--gray); }
+        .pin-renta { background-color: var(--s); }
+
+        /* Instrucciones flotantes */
+        #instruccion { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 1000; display: none; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="panel-controles">
+        <div class="header">
+            <h2>🦅 Mapa Táctico</h2>
+            <p>El Cielo Parque Residencial</p>
+        </div>
+
+        <div class="panel-content">
+            <div style="border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="margin-top: 0; color: var(--p); font-size: 1em;">1. Registrar Domicilio</h3>
+                <div class="form-group">
+                    <label>Identificador (Ej. Mza 2 Lte 14):</label>
+                    <input type="text" id="lote-id" placeholder="Mza - Lote">
+                </div>
+                <div class="form-group">
+                    <label>Estatus Operativo:</label>
+                    <select id="lote-status">
+                        <option value="propietario">Habitada por Propietario</option>
+                        <option value="construccion">En Construcción</option>
+                        <option value="renta">Casa en Renta</option>
+                        <option value="vacia">Terminada / No Habitada</option>
+                    </select>
+                </div>
+                <button class="btn-add" onclick="activarModoAgregarLote()">📍 Colocar Pin en el Mapa</button>
+            </div>
+
+            <div>
+                <h3 style="color: var(--p); font-size: 1em;">2. Rutas y Perímetros</h3>
+                <p style="font-size: 0.8em; color: #7f8c8d; margin-top: 0;">Dibuja líneas rojas para marcar rutas de rondines o zonas vulnerables.</p>
+                
+                <button class="btn-route" id="btn-trazar" onclick="toggleModoRuta()">
+                    🖍️ Activar Trazo de Ruta
+                </button>
+                <button class="btn-clear" onclick="limpiarRuta()">🗑️ Borrar Ruta Actual</button>
+            </div>
+
+            <button class="btn-export" onclick="exportarParaWhatsApp()">📲 Exportar Mapa (WhatsApp)</button>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="instruccion">Haz clic en el mapa para realizar la acción</div>
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // Inicializar el Mapa (Coordenadas aproximadas de la zona Cerritos, Mazatlán)
+        // Puedes mover el mapa con el ratón al abrirlo para ubicar tu residencial exacto.
+        const map = L.map('map').setView([23.3100, -106.4500], 15);
+
+        // Capa de calles limpia (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Sistema Táctico El Cielo'
+        }).addTo(map);
+
+        // Variables de Estado
+        let modoActual = null; // Puede ser 'agregar_lote' o 'trazar_ruta'
+        const instruccionDiv = document.getElementById('instruccion');
+        
+        // Variables para Trazos (Líneas rojas)
+        let rutaCoordenadas = [];
+        let polylineRuta = L.polyline([], {color: '#E74C3C', weight: 5, opacity: 0.8}).addTo(map);
+
+        // --- FUNCIONES DE LOS PINES (LOTES) ---
+        function activarModoAgregarLote() {
+            const idLote = document.getElementById('lote-id').value;
+            if(!idLote) { alert("Escribe el número de manzana/lote primero."); return; }
+            
+            modoActual = 'agregar_lote';
+            map.getContainer().style.cursor = 'crosshair';
+            instruccionDiv.innerText = "Haz clic en la ubicación exacta de la casa/lote";
+            instruccionDiv.style.display = 'block';
+        }
+
+        // --- FUNCIONES DE LA RUTA TÁCTICA ---
+        function toggleModoRuta() {
+            const btn = document.getElementById('btn-trazar');
+            if(modoActual === 'trazar_ruta') {
+                // Desactivar
+                modoActual = null;
+                map.getContainer().style.cursor = '';
+                btn.style.background = 'var(--r)';
+                btn.innerHTML = '🖍️ Activar Trazo de Ruta';
+                instruccionDiv.style.display = 'none';
+            } else {
+                // Activar
+                modoActual = 'trazar_ruta';
+                map.getContainer().style.cursor = 'crosshair';
+                btn.style.background = '#c0392b';
+                btn.innerHTML = '🛑 Terminar Trazo';
+                instruccionDiv.innerText = "Haz clics sucesivos en el mapa para trazar la línea roja";
+                instruccionDiv.style.display = 'block';
+            }
+        }
+
+        function limpiarRuta() {
+            rutaCoordenadas = [];
+            polylineRuta.setLatLngs([]);
+        }
+
+        // --- EVENTO CLIC EN EL MAPA ---
+        map.on('click', function(e) {
+            if (modoActual === 'agregar_lote') {
+                const idLote = document.getElementById('lote-id').value;
+                const status = document.getElementById('lote-status').value;
+                
+                // Crear el estilo del pin según el estatus
+                const customIcon = L.divIcon({
+                    className: `custom-pin pin-${status}`,
+                    iconSize:,
+                    popupAnchor: [0, -10]
+                });
+
+                // Título legible para la etiqueta emergente
+                let textoStatus = status.toUpperCase();
+                if(status === 'propietario') textoStatus = 'HABITADA';
+                if(status === 'vacia') textoStatus = 'NO HABITADA';
+
+                L.marker(e.latlng, {icon: customIcon})
+                 .addTo(map)
+                 .bindPopup(`<strong>${idLote.toUpperCase()}</strong><br><small>${textoStatus}</small>`);
+
+                // Resetear modo
+                modoActual = null;
+                map.getContainer().style.cursor = '';
+                instruccionDiv.style.display = 'none';
+                document.getElementById('lote-id').value = '';
+
+            } else if (modoActual === 'trazar_ruta') {
+                // Añadir punto a la línea roja
+                rutaCoordenadas.push(e.latlng);
+                polylineRuta.setLatLngs(rutaCoordenadas);
+            }
+        });
+
+        // --- EXPORTAR A WHATSAPP (CAPTURA DE PANTALLA) ---
+        function exportarParaWhatsApp() {
+            // Escondemos los controles que no queremos en la foto
+            instruccionDiv.style.display = 'none';
+            document.getElementById('panel-controles').style.display = 'none';
+            
+            // Usamos html2canvas para tomar la foto del mapa
+            html2canvas(document.getElementById('map-container'), {
+                useCORS: true // Necesario para cargar los mapas de OpenStreetMap
+            }).then(canvas => {
+                // Restauramos el panel
+                document.getElementById('panel-controles').style.display = 'flex';
+                
+                // Crear link de descarga
+                const enlace = document.createElement('a');
+                enlace.download = 'Consigna_Tactica_ElCielo.png';
+                enlace.href = canvas.toDataURL("image/png");
+                enlace.click();
+                
+                alert("✅ Mapa guardado como imagen. Ahora puedes adjuntarlo en WhatsApp para enviarlo a tus agentes.");
+            }).catch(err => {
+                document.getElementById('panel-controles').style.display = 'flex';
+                alert("Hubo un pequeño error al capturar. Intenta de nuevo.");
+            });
+        }
+    </script>
+</body>
+</html>
