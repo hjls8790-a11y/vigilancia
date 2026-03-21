@@ -5,39 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Roles - El Cielo</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #eef2f5; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #eef2f5; margin: 0; }
         .header { background: #2C3E50; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
-        .controles { display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px;}
-        .controles label { font-weight: bold; margin-right: 10px; }
-        .controles input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-        th { background: #34495E; color: white; padding: 10px;}
-        .input-nombre { width: 100%; border: none; font-weight: bold; background: transparent; text-transform: uppercase; outline: none; padding: 8px;}
-        .td-nombre { background: #eaeded; border-left: 4px solid #27AE60;}
-        select { width: 100%; padding: 8px; border: none; font-weight: bold; background: transparent; cursor: pointer; outline: none; }
+        .controles { display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px; align-items: center;}
+        .controles label { font-weight: bold; margin-right: 10px; color: #2C3E50; }
+        .controles input[type="date"], .controles input[type="text"] { padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; font-size: 1em; }
+        
+        .table-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { border: 1px solid #ecf0f1; padding: 5px; text-align: center; }
+        th { background: #34495E; color: white; padding: 12px; font-size: 0.9em; letter-spacing: 1px;}
+        
+        .input-nombre { width: 90%; border: none; font-weight: bold; background: transparent; text-transform: uppercase; outline: none; padding: 8px; color: #2C3E50; }
+        .td-nombre { background: #f8f9fa; border-left: 5px solid #27AE60; text-align: left; padding-left: 10px; }
+        
+        select { width: 100%; padding: 10px 5px; border: none; font-weight: bold; background: transparent; cursor: pointer; outline: none; font-size: 0.85em; text-align: center; }
         
         /* Colores condicionales */
         .descanso { background-color: #E74C3C !important; color: white; }
-        .turno1 { background-color: #85C1E9; color: black; } /* 07 a 15 */
-        .turno2 { background-color: #34495E; color: white; } /* 15 a 23 */
-        .turno3 { background-color: #D6DBDF; color: black; } /* 23 a 07 */
+        .turno1 { background-color: #D6EAF8; color: #154360; } /* 07 a 15 - Azul Claro */
+        .turno2 { background-color: #FDEBD0; color: #7E5109; } /* 15 a 23 - Naranja Claro */
+        .turno3 { background-color: #2C3E50; color: white; }   /* 23 a 07 - Oscuro */
         
-        .btn { background: #27AE60; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .botones-grupo { display: flex; gap: 10px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .btn-green { background: #27AE60; }
         .btn-blue { background: #2980B9; }
         .btn-wa { background: #25D366; }
+        .btn-copy { background: #8E44AD; }
         
         @media print {
             .controles, .btn { display: none !important; }
-            body { background: white; }
+            body { background: white; padding: 0; }
+            .table-container { box-shadow: none; }
+            table { font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>🗓️ ROL DE TURNOS SEMANAL - EL CIELO</h2>
-        <p>Edita nombres, asigna turnos y envía el rol por WhatsApp</p>
+        <h2 style="margin:0;">🗓️ ROL DE TURNOS SEMANAL</h2>
+        <p style="margin:5px 0 0 0; opacity: 0.8;">Sistema de Gestión Operativa</p>
     </div>
 
     <div class="controles">
@@ -46,26 +56,27 @@
             <input type="date" id="fechaSemana" onchange="cargarRol()">
         </div>
         <div>
-            <label>Buscar Agente:</label>
-            <input type="text" id="buscador" placeholder="Escribe un nombre..." onkeyup="filtrarTabla()">
+            <input type="text" id="buscador" placeholder="🔍 Buscar Agente..." onkeyup="filtrarTabla()">
         </div>
-        <div>
-            <button class="btn" onclick="guardarRol()">💾 Guardar Semana</button>
+        <div class="botones-grupo">
             <button class="btn btn-blue" onclick="window.print()">🖨️ Imprimir</button>
-            <button class="btn btn-wa" onclick="enviarRolesWhatsApp()">📲 Enviar por WA</button>
+            <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar</button>
+            <button class="btn btn-wa" onclick="enviarRolesWhatsApp()">📲 Enviar WA</button>
         </div>
     </div>
 
-    <table id="tablaRoles">
-        <thead>
-            <tr>
-                <th style="width: 20%;">NOMBRE DEL AGENTE</th>
-                <th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th><th>SÁBADO</th><th>DOMINGO</th>
-            </tr>
-        </thead>
-        <tbody id="cuerpoRoles">
-            </tbody>
-    </table>
+    <div class="table-container">
+        <table id="tablaRoles">
+            <thead>
+                <tr>
+                    <th style="width: 22%;">NOMBRE DEL AGENTE</th>
+                    <th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th><th>SÁBADO</th><th>DOMINGO</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoRoles">
+                </tbody>
+        </table>
+    </div>
 
     <script>
         const nombresDefault = ["ALEJANDRO", "LEROY", "ABEL", "VINALAY", "JOSE", "JULIO", "ALFONSO ACOSTA", "MARIO", "ISAEL", "LUIS CASTRO", "SANTILLAN", "ARMANDO", "SOTELO", "PIZARRO", "VICTOR CARDENA"];
@@ -73,9 +84,10 @@
         const dias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
         const numElementos = 15;
 
+        // Configurar fecha inicial (Lunes de la semana actual)
         let hoy = new Date();
         let diaSemana = hoy.getDay() || 7; 
-        if(diaSemana !== 1) hoy.setHours(-24 * (diaSemana - 1));
+        if(diaSemana !== 1) hoy.setDate(hoy.getDate() - (diaSemana - 1));
         document.getElementById('fechaSemana').valueAsDate = hoy;
 
         function actualizarColor(selectElement) {
@@ -101,6 +113,7 @@
                 inputNombre.type = 'text';
                 inputNombre.className = 'input-nombre';
                 inputNombre.id = `nombre_${i}`;
+                inputNombre.onchange = autoGuardar; // Guarda automáticamente al cambiar nombre
                 tdNombre.appendChild(inputNombre);
                 tr.appendChild(tdNombre);
                 
@@ -108,7 +121,10 @@
                     let td = document.createElement('td');
                     let select = document.createElement('select');
                     select.id = `${dia}_${i}`;
-                    select.onchange = function() { actualizarColor(this); };
+                    select.onchange = function() { 
+                        actualizarColor(this); 
+                        autoGuardar(); // Guarda automáticamente al cambiar turno
+                    };
 
                     turnos.forEach(t => {
                         let option = document.createElement('option');
@@ -127,11 +143,14 @@
         function cargarRol() {
             let fecha = document.getElementById('fechaSemana').value;
             let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
-            let datosSemana = dbRoles[fecha];
+            let datosSemana = dbRoles[fecha] || null;
             let nombresGuardados = JSON.parse(localStorage.getItem('lista_nombres_global')) || nombresDefault;
 
             for(let i = 0; i < numElementos; i++) {
+                // Cargar nombres
                 document.getElementById(`nombre_${i}`).value = (datosSemana && datosSemana[`nombre_${i}`]) ? datosSemana[`nombre_${i}`] : nombresGuardados[i];
+                
+                // Cargar turnos
                 dias.forEach(dia => {
                     let select = document.getElementById(`${dia}_${i}`);
                     select.value = (datosSemana && datosSemana[`${dia}_${i}`]) ? datosSemana[`${dia}_${i}`] : "07:00 A 15:00";
@@ -140,9 +159,10 @@
             }
         }
 
-        function guardarRol() {
+        // Nueva función de guardado silencioso (sin alertas molestas)
+        function autoGuardar() {
             let fecha = document.getElementById('fechaSemana').value;
-            if(!fecha) { alert("Selecciona una fecha primero"); return; }
+            if(!fecha) return;
 
             let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
             let datosSemana = {};
@@ -161,8 +181,6 @@
             dbRoles[fecha] = datosSemana;
             localStorage.setItem('db_roles_semanales', JSON.stringify(dbRoles));
             localStorage.setItem('lista_nombres_global', JSON.stringify(nombresActuales));
-
-            alert("Rol guardado para la semana del: " + fecha);
         }
 
         function filtrarTabla() {
@@ -178,43 +196,53 @@
             }
         }
 
-        function enviarRolesWhatsApp() {
+        // Generador central del mensaje (Lee DIRECTAMENTE de la pantalla)
+        function generarTextoMensaje() {
             let fecha = document.getElementById('fechaSemana').value;
-            if(!fecha) { alert("Selecciona una fecha primero."); return; }
-
-            let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
-            let datosSemana = dbRoles[fecha];
-
-            if(!datosSemana) {
-                alert("Guarda el rol de esta semana primero antes de enviarlo.");
-                return;
-            }
-
-            let textoWa = `*🗓️ ROL DE TURNOS - EL CIELO*\n*Semana del:* ${fecha}\n\n`;
+            // Formatear fecha para que sea más legible
+            let fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            let texto = `*🗓️ ROL DE TURNOS*\n*Semana del:* ${fechaFormateada}\n\n`;
             
             const mapT = { "07:00 A 15:00": "07 a 15", "15:00 A 23:00": "15 a 23", "23:00 A 07:00": "23 a 07", "DESCANSO": "🔴 DESC" };
             const nDias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
 
             for(let i = 0; i < numElementos; i++) {
-                let nombre = datosSemana[`nombre_${i}`];
-                if(!nombre) continue;
+                let nombre = document.getElementById(`nombre_${i}`).value.trim();
+                if(!nombre) continue; // Si el nombre está vacío, lo salta
                 
-                textoWa += `👤 *${nombre}*\n`;
+                texto += `👤 *${nombre}*\n`;
                 let linea = "";
                 dias.forEach((diaClave, idx) => {
-                    let t = mapT[datosSemana[`${diaClave}_${i}`]];
+                    let turnoSeleccionado = document.getElementById(`${diaClave}_${i}`).value;
+                    let t = mapT[turnoSeleccionado];
                     linea += `${nDias[idx]}:${t} | `;
                 });
-                textoWa += linea.slice(0, -3) + `\n\n`; 
+                texto += linea.slice(0, -3) + `\n\n`; 
             }
 
-            // Mensaje de confirmación obligatoria
-            textoWa += `\n⚠️ *CONFIRMACIÓN REQUERIDA*\nPor favor, responde a este mensaje con tu nombre y la palabra *"ENTERADO"* para confirmar que recibiste tu rol de la semana.`;
+            texto += `⚠️ *CONFIRMACIÓN REQUERIDA*\nResponde a este mensaje con la palabra *"ENTERADO"* para confirmar tu rol.`;
+            return texto;
+        }
 
-            let url = `https://api.whatsapp.com/send?phone=526692486726&text=${encodeURIComponent(textoWa)}`;
+        function enviarRolesWhatsApp() {
+            autoGuardar(); // Aseguramos que se guarde antes de salir
+            let textoWa = generarTextoMensaje();
+            let url = `https://wa.me/526692486726?text=${encodeURIComponent(textoWa)}`;
             window.open(url, '_blank');
         }
 
+        function copiarTexto() {
+            autoGuardar();
+            let texto = generarTextoMensaje();
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("✅ Rol copiado al portapapeles. Puedes pegarlo directamente en el grupo de WhatsApp.");
+            }).catch(err => {
+                alert("Error al copiar. Intenta usar el botón de Enviar WA.");
+            });
+        }
+
+        // Inicializar
         construirTabla();
         cargarRol();
     </script>
