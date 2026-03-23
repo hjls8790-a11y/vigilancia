@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitácora de Reclutamiento - Cielo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-900 p-6">
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-blue-800 p-6 flex justify-between items-center text-white">
+            <h1 class="text-2xl font-bold">Bitácora de Aspirantes</h1>
+            <button onclick="cargarDatos()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded">Actualizar</button>
+        </div>
+        <div class="p-6 overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b text-gray-400 text-sm uppercase">
+                        <th class="p-3">Fecha</th>
+                        <th class="p-3">Nombre</th>
+                        <th class="p-3 text-center">Confiabilidad</th>
+                        <th class="p-3 text-center">Permanencia</th>
+                        <th class="p-3 text-center">Reglas</th>
+                        <th class="p-3 text-center">Puntualidad</th>
+                        <th class="p-3">Dictamen</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-datos"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeiIBgmX4KKhdQlwyyXCoI-zGZdFc0aso",
+            authDomain: "evaluacion-cielo.firebaseapp.com",
+            projectId: "evaluacion-cielo",
+            storageBucket: "evaluacion-cielo.firebasestorage.app",
+            messagingSenderId: "1071771625909",
+            appId: "1:1071771625909:web:d939265ad6a8e063b3d1fc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function cargarDatos() {
+            const tabla = document.getElementById('tabla-datos');
+            tabla.innerHTML = "";
+            db.collection("aspirantes_cielo").orderBy("fecha", "desc").get().then((snap) => {
+                snap.forEach((doc) => {
+                    const d = doc.data();
+                    let color = d.c >= 70 ? 'text-green-600' : (d.c < 50 ? 'text-red-600' : 'text-yellow-600');
+                    let dictamen = d.c >= 70 ? 'APTO' : (d.c < 50 ? 'NO APTO' : 'DUDOSO');
+                    
+                    tabla.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 text-sm text-gray-500">${d.fecha}</td>
+                            <td class="p-3 font-bold">${d.nombre}</td>
+                            <td class="p-3 text-center font-bold text-blue-600">${d.c}%</td>
+                            <td class="p-3 text-center font-bold text-green-600">${d.p}%</td>
+                            <td class="p-3 text-center font-bold text-purple-600">${d.r}%</td>
+                            <td class="p-3 text-center font-bold text-orange-600">${d.t}%</td>
+                            <td class="p-3 font-black ${color}">${dictamen}</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+        cargarDatos();
+    </script>
+</body>
+</html>
