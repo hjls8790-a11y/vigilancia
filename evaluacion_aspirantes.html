@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación - Cielo Parque Residencial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto max-w-2xl p-5">
+        <header class="pb-6 border-b mb-6 text-center">
+            <h1 class="text-2xl font-bold text-blue-800">Cielo Parque Residencial</h1>
+            <p class="text-gray-500 italic">Proceso de Selección de Seguridad</p>
+        </header>
+
+        <div id="section-login" class="bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-600 pl-3">Registro</h2>
+            <input type="text" id="applicant-name" placeholder="Nombre y Apellido" class="w-full p-3 border rounded-lg mb-6 outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="startTest()" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-lg w-full hover:bg-blue-700">Comenzar</button>
+        </div>
+
+        <div id="section-test" class="bg-white p-8 rounded-lg shadow-md hidden">
+            <div id="progress" class="text-sm font-bold text-blue-600 mb-4 text-right">Pregunta 1 de 10</div>
+            <div id="question-container" class="mb-8"></div>
+            <button id="next-btn" onclick="nextQuestion()" class="bg-gray-800 text-white px-8 py-3 rounded-lg hidden w-full">Siguiente Pregunta</button>
+            <button id="submit-btn" onclick="calculateAndSave()" class="bg-green-600 text-white px-8 py-3 rounded-lg hidden w-full">Finalizar Evaluación</button>
+        </div>
+
+        <div id="section-thanks" class="bg-white p-12 rounded-lg shadow-md hidden text-center">
+            <div class="text-6xl mb-4">✔️</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Evaluación Finalizada</h2>
+            <p class="text-gray-600">Gracias por su tiempo. Sus respuestas han sido enviadas al departamento de reclutamiento para su revisión.</p>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeiIBgmX4KKhdQlwyyXCoI-zGZdFc0aso",
+            authDomain: "evaluacion-cielo.firebaseapp.com",
+            projectId: "evaluacion-cielo",
+            storageBucket: "evaluacion-cielo.firebasestorage.app",
+            messagingSenderId: "1071771625909",
+            appId: "1:1071771625909:web:d939265ad6a8e063b3d1fc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // (Aquí mantienes el mismo array de "questions" y "maxScores" de tu código original)
+        const questions = [
+            { q: "1. Un residente le ofrece dinero para dejar pasar a un proveedor sin registrarlo.", options: [ { text: "Acepto el dinero, pero registro al proveedor.", scores: { C: -1, P: 0, R: -1, T: 0 } }, { text: "Rechazo el dinero y cumplo el protocolo.", scores: { C: 2, P: 1, R: 2, T: 0 } }, { text: "Acepto el dinero y no lo registro.", scores: { C: -2, P: -1, R: -2, T: 0 } } ] },
+            { q: "2. Las normas de seguridad hacen que la entrada de autos sea lenta y hay quejas.", options: [ { text: "Sigo las normas estrictamente.", scores: { C: 1, P: 1, R: 2, T: 1 } }, { text: "Me salto pasos para acelerar el flujo.", scores: { C: -1, P: 1, R: -2, T: 0 } }, { text: "Reporto y sugiero mejoras sin dejar la norma.", scores: { C: 2, P: 2, R: 2, T: 1 } } ] },
+            { q: "3. ¿Dónde se ve usted profesionalmente en los próximos 2 años?", options: [ { text: "Creciendo dentro de esta empresa.", scores: { C: 1, P: 2, R: 1, T: 0 } }, { text: "En otro empleo, esto es temporal.", scores: { C: 0, P: -2, R: 0, T: 0 } }, { text: "Teniendo mi propio negocio.", scores: { C: 0, P: -1, R: 0, T: 0 } } ] },
+            { q: "4. Su relevo llega tarde por tercera vez sin avisar.", options: [ { text: "Me retiro a mi hora exacta (dejo el puesto solo).", scores: { C: -1, P: -1, R: -1, T: -2 } }, { text: "Espero y lo reporto con el supervisor.", scores: { C: 2, P: 1, R: 2, T: 2 } }, { text: "Espero y hablo con él sin reportarlo.", scores: { C: 1, P: 2, R: 0, T: 1 } } ] },
+            { q: "5. Cometió un error de seguridad grave que nadie notó.", options: [ { text: "Lo oculto y espero que no pase nada.", scores: { C: -2, P: 0, R: -2, T: 0 } }, { text: "Lo reporto inmediatamente asumiendo la culpa.", scores: { C: 2, P: 1, R: 2, T: 1 } }, { text: "Trato de arreglarlo solo sin decir nada.", scores: { C: 0, P: 0, R: -1, T: 0 } } ] },
+            { q: "6. Hay una emergencia familiar pero el reglamento prohíbe usar celular.", options: [ { text: "Uso el celular a escondidas.", scores: { C: -1, P: 0, R: -2, T: 0 } }, { text: "Pido autorización para la llamada rápida.", scores: { C: 2, P: 1, R: 2, T: 1 } }, { text: "No lo uso, espero a mi descanso.", scores: { C: 1, P: 2, R: 2, T: 1 } } ] },
+            { q: "7. ¿Qué tan importante es la puntualidad para usted?", options: [ { text: "Fundamental. Llego 10 min antes.", scores: { C: 1, P: 1, R: 1, T: 2 } }, { text: "Normal. Trato de llegar a tiempo.", scores: { C: 0, P: 0, R: 0, T: 0 } }, { text: "Relativa. 10 min de retraso no es grave.", scores: { C: -1, P: -1, R: -1, T: -2 } } ] },
+            { q: "8. Un compañero le pide marcar su asistencia porque viene tarde.", options: [ { text: "Le hago el favor (compañerismo).", scores: { C: -2, P: 1, R: -2, T: -1 } }, { text: "Me niego rotundamente.", scores: { C: 2, P: 1, R: 2, T: 1 } }, { text: "Ignoro la petición y no hago nada.", scores: { C: 1, P: 0, R: 0, T: 0 } } ] },
+            { q: "9. ¿Cuál ha sido la causa de salida de sus empleos anteriores?", options: [ { text: "Fin de contrato / Recortes.", scores: { C: 0, P: 1, R: 0, T: 0 } }, { text: "Mejor oportunidad económica.", scores: { C: 0, P: -1, R: 0, T: 0 } }, { text: "Problemas con horarios o jefes.", scores: { C: -1, P: -2, R: -1, T: -1 } } ] },
+            { q: "10. ¿Está dispuesto a turnos de 12 horas constantes?", options: [ { text: "Sí, sin inconveniente.", scores: { C: 1, P: 2, R: 1, T: 1 } }, { text: "Si es necesario acepto.", scores: { C: 0, P: 1, R: 0, T: 0 } }, { text: "No, busco algo de lunes a viernes.", scores: { C: 0, P: -2, R: 0, T: 0 } } ] }
+        ];
+
+        let currentQ = 0;
+        let userScores = { C:0, P:0, R:0, T:0 };
+        let selected = null;
+
+        function startTest() {
+            if(document.getElementById('applicant-name').value.length < 5) return alert("Nombre muy corto");
+            document.getElementById('section-login').classList.add('hidden');
+            document.getElementById('section-test').classList.remove('hidden');
+            showQ();
+        }
+
+        function showQ() {
+            selected = null;
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+            const q = questions[currentQ];
+            document.getElementById('progress').innerText = `Pregunta ${currentQ+1} de 10`;
+            let html = `<p class="text-xl font-bold mb-6">${q.q}</p><div class="space-y-3">`;
+            q.options.forEach((o, i) => {
+                html += `<label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="opt" onclick="selected=${i}; currentQ<9?document.getElementById('next-btn').classList.remove('hidden'):document.getElementById('submit-btn').classList.remove('hidden')" class="h-5 w-5"><span class="ml-3 font-medium">${o.text}</span>
+                </label>`;
+            });
+            document.getElementById('question-container').innerHTML = html + "</div>";
+        }
+
+        function nextQuestion() {
+            const s = questions[currentQ].options[selected].scores;
+            for(let k in s) userScores[k] += s[k];
+            currentQ++;
+            showQ();
+        }
+
+        function calculateAndSave() {
+            const s = questions[currentQ].options[selected].scores;
+            for(let k in s) userScores[k] += s[k];
+
+            const calc = (v, m) => Math.min(100, Math.max(0, Math.round((v/m)*100)));
+            const finalData = {
+                nombre: document.getElementById('applicant-name').value,
+                fecha: new Date().toLocaleString(),
+                c: calc(userScores.C, 16),
+                p: calc(userScores.P, 14),
+                r: calc(userScores.R, 16),
+                t: calc(userScores.T, 9)
+            };
+
+            db.collection("aspirantes_cielo").add(finalData).then(() => {
+                document.getElementById('section-test').classList.add('hidden');
+                document.getElementById('section-thanks').classList.remove('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
