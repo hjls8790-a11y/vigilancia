@@ -78,7 +78,7 @@
                 <p>Asignación semanal de personal, horarios y envíos automáticos por WhatsApp.</p>
             </a>
 
-            <a href="boton_panico.html" class="card card-panico">
+            <a href="alerta_residentes.html" class="card card-panico">
                 <div class="icon">🚨</div>
                 <h3>Botón de Pánico</h3>
                 <p>Sistema de alerta inmediata para emergencias en el residencial.</p>
@@ -136,6 +136,12 @@
                 <div class="icon">👮</div>
                 <h3>Portal Guardia</h3>
                 <p>Acceso operativo para Agentes de Prevención: novedades, consignas y protocolos.</p>
+            </a>
+
+            <a href="manual_operaciones.html" class="card">
+                <div class="icon">📘</div>
+                <h3>Manual de Operaciones</h3>
+                <p>Protocolos de actuación y consulta operativa para el Agente de Prevención.</p>
             </a>
 
             <a href="portal_monitoreo.html" class="card">
@@ -312,7 +318,6 @@
     <div id="toast" class="toast">¡Instrucción copiada! Pegala en el chat de Gemini.</div>
 
     <script>
-        // JS ORIGINAL (SIN TOCAR)
         function abrirManual() {
             document.getElementById('modalManual').style.display = 'flex';
         }
@@ -343,7 +348,6 @@
             });
         }
 
-        // JS NUEVO: Submenu Confianza
         function abrirSubmenuConfianza() {
             document.getElementById('modalConfianza').style.display = 'flex';
         }
@@ -352,7 +356,6 @@
             document.getElementById('modalConfianza').style.display = 'none';
         }
 
-        // Global click para cerrar modales
         window.onclick = function(event) {
             let modalManual = document.getElementById('modalManual');
             let modalConfianza = document.getElementById('modalConfianza');
