@@ -12,24 +12,38 @@
         .header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; color: var(--text); }
         .header span { color: var(--accent); font-weight: bold; }
         
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; padding-bottom: 60px; }
         
-        .section-title { font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; margin-bottom: 20px; color: var(--gold); text-transform: uppercase; }
+        .section-title { font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; margin-bottom: 20px; color: var(--gold); text-transform: uppercase; margin-top: 40px; }
+        .section-title:first-child { margin-top: 0; }
 
         /* Grid de Herramientas */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
         
-        .card { background: var(--panel); border-radius: 10px; padding: 25px; text-align: center; text-decoration: none; color: var(--text); transition: 0.3s; border: 1px solid #2a3f54; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .card { background: var(--panel); border-radius: 10px; padding: 25px; text-align: center; text-decoration: none; color: var(--text); transition: 0.3s; border: 1px solid #2a3f54; display: flex; flex-direction: column; align-items: center; cursor: pointer; height: 100%; box-sizing: border-box;}
         .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.4); background: #1f364d; }
         .card .icon { font-size: 3em; margin-bottom: 15px; }
         .card h3 { margin: 0 0 10px 0; font-size: 1.2em; }
-        .card p { margin: 0; font-size: 0.85em; color: #95A5A6; }
+        .card p { margin: 0; font-size: 0.85em; color: #95A5A6; flex-grow: 1; }
 
         /* Colores específicos de tarjetas */
         .card-mapa:hover .icon { color: var(--accent); }
         .card-roles:hover .icon { color: var(--green); }
         .card-panico:hover { border-color: var(--red); }
         .card-panico:hover .icon { color: var(--red); }
+        
+        /* Colores para secciones específicas */
+        .card-motos:hover .icon { color: var(--gold); }
+        .card-drones:hover .icon { color: #8e44ad; }
+        .card-ventas:hover .icon { color: var(--green); }
+        
+        .card-disciplina:hover { border-color: var(--red); }
+        .card-disciplina:hover .icon { color: var(--red); }
+        .card-comandos { border-color: #5D6D7E; }
+        .card-comandos:hover { border-color: var(--text); }
+        .card-gerencia:hover { border-color: var(--gold); }
+        .card-gerencia:hover .icon { color: var(--gold); }
+
         .card-ai { background: #132433; border-color: #8E44AD; }
         .card-ai:hover { border-color: #9b59b6; box-shadow: 0 0 15px rgba(142, 68, 173, 0.4); }
 
@@ -76,6 +90,123 @@
             </a>
         </div>
 
+        <div class="section-title">📋 Control Administrativo y de Activos</div>
+        <div class="grid">
+            <a href="bitacora_accesos.html" class="card">
+                <div class="icon">🪪</div>
+                <h3>Bitácora de Accesos</h3>
+                <p>Registro y auditoría estricta de entrada y salida de personal y proveedores externos.</p>
+            </a>
+
+            <a href="registro_patrullaje.html" class="card">
+                <div class="icon">🚔</div>
+                <h3>Registro de Patrullaje</h3>
+                <p>Captura detallada de novedades, bitácoras y cumplimiento de recorridos de patrulla.</p>
+            </a>
+
+            <a href="registro_drones.html" class="card card-drones">
+                <div class="icon">🚁</div>
+                <h3>Registro de Drones</h3>
+                <p>Control de vuelos, bitácoras de operación y novedades técnicas del equipo aéreo.</p>
+            </a>
+
+            <a href="bitacora_motos.html" class="card card-motos">
+                <div class="icon">🏍️</div>
+                <h3>Bitácora de Motocicletas</h3>
+                <p>Inspección técnica, kilometraje y estado de unidades al inicio y fin de turno.</p>
+            </a>
+        </div>
+
+        <div class="section-title">📊 Gerencia, Auditoría y Portales Maestro</div>
+        <div class="grid">
+            <a href="dashboard_gerencial.html" class="card card-gerencia">
+                <div class="icon">📈</div>
+                <h3>Dashboard Gerencial</h3>
+                <p>Visualización centralizada de KPIs operativa, incidencias y reportes gerenciales en vivo.</p>
+            </a>
+
+            <a href="portal_guardia.html" class="card">
+                <div class="icon">👮</div>
+                <h3>Portal Guardia</h3>
+                <p>Acceso operativo para Agentes de Prevención: novedades, consignas y protocolos.</p>
+            </a>
+
+            <a href="portal_monitoreo.html" class="card">
+                <div class="icon">🖥️</div>
+                <h3>Portal de Monitoreo</h3>
+                <p>Herramientas de control de CCTV, análisis de novedades y alertas perimetrales.</p>
+            </a>
+
+            <a href="terminal_agentes.html" class="card">
+                <div class="icon">📟</div>
+                <h3>Terminal de Agentes</h3>
+                <p>Punto de acceso para Agentes: reportes rápidos y recepción de consignas en campo.</p>
+            </a>
+        </div>
+
+        <div class="section-title">🚀 Supervisión, Auditoría y Reportes</div>
+        <div class="grid">
+            <a href="supervision_drones.html" class="card card-drones">
+                <div class="icon">🚁</div>
+                <h3>Supervisión de Drones</h3>
+                <p>Herramienta para supervisor: auditoría de vuelos, cumplimiento operativo y novedades aéras.</p>
+            </a>
+
+            <a href="cierre_turno.html" class="card">
+                <div class="icon">🚪</div>
+                <h3>Cierre de Turno</h3>
+                <p>Protocolo administrativo de fin de turno: entrega de equipo, radios y bitácora operativa.</p>
+            </a>
+
+            <a href="encuesta_agentes.html" class="card">
+                <div class="icon">📋</div>
+                <h3>Encuesta de Agentes</h3>
+                <p>Evaluaciones de capacitación, clima laboral y pruebas de conocimiento operativo.</p>
+            </a>
+
+            <a href="auditoria_encuestas.html" class="card">
+                <div class="icon">📑</div>
+                <h3>Auditoría de Encuestas</h3>
+                <p>Análisis centralizado de resultados de encuestas: desempeño operativo y capacitación.</p>
+            </a>
+
+            <a href="ver_bitacora_caseta.html" class="card">
+                <div class="icon">👀</div>
+                <h3>Ver Bitácora de Caseta</h3>
+                <p>Acceso de lectura a las bitácoras operativas registradas en la caseta principal.</p>
+            </a>
+        </div>
+
+        <div class="section-title">💰 Control de Ventas y Club El Cielo</div>
+        <div class="grid">
+            <a href="registro_ventas.html" class="card card-ventas">
+                <div class="icon">💵</div>
+                <h3>Registro de Ventas</h3>
+                <p>Bitácora detallada de transacciones, cobros operativos y control de ingresos diarios.</p>
+            </a>
+
+            <a href="ventas_club.html" class="card card-ventas">
+                <div class="icon">🎫</div>
+                <h3>Ventas Club El Cielo</h3>
+                <p>Control de cobros operativos, accesos y bitácora específica del área del Club.</p>
+            </a>
+        </div>
+
+        <div class="section-title">💻 Terminal de Comandos y Disciplina</div>
+        <div class="grid">
+            <a href="reportes_disciplinarios.html" class="card card-disciplina">
+                <div class="icon">⚠️</div>
+                <h3>Reportes Disciplinarios</h3>
+                <p>Generación de actas administrativas, amonestaciones y registro de incidencias del personal.</p>
+            </a>
+
+            <a href="plataforma_comandos.html" class="card card-comandos">
+                <div class="icon">💻</div>
+                <h3>Plataforma de Comandos</h3>
+                <p>Acceso maestro a la terminal de operaciones, configuraciones globales y registros técnicos.</p>
+            </a>
+        </div>
+
         <div class="section-title">🧠 Inteligencia Estratégica (Enlace a Gemini)</div>
         <div class="grid">
             <div class="card card-ai" onclick="abrirGemini('operativo')">
@@ -107,18 +238,20 @@
             <p>Digitalizar, centralizar y auditar los procesos de vigilancia en "El Cielo Parque Residencial", eliminando el uso de papel, reduciendo tiempos de respuesta y mejorando la comunicación con los Agentes de Prevención.</p>
             
             <h3>2. Funciones de los Repositorios</h3>
+            <p>Este panel integra todos los módulos operativos desarrollados en GitHub para ofrecer un control total:</p>
             <ul>
-                <li><strong>Mapa Táctico:</strong> Permite visualizar puntos vulnerables, casas en construcción o deshabitadas, garantizando que el guardia sepa exactamente qué revisar en cada punto.</li>
-                <li><strong>Roles de Turno:</strong> Minimiza errores de programación, evita dobles turnos accidentales y asegura que el personal confirme de enterado vía WhatsApp.</li>
-                <li><strong>Botón de Pánico:</strong> Reduce el tiempo de reacción ante intrusiones, emergencias médicas o de protección civil.</li>
-                <li><strong>Control y Confianza:</strong> Mantiene un estándar alto en el reclutamiento y asegura que el personal activo conozca los protocolos vigentes.</li>
+                <li><strong>Operación Diaria:</strong> Mapa Táctico, Roles, Pánico y Exámenes para el personal operativo.</li>
+                <li><strong>Bitácoras y Registros:</strong> Control estricto de accesos, patrullajes, drones, motos y ventas operativas.</li>
+                <li><strong>Gerencia y Portales:</strong> Dashboard Gerencial para KPIs y portales específicos para Guardia y Monitoreo.</li>
+                <li><strong>Supervisión y Auditoría:</strong> Herramientas para auditar drones, encuestas y revisar bitácoras de caseta.</li>
+                <li><strong>Comandos y Disciplina:</strong> Plataforma de Comandos para control global y Reportes Disciplinarios.</li>
             </ul>
 
             <h3>3. Ventajas Competitivas para el Proyecto</h3>
             <ul>
                 <li><strong>Trazabilidad:</strong> Todo movimiento, consigna y rol queda registrado digitalmente.</li>
-                <li><strong>Ahorro de Recursos:</strong> Disminución drástica en impresión de formatos, bitácoras y uso de papelería.</li>
-                <li><strong>Respuesta Inmediata:</strong> Al estar montado en un servidor web (GitHub), la comandancia puede actualizar consignas desde un celular o computadora al instante.</li>
+                <li><strong>Ahorro de Recursos:</strong> Disminución drástica en impresión de formatos, bitácoras y papelería.</li>
+                <li><strong>Respuesta Inmediata:</strong> Al estar montado en un servidor web (GitHub), la comandancia puede actualizar operaciones desde un celular o computadora al instante.</li>
                 <li><strong>Imagen Profesional:</strong> Proyecta ante el comité de colonos y directivos un sistema de gestión de seguridad de primer nivel, moderno y eficiente.</li>
             </ul>
         </div>
@@ -158,7 +291,7 @@
                 toast.style.display = "block";
                 setTimeout(function(){ toast.style.display = "none"; }, 4000);
                 
-                // Abrir Gemini en otra pestaña después de 1 segundo para que el usuario lea el mensaje
+                // Abrir Gemini en otra pestaña después de 1 segundo
                 setTimeout(function(){
                     window.open('https://gemini.google.com/app', '_blank');
                 }, 1500);
