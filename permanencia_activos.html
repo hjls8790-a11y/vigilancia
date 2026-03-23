@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización Manual de Procedimientos - Cielo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <header class="text-center mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-blue-900 uppercase">Test de Actualización Operativa</h1>
+            <p class="text-gray-600 mt-2">Manual de Prevención Cielo Parque Residencial</p>
+            <p class="text-sm text-red-600 font-bold mt-2">Lea cuidadosamente cada pregunta antes de responder. Son 30 preguntas en total.</p>
+        </header>
+
+        <div id="setup" class="mb-8 bg-blue-50 p-4 rounded border border-blue-200">
+            <label class="block font-bold mb-2 text-blue-900">Nombre completo del Agente:</label>
+            <input type="text" id="agente-nombre" class="w-full p-3 border rounded shadow-sm" placeholder="Escriba su nombre completo (Ej. Juan Pérez)">
+        </div>
+
+        <div id="quiz-container" class="space-y-6"></div>
+
+        <button onclick="enviarEvaluacion()" class="mt-10 w-full bg-blue-800 text-white font-bold py-4 rounded-xl hover:bg-blue-900 shadow-lg text-lg uppercase tracking-wider">Finalizar y Enviar Evaluación</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeiIBgmX4KKhdQlwyyXCoI-zGZdFc0aso",
+            authDomain: "evaluacion-cielo.firebaseapp.com",
+            projectId: "evaluacion-cielo",
+            storageBucket: "evaluacion-cielo.firebasestorage.app",
+            messagingSenderId: "1071771625909",
+            appId: "1:1071771625909:web:d939265ad6a8e063b3d1fc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const preguntasManual = [
+            { q: "1. ¿Cuál es el objetivo general del departamento de seguridad?", a: ["Sancionar a los residentes.", "Actuar sobre factores organizacionales y humanos para lograr un comportamiento más seguro.", "Solo controlar el acceso vehicular."], c: 1 },
+            { q: "2. Una habilidad interpersonal vital para el perfil del Agente de Seguridad es:", a: ["Correr rápido.", "Serenidad bajo presión.", "Ignorar los insultos."], c: 1 },
+            { q: "3. Durante la escolta de un proveedor, ¿cuál es la velocidad máxima a marcar?", a: ["10 km/h", "20 km/h", "30 km/h"], c: 1 },
+            { q: "4. Si un vehículo pesado tiene riesgo de derrame de material, ¿dónde debe ir el agente de patrullaje?", a: ["Tomando el frente.", "A la retaguardia para asegurar que no haya daños.", "En paralelo al camión."], c: 1 },
+            { q: "5. Al llegar el proveedor a la obra, ¿de qué debe asegurarse el agente de patrullaje?", a: ["De que el proveedor coloque calzas al vehículo.", "De ayudar a descargar el material.", "De revisar la factura del material."], c: 0 },
+            { q: "6. En el seguimiento de autoridades (JUMAPAM/CFE), ¿cuál es el procedimiento correcto?", a: ["Se les deja entrar sin escolta.", "El agente toma el frente, dirige al domicilio y toma evidencia de la visita.", "Solo se anota la placa en bitácora."], c: 1 },
+            { q: "7. ¿Qué se debe hacer si se escucha una alarma activa sobre el recorrido?", a: ["Ignorarla si no es en nuestra sección.", "Reportar a monitoreo y compañeros e iniciar recorrido por barda perimetral.", "Llamar directo al 911."], c: 1 },
+            { q: "8. En caso de allanamiento, ¿qué distancia de seguridad debe mantenerse con el intruso?", a: ["5 metros.", "10 pies.", "21 pies (6.5m)."], c: 2 },
+            { q: "9. Si se detecta un allanamiento, ¿qué debe hacer monitoreo con los portones?", a: ["Cerrarlos con llave.", "Alertar a 911 y abrir portones para el acceso rápido de autoridades.", "Bloquearlos eléctricamente."], c: 1 },
+            { q: "10. En caso de accidente, ¿dónde debe posicionarse un Agente de Prevención para esperar la ambulancia?", a: ["En la Avenida Sábalo Cerritos.", "En la caseta principal.", "Afuera del domicilio afectado."], c: 0 },
+            { q: "11. ¿A qué hora inician las rondas formales de patrullaje si no hay otra actividad pendiente?", a: ["17:00 hrs.", "18:00 hrs.", "20:00 hrs."], c: 1 },
+            { q: "12. Durante la ronda, el enfoque principal debe ser en:", a: ["Vehículos estacionados.", "Residencias habitadas pero con residentes fuera de momento, bardas y puntos vulnerables.", "Solo en las casas en construcción."], c: 1 },
+            { q: "13. Según el protocolo de presentación, ¿cómo debe abordar el agente a un infractor?", a: ["'¡Oiga, baje la velocidad!'", "'Mi nombre es..., soy Agente de Prevención y el acto de molestia es por motivo de...'", "Solo acercarse y multarlo en silencio."], c: 1 },
+            { q: "14. En el Triage de Seguridad, el Nivel 1 (Acceso Restringido) requiere:", a: ["Intervención inmediata.", "Verificación y autorización previa.", "Monitoreo y supervisión."], c: 0 },
+            { q: "15. En el Triage de Seguridad, el Nivel 2 (Acceso Controlado) requiere:", a: ["Intervención inmediata.", "Verificación y autorización previa.", "Dejar pasar sin registro."], c: 1 },
+            { q: "16. Para la división de Monitoreo, una habilidad esencial es:", a: ["Concentración y permanencia alerta.", "Saber primeros auxilios avanzados.", "Saber manejar motocicleta."], c: 0 },
+            { q: "17. En el proceso de altas de trabajadores, ¿cómo debe ser la foto requerida?", a: ["Con lentes de sol.", "Foto de cuerpo entero.", "Foto sin gorra."], c: 2 },
+            { q: "18. Para el alta de trabajadores, ¿qué documento es obligatorio?", a: ["Acta de nacimiento.", "INE por ambos lados.", "Comprobante de domicilio."], c: 1 },
+            { q: "19. Para el registro de visitas a casas habitadas por aplicación, además de Nombre y Dirección, se pide:", a: ["Firma del visitante.", "Foto del INE con placas.", "Huella digital."], c: 1 },
+            { q: "20. El Código Naranja corresponde a un nivel de seguridad:", a: ["Bajo (Ingreso por stickers, no se escolta).", "Medio-Bajo.", "Alto."], c: 0 },
+            { q: "21. El Código Gris corresponde a:", a: ["Propietario abre con app, se escolta al domicilio.", "Propietario abre con app, no se tiene certeza de quién ingresa, solo se confirma arribo a distancia.", "Invitación por app."], c: 1 },
+            { q: "22. El Código Verde corresponde a:", a: ["Visitas que ingresan por interphone.", "Invitación por medio de aplicación, se confirma arribo de forma discreta.", "Ingreso de proveedores externos."], c: 1 },
+            { q: "23. El Código Amarillo corresponde a un nivel de seguridad:", a: ["Bajo.", "Medio.", "Alto (Visitas/proveedores por interphone con seguimiento)."], c: 2 },
+            { q: "24. Al ingresar autoridades (Policía, etc.), ¿qué documento se les debe solicitar?", a: ["No se les pide nada.", "Documento que confirme actividad a realizar e Identificación oficial.", "Solo placa del vehículo."], c: 1 },
+            { q: "25. Los proveedores externos (Soriana, Home Depot) que solo ingresan a dejar material, se verifican con:", a: ["Una llamada al residente.", "Solicitando factura para confirmar el domicilio que visita.", "Su uniforme de trabajo."], c: 1 },
+            { q: "26. Al escanear el QR de un trabajador de obra, ¿qué procede en el área de revisión?", a: ["Pasarlo directo a su obra.", "Solicitarle de manera respetuosa que deje sus pertenencias en la mesa y contenido de bolsillos.", "Solo revisar su mochila."], c: 1 },
+            { q: "27. En la revisión a trabajadores, el objetivo principal es buscar:", a: ["Comida externa.", "Sustancias no permitidas, alcohol, armas, bocinas.", "Celulares no registrados."], c: 1 },
+            { q: "28. ¿Cuál es el horario permitido para el ingreso libre del trabajador de obra (sin que su supervisor lo escolte desde filtro)?", a: ["Todo el día.", "07:30 a 09:00 o 11:30 a 13:00.", "09:00 a 11:29."], c: 1 },
+            { q: "29. Una de las habilidades clave para la resolución de conflictos es:", a: ["Hablar más fuerte que la otra persona.", "Ignorar el problema hasta que se calme.", "Escucha activa, comunicación clara y control emocional."], c: 2 },
+            { q: "30. En la atención a residentes, la regla de oro que siempre debe prevalecer es:", a: ["Darle siempre la razón al residente, aunque incumpla normas.", "Que prevalezca el bien común.", "Evitar hablar con ellos."], c: 1 }
+        ];
+
+        let quizHtml = "";
+        preguntasManual.forEach((p, i) => {
+            quizHtml += `<div class="p-5 border-l-4 border-blue-500 bg-white shadow-sm mb-4 rounded-r-lg">
+                <p class="font-bold text-gray-800 mb-3">${p.q}</p>
+                <div class="space-y-2">
+                ${p.a.map((opt, idx) => `
+                    <label class="block p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                        <input type="radio" name="p${i}" value="${idx}" class="mr-2"> ${opt}
+                    </label>
+                `).join('')}
+                </div>
+            </div>`;
+        });
+        document.getElementById('quiz-container').innerHTML = quizHtml;
+
+        function enviarEvaluacion() {
+            const nombre = document.getElementById('agente-nombre').value;
+            if(!nombre || nombre.trim() === "") {
+                alert("Por favor ingrese su nombre completo antes de enviar.");
+                document.getElementById('agente-nombre').focus();
+                return;
+            }
+
+            let correctas = 0;
+            let contestadas = 0;
+
+            preguntasManual.forEach((p, i) => {
+                const sel = document.querySelector(`input[name="p${i}"]:checked`);
+                if(sel) {
+                    contestadas++;
+                    if(parseInt(sel.value) === p.c) correctas++;
+                }
+            });
+
+            if(contestadas < preguntasManual.length) {
+                alert(`Has contestado ${contestadas} de ${preguntasManual.length} preguntas. Por favor, completa todo el test.`);
+                return;
+            }
+
+            const calificacion = Math.round((correctas / preguntasManual.length) * 100);
+            const estatus = calificacion >= 80 ? "APROBADO" : "REPROBADO - REPASAR MANUAL";
+
+            db.collection("evaluaciones_activos").add({
+                nombre: nombre,
+                fecha: new Date().toLocaleString(),
+                calificacion: calificacion,
+                aciertos: `${correctas}/30`,
+                estatus: estatus
+            }).then(() => {
+                alert(`Evaluación enviada con éxito.\nCalificación: ${calificacion}%\nAciertos: ${correctas} de 30`);
+                window.location.href = "menu.html";
+            }).catch(error => {
+                alert("Hubo un error al enviar. Revisa tu conexión de internet.");
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>
