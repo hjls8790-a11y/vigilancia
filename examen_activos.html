@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitácora de Agentes Activos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-900 p-8">
+    <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div class="bg-green-700 p-6 text-white flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Bitácora de Capacitación (Agentes Activos)</h1>
+            <a href="menu.html" class="bg-white/20 px-4 py-2 rounded hover:bg-white/30">Volver al Menú</a>
+        </div>
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <th class="p-4 border">Fecha</th>
+                    <th class="p-4 border">Nombre del Agente</th>
+                    <th class="p-4 border text-center">Calificación</th>
+                    <th class="p-4 border">Resultado</th>
+                </tr>
+            </thead>
+            <tbody id="lista-activos"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCeiIBgmX4KKhdQlwyyXCoI-zGZdFc0aso",
+            authDomain: "evaluacion-cielo.firebaseapp.com",
+            projectId: "evaluacion-cielo",
+            storageBucket: "evaluacion-cielo.firebasestorage.app",
+            messagingSenderId: "1071771625909",
+            appId: "1:1071771625909:web:d939265ad6a8e063b3d1fc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        db.collection("evaluaciones_activos").orderBy("fecha", "desc").get().then((snap) => {
+            const tbody = document.getElementById('lista-activos');
+            snap.forEach(doc => {
+                const d = doc.data();
+                const color = d.calificacion >= 80 ? 'text-green-600' : 'text-red-600';
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 text-sm">${d.fecha}</td>
+                        <td class="p-4 font-bold text-gray-800">${d.nombre}</td>
+                        <td class="p-4 text-center font-black ${color}">${d.calificacion}%</td>
+                        <td class="p-4 font-bold ${color}">${d.estatus}</td>
+                    </tr>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
