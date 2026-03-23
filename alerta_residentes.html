@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S.O.S. | Seguridad Residencial</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            overflow: hidden;
+            /* Evita que se seleccione el texto al mantener presionado */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+        }
+
+        .header h1 {
+            color: #e74c3c;
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: #bdc3c7;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Pantalla de Configuración Inicial */
+        #pantalla-registro {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2a2a2a;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .btn-guardar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Botón de Pánico */
+        #pantalla-panico {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            display: none;
+        }
+
+        .instrucciones {
+            margin-bottom: 40px;
+            font-size: 16px;
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .boton-panico {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #c0392b, #e74c3c);
+            border: 10px solid #7f8c8d;
+            box-shadow: 0 10px 40px rgba(231, 76, 60, 0.4), inset 0 10px 20px rgba(255,255,255,0.2);
+            color: white;
+            font-size: 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            position: relative;
+        }
+
+        /* Efecto visual al mantener presionado */
+        .boton-panico.presionado {
+            transform: scale(0.95);
+            border-color: #e74c3c;
+            box-shadow: 0 0 50px rgba(231, 76, 60, 0.8), inset 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        .progreso-bar {
+            width: 80%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 40px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progreso-fill {
+            height: 100%;
+            width: 0%;
+            background: #e74c3c;
+            transition: width 3s linear;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .estado-ubicacion {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #3498db;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚨 S.O.S. Seguridad</h1>
+        <p>Servicio Exclusivo para Residentes</p>
+    </div>
+
+    <div id="pantalla-registro">
+        <h2>Bienvenido</h2>
+        <p style="font-size: 14px; color: #bdc3c7;">Para configurar tu botón de emergencia, ingresa tus datos. Solo se pedirán una vez.</p>
+        <input type="text" id="datosResidente" placeholder="Ej. Casa 45 - Familia Pérez" required>
+        <button class="btn-guardar" onclick="guardarDatos()">CONFIGURAR MI BOTÓN</button>
+    </div>
+
+    <div id="pantalla-panico">
+        <div class="instrucciones">Mantén presionado 3 segundos<br>para enviar alerta</div>
+        
+        <div class="boton-panico" id="btnSms">
+            S.O.S
+        </div>
+
+        <div class="progreso-bar" id="barraProgreso">
+            <div class="progreso-fill" id="rellenoProgreso"></div>
+        </div>
+
+        <div class="estado-ubicacion" id="textoEstado">Obteniendo ubicación GPS...</div>
+    </div>
+
+    <div class="footer">
+        Protección con firmeza y respuesta inmediata
+    </div>
+
+    <script>
+        // ==========================================
+        // NÚMERO DE LA CENTRAL DE SEGURIDAD
+        // ==========================================
+        const NUMERO_SEGURIDAD = "526695931812"; 
+        
+        let pressTimer;
+        let esPresionado = false;
+        
+        const btnSms = document.getElementById('btnSms');
+        const barraProgreso = document.getElementById('barraProgreso');
+        const rellenoProgreso = document.getElementById('rellenoProgreso');
+        const textoEstado = document.getElementById('textoEstado');
+
+        // Verificar si el residente ya se registró antes
+        window.onload = () => {
+            const residente = localStorage.getItem("residenteInfo");
+            if (residente) {
+                document.getElementById('pantalla-registro').style.display = 'none';
+                document.getElementById('pantalla-panico').style.display = 'flex';
+                // Solicitar permisos de GPS desde el inicio para que esté listo
+                navigator.geolocation.getCurrentPosition(()=>{}, ()=>{});
+            } else {
+                document.getElementById('pantalla-registro').style.display = 'block';
+            }
+        };
+
+        // Guardar datos del residente
+        function guardarDatos() {
+            const datos = document.getElementById('datosResidente').value.trim();
+            if (datos === "") {
+                alert("Por favor ingresa tu casa y nombre.");
+                return;
+            }
+            localStorage.setItem("residenteInfo", datos);
+            document.getElementById('pantalla-registro').style.display = 'none';
+            document.getElementById('pantalla-panico').style.display = 'flex';
+            // Pedir permisos de GPS
+            navigator.geolocation.getCurrentPosition(()=>{}, ()=>{});
+        }
+
+        // ==========================================
+        // LÓGICA DEL BOTÓN PRESIONADO (3 SEGUNDOS)
+        // ==========================================
+        function iniciarPresion(e) {
+            // Evitar menú contextual en celulares
+            if(e.type === 'touchstart') e.preventDefault();
+            
+            esPresionado = true;
+            btnSms.classList.add('presionado');
+            barraProgreso.style.display = 'block';
+            
+            // Iniciar animación de la barra
+            setTimeout(() => {
+                if(esPresionado) rellenoProgreso.style.width = '100%';
+            }, 50);
+
+            // Temporizador de 3 segundos
+            pressTimer = window.setTimeout(lanzarAlerta, 3000);
+        }
+
+        function cancelarPresion() {
+            if (!esPresionado) return;
+            esPresionado = false;
+            clearTimeout(pressTimer);
+            btnSms.classList.remove('presionado');
+            rellenoProgreso.style.width = '0%';
+            barraProgreso.style.display = 'none';
+        }
+
+        // Eventos para Celulares (Touch) y PC (Mouse)
+        btnSms.addEventListener('touchstart', iniciarPresion, {passive: false});
+        btnSms.addEventListener('touchend', cancelarPresion);
+        btnSms.addEventListener('touchcancel', cancelarPresion);
+
+        btnSms.addEventListener('mousedown', iniciarPresion);
+        btnSms.addEventListener('mouseup', cancelarPresion);
+        btnSms.addEventListener('mouseleave', cancelarPresion);
+
+        // ==========================================
+        // EJECUCIÓN DE LA ALERTA Y GPS
+        // ==========================================
+        function lanzarAlerta() {
+            esPresionado = false;
+            btnSms.classList.remove('presionado');
+            rellenoProgreso.style.width = '0%';
+            barraProgreso.style.display = 'none';
+            
+            // Vibrar el celular si es posible
+            if (navigator.vibrate) {
+                navigator.vibrate([500, 200, 500]);
+            }
+
+            textoEstado.style.display = 'block';
+            textoEstado.innerText = "🚨 Obteniendo ubicación exacta...";
+
+            const residenteInfo = localStorage.getItem("residenteInfo") || "Residente no identificado";
+
+            // Obtener ubicación GPS
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        enviarWhatsApp(residenteInfo, lat, lng);
+                    },
+                    function(error) {
+                        // Si rechaza el GPS o falla, se manda la alerta de todos modos sin coordenadas
+                        enviarWhatsApp(residenteInfo, null, null);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                enviarWhatsApp(residenteInfo, null, null);
+            }
+        }
+
+        function enviarWhatsApp(residente, lat, lng) {
+            textoEstado.innerText = "Redirigiendo a WhatsApp...";
+            
+            let mensaje = `🚨 *ALERTA DE SEGURIDAD MÁXIMA* 🚨\n\n`;
+            mensaje += `👤 *Residente:* ${residente}\n`;
+            mensaje += `⚠️ *Situación:* Requiere asistencia inmediata.\n\n`;
+
+            if (lat && lng) {
+                mensaje += `📍 *Ubicación en Tiempo Real:* \n`;
+                mensaje += `https://www.google.com/maps?q=${lat},${lng}`;
+            } else {
+                mensaje += `📍 *Ubicación:* GPS no disponible o permiso denegado por el usuario. Dirigirse a su domicilio de inmediato.`;
+            }
+
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const urlWhatsapp = `https://wa.me/${NUMERO_SEGURIDAD}?text=${mensajeCodificado}`;
+
+            // Abrir WhatsApp
+            window.location.href = urlWhatsapp;
+            
+            // Ocultar texto después de enviar
+            setTimeout(() => {
+                textoEstado.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
