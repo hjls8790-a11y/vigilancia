@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Llaves - El Cielo</title>
+    <style>
+        :root { --bg: #0B192C; --panel: #1A2B3C; --text: #E2E8F0; --accent: #3498DB; --green: #27AE60; --red: #E74C3C; --gold: #F39C12; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); color: var(--text); }
+        
+        .header { background: #07101d; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .header h1 { margin: 0; font-size: 1.5em; color: var(--text); }
+        .header span { color: var(--gold); }
+        
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .panel { background: var(--panel); border-radius: 8px; padding: 20px; border: 1px solid #2a3f54; }
+        .panel h2 { margin-top: 0; font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; color: var(--accent); }
+
+        /* Formulario */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #95A5A6; }
+        input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #334; background: #132433; color: white; box-sizing: border-box; font-size: 1em; }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1em; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; text-align: center; }
+        .btn-blue { background: var(--accent); }
+        .btn-blue:hover { background: #2980b9; }
+        .btn-green { background: var(--green); }
+        .btn-green:hover { background: #219653; }
+        
+        /* Tablas */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2a3f54; }
+        th { background: #132433; color: var(--gold); }
+        
+        /* Alertas de Llaves Pendientes */
+        .row-pendiente { border-left: 4px solid var(--red); background: rgba(231, 76, 60, 0.05); }
+        .badge-alerta { background: var(--red); color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; font-weight: bold; display: inline-block; animation: blink 2s infinite; }
+        .badge-ok { background: var(--green); color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .btn-recibir { background: var(--green); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
+        .btn-recibir:hover { background: #219653; box-shadow: 0 0 10px rgba(39, 174, 96, 0.5); }
+        
+        .empty-msg { text-align: center; color: #7f8c8d; padding: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🔑 CONTROL DE LLAVES <span>CASETA</span></h1>
+        <div>El Cielo Parque Residencial</div>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>1. Registrar Salida de Llave</h2>
+            <form id="formLlaves">
+                <div class="form-group">
+                    <label>Llave Solicitada (Ej. Cuarto de Máquinas, Bodega 1):</label>
+                    <input type="text" id="nombreLlave" required placeholder="Nombre o número de la llave">
+                </div>
+                <div class="form-group">
+                    <label>Nombre de quien recibe:</label>
+                    <input type="text" id="nombrePersona" required placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Departamento / Empresa:</label>
+                    <select id="departamento">
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Administración">Administración</option>
+                        <option value="Proveedor Externo">Proveedor Externo</option>
+                        <option value="Seguridad">Seguridad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Motivo:</label>
+                    <input type="text" id="motivo" required placeholder="Ej. Apertura, Reparación...">
+                </div>
+                <button type="submit" class="btn btn-blue">Registrar Salida</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2>2. Llaves Fuera de Caseta (Alertas)</h2>
+            <div class="table-responsive">
+                <table id="tablaPendientes">
+                    <thead>
+                        <tr>
+                            <th>Llave</th>
+                            <th>Entregada a</th>
+                            <th>Depto</th>
+                            <th>Hora Salida</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyPendientes">
+                        </tbody>
+                </table>
+            </div>
+
+            <h2 style="margin-top: 30px; border-color: var(--green); color: var(--green);">3. Bitácora de Llaves Devueltas</h2>
+            <div class="table-responsive">
+                <table id="tablaHistorial">
+                    <thead>
+                        <tr>
+                            <th>Llave</th>
+                            <th>Entregada a</th>
+                            <th>Salida</th>
+                            <th>Entrada (Devolución)</th>
+                            <th>Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyHistorial">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar arreglo de llaves desde localStorage
+        let registrosLlaves = JSON.parse(localStorage.getItem('bitacoraLlaves')) || [];
+
+        // Función para obtener la hora actual formateada
+        function obtenerHoraActual() {
+            let ahora = new Date();
+            let horas = ahora.getHours().toString().padStart(2, '0');
+            let minutos = ahora.getMinutes().toString().padStart(2, '0');
+            return `${horas}:${minutos}`;
+        }
+
+        // Registrar nueva salida
+        document.getElementById('formLlaves').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let nuevoRegistro = {
+                id: Date.now(), // ID único basado en la fecha
+                llave: document.getElementById('nombreLlave').value,
+                persona: document.getElementById('nombrePersona').value,
+                departamento: document.getElementById('departamento').value,
+                motivo: document.getElementById('motivo').value,
+                horaSalida: obtenerHoraActual(),
+                horaEntrada: null,
+                estatus: 'Pendiente'
+            };
+
+            registrosLlaves.push(nuevoRegistro);
+            guardarDatos();
+            this.reset();
+            renderizarTablas();
+        });
+
+        // Marcar llave como recibida en caseta
+        function recibirLlave(id) {
+            let registro = registrosLlaves.find(r => r.id === id);
+            if (registro) {
+                registro.horaEntrada = obtenerHoraActual();
+                registro.estatus = 'Devuelta';
+                guardarDatos();
+                renderizarTablas();
+            }
+        }
+
+        // Guardar en el navegador
+        function guardarDatos() {
+            localStorage.setItem('bitacoraLlaves', JSON.stringify(registrosLlaves));
+        }
+
+        // Dibujar las tablas en la pantalla
+        function renderizarTablas() {
+            let bodyPendientes = document.getElementById('bodyPendientes');
+            let bodyHistorial = document.getElementById('bodyHistorial');
+            
+            bodyPendientes.innerHTML = '';
+            bodyHistorial.innerHTML = '';
+
+            let pendientesCount = 0;
+
+            // Invertir para mostrar lo más reciente arriba
+            let registrosInvertidos = [...registrosLlaves].reverse();
+
+            registrosInvertidos.forEach(registro => {
+                let fila = document.createElement('tr');
+
+                if (registro.estatus === 'Pendiente') {
+                    pendientesCount++;
+                    fila.className = 'row-pendiente';
+                    fila.innerHTML = `
+                        <td><strong>${registro.llave}</strong><br><span class="badge-alerta">SIN ENTREGAR</span></td>
+                        <td>${registro.persona}</td>
+                        <td>${registro.departamento}</td>
+                        <td>${registro.horaSalida}</td>
+                        <td><button class="btn-recibir" onclick="recibirLlave(${registro.id})">⬇️ Recibir Llave</button></td>
+                    `;
+                    bodyPendientes.appendChild(fila);
+                } else {
+                    fila.innerHTML = `
+                        <td>${registro.llave}</td>
+                        <td>${registro.persona} <br><small>(${registro.departamento})</small></td>
+                        <td>${registro.horaSalida}</td>
+                        <td><strong>${registro.horaEntrada}</strong></td>
+                        <td><span class="badge-ok">En Caseta</span></td>
+                    `;
+                    bodyHistorial.appendChild(fila);
+                }
+            });
+
+            if (pendientesCount === 0) {
+                bodyPendientes.innerHTML = '<tr><td colspan="5" class="empty-msg">Todas las llaves están en caseta. Ninguna pendiente.</td></tr>';
+            }
+            if (registrosLlaves.length === 0 || pendientesCount === registrosLlaves.length) {
+                 if(registrosLlaves.length === 0) bodyHistorial.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay historial de llaves hoy.</td></tr>';
+            }
+        }
+
+        // Cargar datos al iniciar
+        renderizarTablas();
+    </script>
+</body>
+</html>
