@@ -33,26 +33,25 @@
         .card-panico:hover .icon { color: var(--red); }
         
         /* Colores para secciones específicas */
-        .card-motos:hover .icon { color: var(--gold); }
-        .card-drones:hover .icon { color: #8e44ad; }
-        .card-ventas:hover .icon { color: var(--green); }
-        
         .card-disciplina:hover { border-color: var(--red); }
         .card-disciplina:hover .icon { color: var(--red); }
         .card-comandos { border-color: #5D6D7E; }
         .card-comandos:hover { border-color: var(--text); }
-        .card-gerencia:hover { border-color: var(--gold); }
-        .card-gerencia:hover .icon { color: var(--gold); }
-        .card-integral:hover { border-color: #3498DB; }
-        .card-integral:hover .icon { color: #3498DB; }
+        .card-confianza { border-color: var(--gold); }
+        .card-confianza:hover { border-color: var(--w); box-shadow: 0 0 15px rgba(243, 156, 18, 0.4); }
 
         .card-ai { background: #132433; border-color: #8E44AD; }
         .card-ai:hover { border-color: #9b59b6; box-shadow: 0 0 15px rgba(142, 68, 173, 0.4); }
 
-        /* Modal del Manual Operativo */
+        /* Modales */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--text); color: #111; padding: 40px; border-radius: 10px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
         .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: var(--red); font-weight: bold; }
+        
+        /* Modal Confianza con fondo oscuro */
+        #modalConfianza .modal-content { background: var(--bg); color: var(--text); border: 1px solid var(--gold); }
+        #modalConfianza h2 { color: var(--gold); border-bottom-color: #333; }
+        #modalConfianza .card p { color: #aaa; }
         
         .toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     </style>
@@ -85,11 +84,11 @@
                 <p>Sistema de alerta inmediata para emergencias en el residencial.</p>
             </a>
 
-            <a href="examenes.html" class="card">
+            <div class="card card-confianza" onclick="abrirSubmenuConfianza()">
                 <div class="icon">📝</div>
                 <h3>Control y Confianza</h3>
-                <p>Evaluaciones de permanencia y filtros de capacitación para Agentes de Prevención.</p>
-            </a>
+                <p>Evaluaciones de permanencia y filtros de capacitación para Agentes y Aspirantes.</p>
+            </div>
         </div>
 
         <div class="section-title">📋 Control Administrativo y de Activos</div>
@@ -160,6 +159,12 @@
                 <p>Herramienta para supervisor: auditoría de vuelos, cumplimiento operativo y novedades aéras.</p>
             </a>
 
+            <a href="supervision_reportes.html" class="card">
+                <div class="icon">🕵️‍♂️</div>
+                <h3>Supervisión de Reportes</h3>
+                <p>Auditoría avanzada, firma digital y exportación de PDFs de folios disciplinarios.</p>
+            </a>
+
             <a href="cierre_turno.html" class="card">
                 <div class="icon">🚪</div>
                 <h3>Cierre de Turno</h3>
@@ -202,13 +207,13 @@
 
         <div class="section-title">💻 Terminal de Comandos y Disciplina</div>
         <div class="grid">
-            <a href="reportes_disciplinarios.html" class="card card-disciplina">
+            <a href="reporte_disciplinario.html" class="card card-disciplina">
                 <div class="icon">⚠️</div>
                 <h3>Reportes Disciplinarios</h3>
                 <p>Generación de actas administrativas, amonestaciones y registro de incidencias del personal.</p>
             </a>
 
-            <a href="plataforma_comandos.html" class="card card-comandos">
+            <a href="comandos.html" class="card card-comandos">
                 <div class="icon">💻</div>
                 <h3>Plataforma de Comandos</h3>
                 <p>Acceso maestro a la terminal de operaciones, configuraciones globales y registros técnicos.</p>
@@ -257,7 +262,7 @@
                 <li><strong>Operación Diaria:</strong> Mapa Táctico, Roles, Pánico y Exámenes para el personal operativo.</li>
                 <li><strong>Bitácoras y Registros:</strong> Control estricto de accesos, patrullajes, drones, motos y ventas operativas.</li>
                 <li><strong>Gerencia y Portales:</strong> Dashboard Gerencial para KPIs y portales específicos para Guardia y Monitoreo.</li>
-                <li><strong>Supervisión y Auditoría:</strong> Herramientas para auditar drones, encuestas y revisar bitácoras de caseta.</li>
+                <li><strong>Supervisión y Auditoría:</strong> Herramientas para auditar drones, encuestas y supervisar reportes disciplinarios.</li>
                 <li><strong>Comandos y Disciplina:</strong> Plataforma de Comandos para control global y Reportes Disciplinarios.</li>
             </ul>
 
@@ -271,23 +276,49 @@
         </div>
     </div>
 
+    <div id="modalConfianza" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarSubmenuConfianza()">&times;</span>
+            <h2 style="border-bottom: 2px solid var(--gold); padding-bottom: 10px;">MENÚ CONTROL Y CONFIANZA</h2>
+            
+            <p style="margin-bottom: 30px; font-size: 0.9em;">Seleccione la herramienta de evaluación o la bitácora de resultados correspondiente:</p>
+
+            <div class="grid">
+                <a href="examen_aspirantes.html" class="card">
+                    <div class="icon">📝</div>
+                    <h3>Examen Aspirantes</h3>
+                    <p>Proceso de Selección de Seguridad: Evaluación psicológica y de confiabilidad.</p>
+                </a>
+                <a href="examen_activos.html" class="card">
+                    <div class="icon">📖</div>
+                    <h3>Examen Agentes Activos</h3>
+                    <p>Test de Actualización Operativa y Manual de Prevención.</p>
+                </a>
+
+                <a href="bitacora_reclutamiento.html" class="card">
+                    <div class="icon">📑</div>
+                    <h3>Bitácora de Reclutamiento</h3>
+                    <p>Resultados y dictámenes de aspirantes (Apto, Dudoso, No Apto).</p>
+                </a>
+                <a href="bitacora_activos.html" class="card">
+                    <div class="icon">✅</div>
+                    <h3>Bitácora de Capacitación</h3>
+                    <p>Resultados y estatus de capacitación de agentes activos.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast">¡Instrucción copiada! Pegala en el chat de Gemini.</div>
 
     <script>
+        // JS ORIGINAL (SIN TOCAR)
         function abrirManual() {
             document.getElementById('modalManual').style.display = 'flex';
         }
 
         function cerrarManual() {
             document.getElementById('modalManual').style.display = 'none';
-        }
-
-        // Cierra el modal si haces clic afuera del cuadro blanco
-        window.onclick = function(event) {
-            let modal = document.getElementById('modalManual');
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
         }
 
         function abrirGemini(tipo) {
@@ -299,19 +330,38 @@
                 promptText = "Actúa como mi monitor de inteligencia de fuentes abiertas (OSINT). Dame un reporte resumido de las noticias más relevantes de las últimas 24 a 48 horas en Mazatlán y el estado de Sinaloa enfocadas estrictamente en: Seguridad pública, bloqueos viales, orden público y riesgos que puedan afectar la operación de vigilancia en un complejo residencial.";
             }
 
-            // Copiar al portapapeles
             navigator.clipboard.writeText(promptText).then(() => {
                 let toast = document.getElementById("toast");
                 toast.style.display = "block";
                 setTimeout(function(){ toast.style.display = "none"; }, 4000);
                 
-                // Abrir Gemini en otra pestaña después de 1 segundo
                 setTimeout(function(){
                     window.open('https://gemini.google.com/app', '_blank');
                 }, 1500);
             }).catch(err => {
                 alert("No se pudo copiar el texto. Intenta abrir Gemini manualmente.");
             });
+        }
+
+        // JS NUEVO: Submenu Confianza
+        function abrirSubmenuConfianza() {
+            document.getElementById('modalConfianza').style.display = 'flex';
+        }
+
+        function cerrarSubmenuConfianza() {
+            document.getElementById('modalConfianza').style.display = 'none';
+        }
+
+        // Global click para cerrar modales
+        window.onclick = function(event) {
+            let modalManual = document.getElementById('modalManual');
+            let modalConfianza = document.getElementById('modalConfianza');
+            if (event.target == modalManual) {
+                modalManual.style.display = "none";
+            }
+            if (event.target == modalConfianza) {
+                modalConfianza.style.display = "none";
+            }
         }
     </script>
 </body>
