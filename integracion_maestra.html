@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<!DOCTYPE html><html lang="es"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Mando Gerencial - El Cielo</title>
@@ -51,16 +49,21 @@
         input[type="text"], select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
         .btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; width: 100%; transition: 0.3s; margin-top: 5px; }
         .btn-add { background: var(--s); } .btn-add:hover { background: #2980b9; }
+        .btn-edit-mode { background: var(--o); } .btn-edit-mode:hover { background: #d68910; }
         
+        /* Botones de acción en tablas */
+        .btn-sm { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-right: 4px; transition: 0.2s;}
+        .btn-sm:hover { opacity: 0.8; transform: scale(1.1); }
+        .btn-sm-edit { background: #f1c40f; color: #333; }
+        .btn-sm-del { background: var(--r); color: white; }
+
         /* IA Reporte */
         .panel-ai { border: 2px dashed var(--purple); text-align: center; background: #F4ECF7; }
         .panel-ai h2 { color: var(--purple); justify-content: center; border-bottom: none; }
         .btn-gemini { background: var(--purple); font-size: 1.1em; padding: 15px 30px; width: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3); }
         .btn-gemini:hover { background: #9b59b6; transform: translateY(-2px); }
         .toast { position: fixed; bottom: 20px; right: 20px; background: var(--g); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-    </style>
-</head>
-<body>
+    </style></head><body>
 
     <div class="header">
         <h1 style="margin:0;">📊 Centro de Mando Gerencial - El Cielo</h1>
@@ -129,6 +132,10 @@
         </div>
     </div>
 
+    <div style="text-align: right; margin-bottom: 15px;">
+        <button class="btn btn-add" style="width: auto; padding: 10px 20px; background-color: var(--g);" onclick="exportarExcel()">📥 Descargar Padrones (Excel)</button>
+    </div>
+
     <div class="directorios-grid">
         <div class="seccion-panel">
             <h2>🚘 Directorio de Vehículos 
@@ -143,11 +150,11 @@
                     <input type="text" id="vMarca" placeholder="Marca y Color" required>
                     <input type="text" id="vPropietario" placeholder="Nombre Propietario" required>
                 </div>
-                <button type="submit" class="btn btn-add">Registrar Vehículo</button>
+                <button type="submit" id="btnSubmitVehiculo" class="btn btn-add">Registrar Vehículo</button>
             </form>
             <div style="max-height: 200px; overflow-y: auto;">
                 <table id="tablaVehiculos">
-                    <thead><tr><th>Placa</th><th>Lote</th><th>Vehículo</th></tr></thead>
+                    <thead><tr><th>Placa</th><th>Lote</th><th>Vehículo</th><th>Acciones</th></tr></thead>
                     <tbody id="bodyVehiculos"></tbody>
                 </table>
             </div>
@@ -170,11 +177,11 @@
                     <input type="text" id="mRaza" placeholder="Raza / Señas" required>
                     <input type="text" id="mLote" placeholder="Lote" required>
                 </div>
-                <button type="submit" class="btn btn-add">Registrar Mascota</button>
+                <button type="submit" id="btnSubmitMascota" class="btn btn-add">Registrar Mascota</button>
             </form>
             <div style="max-height: 200px; overflow-y: auto;">
                 <table id="tablaMascotas">
-                    <thead><tr><th>Mascota</th><th>Tipo/Raza</th><th>Lote</th></tr></thead>
+                    <thead><tr><th>Mascota</th><th>Tipo/Raza</th><th>Lote</th><th>Acciones</th></tr></thead>
                     <tbody id="bodyMascotas"></tbody>
                 </table>
             </div>
@@ -183,16 +190,18 @@
 
     <div class="seccion-panel panel-ai">
         <h2>🧠 Evaluación y Reporte Directivo (IA)</h2>
-        <p style="color: #555; margin-bottom: 20px;">Al hacer clic, se recopilan los KPIs de disciplina, clima laboral, operaciones y padrones para estructurar un informe formal listo para presentar a la Dirección de El Cielo.</p>
+        <p style="color: #555; margin-bottom: 20px;">Al hacer clic, se recopilan los KPIs de disciplina, clima laboral, operaciones y padrones para estructurar un informe formal listo para presentar a la Dirección.</p>
         <button class="btn btn-gemini" onclick="generarReporteAI()">📋 Generar Reporte con Gemini</button>
     </div>
 
     <div id="toast" class="toast">¡Datos recopilados! Abre Gemini y pega (Ctrl+V) el texto.</div>
 
     <script>
-        // Variables Globales de Padrones
+        // Variables Globales de Padrones y Control de Edición
         let padronVehiculos = JSON.parse(localStorage.getItem('padronVehiculos')) || [];
         let padronMascotas = JSON.parse(localStorage.getItem('padronMascotas')) || [];
+        let editIndexVehiculo = -1;
+        let editIndexMascota = -1;
 
         window.onload = function() {
             const hoy = new Date();
@@ -220,7 +229,7 @@
             const recorridosHoy = bdRoc.filter(r => r.fecha === fechaConsulta);
             const encuestasHoy = bdEnc.filter(r => r.fecha === fechaConsulta);
 
-            // 1. ALERTAS (Mantuve tu lógica exacta)
+            // 1. ALERTAS
             const panelAlertas = document.getElementById('panel-alertas');
             panelAlertas.innerHTML = ''; 
             
@@ -249,7 +258,7 @@
                 document.getElementById('det-asistencia').innerText = "Sin registros.";
             }
 
-            // 3. KPI: OPERACIONES (Arribos y Rondines consolidados)
+            // 3. KPI: OPERACIONES
             const fins = recorridosHoy.filter(r => r.estado === 'FIN').length;
             document.getElementById('val-ops').innerText = `${arribosHoy.length} / ${fins}`;
 
@@ -261,30 +270,100 @@
             generarTablaAgentes(astHoy, arribosHoy, recorridosHoy);
         }
 
-        // --- LÓGICA DE PADRONES ---
+        // --- LÓGICA DE PADRONES (ACTUALIZADA CON EDITAR/ELIMINAR) ---
         document.getElementById('formVehiculos').addEventListener('submit', function(e) {
             e.preventDefault();
-            padronVehiculos.push({
+            const nuevoVehiculo = {
                 placa: document.getElementById('vPlaca').value.toUpperCase(),
                 lote: document.getElementById('vLote').value,
                 marca: document.getElementById('vMarca').value,
                 propietario: document.getElementById('vPropietario').value
-            });
+            };
+
+            if (editIndexVehiculo === -1) {
+                padronVehiculos.push(nuevoVehiculo); // Es un registro nuevo
+            } else {
+                padronVehiculos[editIndexVehiculo] = nuevoVehiculo; // Es una edición
+                editIndexVehiculo = -1; // Resetear índice
+                let btn = document.getElementById('btnSubmitVehiculo');
+                btn.innerText = "Registrar Vehículo";
+                btn.classList.replace('btn-edit-mode', 'btn-add');
+            }
+
             localStorage.setItem('padronVehiculos', JSON.stringify(padronVehiculos));
-            this.reset(); renderizarPadrones();
+            this.reset(); 
+            renderizarPadrones();
         });
 
         document.getElementById('formMascotas').addEventListener('submit', function(e) {
             e.preventDefault();
-            padronMascotas.push({
+            const nuevaMascota = {
                 nombre: document.getElementById('mNombre').value,
                 tipo: document.getElementById('mTipo').value,
                 raza: document.getElementById('mRaza').value,
                 lote: document.getElementById('mLote').value
-            });
+            };
+
+            if (editIndexMascota === -1) {
+                padronMascotas.push(nuevaMascota);
+            } else {
+                padronMascotas[editIndexMascota] = nuevaMascota;
+                editIndexMascota = -1;
+                let btn = document.getElementById('btnSubmitMascota');
+                btn.innerText = "Registrar Mascota";
+                btn.classList.replace('btn-edit-mode', 'btn-add');
+            }
+
             localStorage.setItem('padronMascotas', JSON.stringify(padronMascotas));
-            this.reset(); renderizarPadrones();
+            this.reset(); 
+            renderizarPadrones();
         });
+
+        // Funciones para Editar y Eliminar Vehículos
+        window.editarVehiculo = function(index) {
+            const v = padronVehiculos[index];
+            document.getElementById('vPlaca').value = v.placa;
+            document.getElementById('vLote').value = v.lote;
+            document.getElementById('vMarca').value = v.marca;
+            document.getElementById('vPropietario').value = v.propietario;
+            
+            editIndexVehiculo = index;
+            let btn = document.getElementById('btnSubmitVehiculo');
+            btn.innerText = "Actualizar Vehículo";
+            btn.classList.replace('btn-add', 'btn-edit-mode');
+            document.getElementById('vPlaca').focus();
+        };
+
+        window.eliminarVehiculo = function(index) {
+            if(confirm("⚠️ ¿Seguro que deseas eliminar este vehículo del padrón?")) {
+                padronVehiculos.splice(index, 1);
+                localStorage.setItem('padronVehiculos', JSON.stringify(padronVehiculos));
+                renderizarPadrones();
+            }
+        };
+
+        // Funciones para Editar y Eliminar Mascotas
+        window.editarMascota = function(index) {
+            const m = padronMascotas[index];
+            document.getElementById('mNombre').value = m.nombre;
+            document.getElementById('mTipo').value = m.tipo;
+            document.getElementById('mRaza').value = m.raza;
+            document.getElementById('mLote').value = m.lote;
+            
+            editIndexMascota = index;
+            let btn = document.getElementById('btnSubmitMascota');
+            btn.innerText = "Actualizar Mascota";
+            btn.classList.replace('btn-add', 'btn-edit-mode');
+            document.getElementById('mNombre').focus();
+        };
+
+        window.eliminarMascota = function(index) {
+            if(confirm("⚠️ ¿Seguro que deseas eliminar esta mascota del padrón?")) {
+                padronMascotas.splice(index, 1);
+                localStorage.setItem('padronMascotas', JSON.stringify(padronMascotas));
+                renderizarPadrones();
+            }
+        };
 
         function renderizarPadrones() {
             document.getElementById('kpi-vehiculos').innerText = padronVehiculos.length;
@@ -292,14 +371,30 @@
 
             let bodyV = document.getElementById('bodyVehiculos');
             bodyV.innerHTML = '';
-            padronVehiculos.forEach(v => {
-                bodyV.innerHTML += `<tr><td><strong>${v.placa}</strong></td><td>${v.lote}</td><td>${v.marca} <br><small>${v.propietario}</small></td></tr>`;
+            padronVehiculos.forEach((v, index) => {
+                bodyV.innerHTML += `<tr>
+                    <td><strong>${v.placa}</strong></td>
+                    <td>${v.lote}</td>
+                    <td>${v.marca} <br><small>${v.propietario}</small></td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-sm btn-sm-edit" onclick="editarVehiculo(${index})" title="Editar">✏️</button>
+                        <button class="btn-sm btn-sm-del" onclick="eliminarVehiculo(${index})" title="Eliminar">🗑️</button>
+                    </td>
+                </tr>`;
             });
 
             let bodyM = document.getElementById('bodyMascotas');
             bodyM.innerHTML = '';
-            padronMascotas.forEach(m => {
-                bodyM.innerHTML += `<tr><td><strong>${m.nombre}</strong></td><td>${m.tipo} - ${m.raza}</td><td>${m.lote}</td></tr>`;
+            padronMascotas.forEach((m, index) => {
+                bodyM.innerHTML += `<tr>
+                    <td><strong>${m.nombre}</strong></td>
+                    <td>${m.tipo} - ${m.raza}</td>
+                    <td>${m.lote}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-sm btn-sm-edit" onclick="editarMascota(${index})" title="Editar">✏️</button>
+                        <button class="btn-sm btn-sm-del" onclick="eliminarMascota(${index})" title="Eliminar">🗑️</button>
+                    </td>
+                </tr>`;
             });
         }
 
@@ -311,7 +406,39 @@
             });
         }
 
-        // --- LÓGICA DE AUDITORÍA (Tu código original) ---
+        // --- EXPORTAR A EXCEL (NUEVA FUNCIÓN) ---
+        window.exportarExcel = function() {
+            // \uFEFF asegura que Excel lea correctamente los acentos y las ñ (UTF-8 con BOM)
+            let csvContent = "\uFEFF"; 
+            
+            // Sección Vehículos
+            csvContent += "PADRON DE VEHICULOS\n";
+            csvContent += "Placa,Lote/Residencia,Marca y Color,Propietario\n";
+            padronVehiculos.forEach(v => {
+                csvContent += `"${v.placa}","${v.lote}","${v.marca}","${v.propietario}"\n`;
+            });
+            
+            csvContent += "\n"; // Espacio entre tablas
+            
+            // Sección Mascotas
+            csvContent += "PADRON DE MASCOTAS\n";
+            csvContent += "Nombre,Tipo,Raza/Senas,Lote/Residencia\n";
+            padronMascotas.forEach(m => {
+                csvContent += `"${m.nombre}","${m.tipo}","${m.raza}","${m.lote}"\n`;
+            });
+
+            // Crear y descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Padrones_Directorio.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // --- LÓGICA DE AUDITORÍA ---
         function generarTablaAgentes(ast, arr, rec) {
             const tbody = document.getElementById('tabla-agentes');
             tbody.innerHTML = '';
@@ -359,7 +486,7 @@
             let operaciones = document.getElementById('val-ops').innerText;
             let alertasCount = document.querySelectorAll('.alerta-critica, .alerta-retencion').length;
             
-            let promptIA = `Hola Gemini. Actúa como mi Asistente de Gerencia de Seguridad. Necesito que estructures un "Informe Ejecutivo de Operaciones" formal y profesional para presentarlo a la Dirección de El Cielo Parque Residencial.
+            let promptIA = `Hola Gemini. Actúa como mi Asistente de Gerencia de Seguridad. Necesito que estructures un "Informe Ejecutivo de Operaciones" formal y profesional para presentarlo a la Dirección.
 
 Por favor, utiliza estrictamente estos datos reales extraídos de mi tablero de mando del día de hoy:
 - Puntualidad y Disciplina de Tropa: ${puntualidad}.
@@ -385,6 +512,4 @@ Usa un tono directivo, claro y orientado a la gestión y resultados operativos.`
                 alert("No se pudo copiar automáticamente. Da permisos a tu navegador.");
             });
         }
-    </script>
-</body>
-</html>
+    </script></body></html>
