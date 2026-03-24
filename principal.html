@@ -1,371 +1,515 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<!DOCTYPE html><html lang="es"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Comando - El Cielo</title>
+    <title>Centro de Mando Gerencial - El Cielo</title>
     <style>
-        :root { --bg: #0B192C; --panel: #1A2B3C; --text: #E2E8F0; --accent: #3498DB; --green: #27AE60; --red: #E74C3C; --gold: #F39C12; }
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); color: var(--text); }
+        :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #EAECEE; --purple: #8E44AD; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .header { text-align: center; margin-bottom: 20px; background: var(--w); padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         
-        .header { background: #07101d; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
-        .header h1 { margin: 0; font-size: 1.8em; letter-spacing: 2px; color: var(--text); }
-        .header span { color: var(--accent); font-weight: bold; }
+        /* Alertas Críticas */
+        #panel-alertas { margin-bottom: 20px; }
+        .alerta-critica { background: #FDEDEC; border-left: 8px solid var(--r); padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(231,76,60,0.2); display: flex; align-items: center; gap: 15px; animation: pulse 2s infinite;}
+        .alerta-retencion { background: #FEF9E7; border-left: 8px solid var(--o); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px;}
+        .alerta-icono { font-size: 2em; }
+        .alerta-texto h4 { margin: 0 0 5px 0; color: var(--p); }
+        .alerta-texto p { margin: 0; font-size: 0.9em; color: #555; }
         
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; padding-bottom: 60px; }
+        /* Grid KPIs */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;}
+        .kpi-card { background: var(--w); padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-top: 5px solid var(--p); position: relative; }
+        .kpi-title { margin: 0; font-size: 0.85rem; color: #7F8C8D; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;}
+        .kpi-num { font-size: 2.5rem; font-weight: bold; color: var(--p); margin: 10px 0; display: block; }
+        .kpi-small { font-size: 0.85em; color: #7F8C8D; display: block; margin-top:-5px; margin-bottom: 10px;}
         
-        .section-title { font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; margin-bottom: 20px; color: var(--gold); text-transform: uppercase; margin-top: 40px; }
-        .section-title:first-child { margin-top: 0; }
+        .alerta-proactiva { font-size: 0.85em; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center;}
+        .status-ok { background: #EAFAF1; color: var(--g); border: 1px solid #A9DFBF; }
+        .status-warn { background: #FEF9E7; color: #d68910; border: 1px solid #F9E79F; }
+        .status-fail { background: #FDEDEC; color: var(--r); border: 1px solid #F5B7B1; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+        
+        .search-bar { display: inline-flex; align-items: center; gap: 10px; background: var(--t); padding: 10px 20px; border-radius: 8px; margin-top: 15px;}
+        .search-bar input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; color: var(--p); outline: none;}
+        
+        /* Tablas y Directorios */
+        .seccion-panel { background: var(--w); padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .seccion-panel h2 { margin-top: 0; font-size: 1.2em; border-bottom: 2px solid var(--t); padding-bottom: 10px; color: var(--p); display: flex; justify-content: space-between; align-items: center;}
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em;}
+        th { background: var(--p); color: var(--w); padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f9f9f9; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; color: white;}
+        .b-ok { background: var(--g); } .b-fail { background: var(--r); } .b-warn { background: var(--o); } .b-neu { background: #95a5a6; }
+        
+        /* Formularios Padrones */
+        .directorios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        @media (max-width: 900px) { .directorios-grid { grid-template-columns: 1fr; } }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        input[type="text"], select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        .btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; width: 100%; transition: 0.3s; margin-top: 5px; }
+        .btn-add { background: var(--s); } .btn-add:hover { background: #2980b9; }
+        .btn-edit-mode { background: var(--o); } .btn-edit-mode:hover { background: #d68910; }
+        
+        /* Botones de acción en tablas */
+        .btn-sm { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-right: 4px; transition: 0.2s;}
+        .btn-sm:hover { opacity: 0.8; transform: scale(1.1); }
+        .btn-sm-edit { background: #f1c40f; color: #333; }
+        .btn-sm-del { background: var(--r); color: white; }
 
-        /* Grid de Herramientas */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        
-        .card { background: var(--panel); border-radius: 10px; padding: 25px; text-align: center; text-decoration: none; color: var(--text); transition: 0.3s; border: 1px solid #2a3f54; display: flex; flex-direction: column; align-items: center; cursor: pointer; height: 100%; box-sizing: border-box;}
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.4); background: #1f364d; }
-        .card .icon { font-size: 3em; margin-bottom: 15px; }
-        .card h3 { margin: 0 0 10px 0; font-size: 1.2em; }
-        .card p { margin: 0; font-size: 0.85em; color: #95A5A6; flex-grow: 1; }
-
-        /* Colores específicos de tarjetas */
-        .card-mapa:hover .icon { color: var(--accent); }
-        .card-roles:hover .icon { color: var(--green); }
-        .card-panico:hover { border-color: var(--red); }
-        .card-panico:hover .icon { color: var(--red); }
-        
-        /* Colores para secciones específicas */
-        .card-disciplina:hover { border-color: var(--red); }
-        .card-disciplina:hover .icon { color: var(--red); }
-        .card-comandos { border-color: #5D6D7E; }
-        .card-comandos:hover { border-color: var(--text); }
-        .card-confianza { border-color: var(--gold); }
-        .card-confianza:hover { border-color: var(--w); box-shadow: 0 0 15px rgba(243, 156, 18, 0.4); }
-
-        .card-ai { background: #132433; border-color: #8E44AD; }
-        .card-ai:hover { border-color: #9b59b6; box-shadow: 0 0 15px rgba(142, 68, 173, 0.4); }
-
-        /* Modales */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--text); color: #111; padding: 40px; border-radius: 10px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: var(--red); font-weight: bold; }
-        
-        /* Modal Confianza con fondo oscuro */
-        #modalConfianza .modal-content { background: var(--bg); color: var(--text); border: 1px solid var(--gold); }
-        #modalConfianza h2 { color: var(--gold); border-bottom-color: #333; }
-        #modalConfianza .card p { color: #aaa; }
-        
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-    </style>
-</head>
-<body>
+        /* IA Reporte */
+        .panel-ai { border: 2px dashed var(--purple); text-align: center; background: #F4ECF7; }
+        .panel-ai h2 { color: var(--purple); justify-content: center; border-bottom: none; }
+        .btn-gemini { background: var(--purple); font-size: 1.1em; padding: 15px 30px; width: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3); }
+        .btn-gemini:hover { background: #9b59b6; transform: translateY(-2px); }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--g); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    </style></head><body>
 
     <div class="header">
-        <h1>SISTEMA INTEGRAL DE SEGURIDAD <span>EL CIELO</span></h1>
-        <div>COMANDANCIA OPERATIVA</div>
+        <h1 style="margin:0;">📊 Centro de Mando Gerencial - El Cielo</h1>
+        <p style="margin:5px 0 0 0; color:#7F8C8D; font-weight:bold;">Operaciones, Padrones y Auditoría</p>
+        <div class="search-bar">
+            <label>Auditar Fecha:</label>
+            <input type="date" id="fecha_filtro" onchange="auditarDashboard()">
+        </div>
     </div>
 
-    <div class="container">
-        <div class="section-title">🛡️ Herramientas de Operación Diaria</div>
-        <div class="grid">
-            <a href="mapa_tactico.html" class="card card-mapa">
-                <div class="icon">🗺️</div>
-                <h3>Mapa Táctico y Consignas</h3>
-                <p>Gestión de puntos de vigilancia, lotes y trazado de consignas en tiempo real.</p>
-            </a>
+    <div id="panel-alertas"></div>
 
-            <a href="roles_turno.html" class="card card-roles">
-                <div class="icon">🗓️</div>
-                <h3>Rol de Turnos</h3>
-                <p>Asignación semanal de personal, horarios y envíos automáticos por WhatsApp.</p>
-            </a>
+    <div class="grid-kpi">
+        <div class="kpi-card" style="border-top-color: var(--r);">
+            <p class="kpi-title">Disciplina (Puntualidad)</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="kpi-num" id="pct-puntualidad" style="color:var(--r);">--%</span>
+                <span id="kpi-icon-pun" style="font-size:2em;">🚨</span>
+            </div>
+            <span class="kpi-small" id="det-asistencia">Esperando registros...</span>
+        </div>
 
-            <a href="alerta_residentes.html" class="card card-panico">
-                <div class="icon">🚨</div>
-                <h3>Botón de Pánico</h3>
-                <p>Sistema de alerta inmediata para emergencias en el residencial.</p>
-            </a>
+        <div class="kpi-card" style="border-top-color: var(--s);">
+            <p class="kpi-title">Arribos & Patrullaje</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="kpi-num" id="val-ops" style="color:var(--s);">0 / 0</span>
+                <span style="font-size:2em;">📍</span>
+            </div>
+            <span class="kpi-small">Arribos Conf. / Rondines Fin.</span>
+        </div>
 
-            <div class="card card-confianza" onclick="abrirSubmenuConfianza()">
-                <div class="icon">📝</div>
-                <h3>Control y Confianza</h3>
-                <p>Evaluaciones de permanencia y filtros de capacitación para Agentes y Aspirantes.</p>
+        <div class="kpi-card" style="border-top-color: var(--g);">
+            <p class="kpi-title">Clima y Desempeño</p>
+            <div id="rating-results" style="margin-top:10px; text-align:center;">
+                <span style="font-size:1.1em;">😄 <strong id="r-exc" style="color:var(--g);">0</strong></span>
+                <span style="font-size:1.1em; margin: 0 10px;">😐 <strong id="r-bue" style="color:var(--o);">0</strong></span>
+                <span style="font-size:1.1em;">😞 <strong id="r-mal" style="color:var(--r);">0</strong></span>
+            </div>
+            <span class="kpi-small" style="text-align:center; margin-top:15px;">Autocalificación de la jornada</span>
+        </div>
+
+        <div class="kpi-card" style="border-top-color: var(--p);">
+            <p class="kpi-title">Padrones Internos</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="kpi-num" id="kpi-vehiculos" style="color:var(--p);">0</span>
+                <span style="font-size:2em;">🚘</span>
+            </div>
+            <span class="kpi-small">Vehículos Residentes Registrados</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                <span class="kpi-num" id="kpi-mascotas" style="color:var(--p); font-size:1.5em;">0</span>
+                <span style="font-size:1.5em;">🐕</span>
+            </div>
+            <span class="kpi-small">Mascotas Censadas</span>
+        </div>
+    </div>
+
+    <div class="seccion-panel">
+        <h2>📋 Desglose de Operaciones por Agente</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr><th>AGENTE</th><th>ENTRADA</th><th>SALIDA</th><th>RONDINES (FIN/INI)</th><th>ARRIBOS CONF.</th><th>CALIFICACIÓN</th></tr>
+                </thead>
+                <tbody id="tabla-agentes"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="text-align: right; margin-bottom: 15px;">
+        <button class="btn btn-add" style="width: auto; padding: 10px 20px; background-color: var(--g);" onclick="exportarExcel()">📥 Descargar Padrones (Excel)</button>
+    </div>
+
+    <div class="directorios-grid">
+        <div class="seccion-panel">
+            <h2>🚘 Directorio de Vehículos 
+                <input type="text" id="buscVehiculo" placeholder="Buscar placa/lote..." onkeyup="filtrarTabla('tablaVehiculos', 'buscVehiculo')" style="width: 45%; padding: 4px; font-size: 0.8em;">
+            </h2>
+            <form id="formVehiculos">
+                <div class="form-row">
+                    <input type="text" id="vPlaca" placeholder="Placas (Ej. VSA-123)" required>
+                    <input type="text" id="vLote" placeholder="Lote / Residencia" required>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="vMarca" placeholder="Marca y Color" required>
+                    <input type="text" id="vPropietario" placeholder="Nombre Propietario" required>
+                </div>
+                <button type="submit" id="btnSubmitVehiculo" class="btn btn-add">Registrar Vehículo</button>
+            </form>
+            <div style="max-height: 200px; overflow-y: auto;">
+                <table id="tablaVehiculos">
+                    <thead><tr><th>Placa</th><th>Lote</th><th>Vehículo</th><th>Acciones</th></tr></thead>
+                    <tbody id="bodyVehiculos"></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="section-title">📋 Control Administrativo y de Activos</div>
-        <div class="grid">
-            <a href="bitacora_accesos.html" class="card">
-                <div class="icon">🪪</div>
-                <h3>Bitácora de Accesos</h3>
-                <p>Registro y auditoría estricta de entrada y salida de personal y proveedores externos.</p>
-            </a>
-
-            <a href="registro_de_patrullaje.html" class="card">
-                <div class="icon">🚔</div>
-                <h3>Registro de Patrullaje</h3>
-                <p>Captura detallada de novedades, bitácoras y cumplimiento de recorridos de patrulla.</p>
-            </a>
-
-            <a href="registro_drones.html" class="card card-drones">
-                <div class="icon">🚁</div>
-                <h3>Registro de Drones</h3>
-                <p>Control de vuelos, bitácoras de operación y novedades técnicas del equipo aéreo.</p>
-            </a>
-
-            <a href="bitacora_motos.html" class="card card-motos">
-                <div class="icon">🏍️</div>
-                <h3>Bitácora de Motocicletas</h3>
-                <p>Inspección técnica, kilometraje y estado de unidades al inicio y fin de turno.</p>
-            </a>
-
-            <a href="registro_motos.html" class="card card-motos">
-                <div class="icon">🛵</div>
-                <h3>Registro de Motos</h3>
-                <p>Captura de ingresos, salidas y control específico de motocicletas en el complejo.</p>
-            </a>
-        </div>
-
-        <div class="section-title">📊 Gerencia, Auditoría y Portales Maestro</div>
-        <div class="grid">
-            <a href="dashboard_gerencial.html" class="card card-gerencia">
-                <div class="icon">📈</div>
-                <h3>Dashboard Gerencial</h3>
-                <p>Visualización centralizada de KPIs operativa, incidencias y reportes gerenciales en vivo.</p>
-            </a>
-
-            <a href="portal_guardia.html" class="card">
-                <div class="icon">👮</div>
-                <h3>Portal Guardia</h3>
-                <p>Acceso operativo para Agentes de Prevención: novedades, consignas y protocolos.</p>
-            </a>
-
-            <a href="manual_operaciones.html" class="card">
-                <div class="icon">📘</div>
-                <h3>Manual de Operaciones</h3>
-                <p>Protocolos de actuación y consulta operativa para el Agente de Prevención.</p>
-            </a>
-
-            <a href="portal_monitoreo.html" class="card">
-                <div class="icon">🖥️</div>
-                <h3>Portal de Monitoreo</h3>
-                <p>Herramientas de control de CCTV, análisis de novedades y alertas perimetrales.</p>
-            </a>
-
-            <a href="terminal_agentes.html" class="card">
-                <div class="icon">📟</div>
-                <h3>Terminal de Agentes</h3>
-                <p>Punto de acceso para Agentes: reportes rápidos y recepción de consignas en campo.</p>
-            </a>
-        </div>
-
-        <div class="section-title">🚀 Supervisión, Auditoría y Reportes</div>
-        <div class="grid">
-            <a href="supervision_drones.html" class="card card-drones">
-                <div class="icon">🚁</div>
-                <h3>Supervisión de Drones</h3>
-                <p>Herramienta para supervisor: auditoría de vuelos, cumplimiento operativo y novedades aéras.</p>
-            </a>
-
-            <a href="supervision_reportes.html" class="card">
-                <div class="icon">🕵️‍♂️</div>
-                <h3>Supervisión de Reportes</h3>
-                <p>Auditoría avanzada, firma digital y exportación de PDFs de folios disciplinarios.</p>
-            </a>
-
-            <a href="cierre_turno.html" class="card">
-                <div class="icon">🚪</div>
-                <h3>Cierre de Turno</h3>
-                <p>Protocolo administrativo de fin de turno: entrega de equipo, radios y bitácora operativa.</p>
-            </a>
-
-            <a href="encuesta_agentes.html" class="card">
-                <div class="icon">📋</div>
-                <h3>Encuesta de Agentes</h3>
-                <p>Evaluaciones de capacitación, clima laboral y pruebas de conocimiento operativo.</p>
-            </a>
-
-            <a href="auditoria_encuestas.html" class="card">
-                <div class="icon">📑</div>
-                <h3>Auditoría de Encuestas</h3>
-                <p>Análisis centralizado de resultados de encuestas: desempeño operativo y capacitación.</p>
-            </a>
-
-            <a href="ver_bitacora_caseta.html" class="card">
-                <div class="icon">👀</div>
-                <h3>Ver Bitácora de Caseta</h3>
-                <p>Acceso de lectura a las bitácoras operativas registradas en la caseta principal.</p>
-            </a>
-        </div>
-
-        <div class="section-title">💰 Control de Ventas y Club El Cielo</div>
-        <div class="grid">
-            <a href="registro_ventas.html" class="card card-ventas">
-                <div class="icon">💵</div>
-                <h3>Registro de Ventas</h3>
-                <p>Bitácora detallada de transacciones, cobros operativos y control de ingresos diarios.</p>
-            </a>
-
-            <a href="ventas_club.html" class="card card-ventas">
-                <div class="icon">🎫</div>
-                <h3>Ventas Club El Cielo</h3>
-                <p>Control de cobros operativos, accesos y bitácora específica del área del Club.</p>
-            </a>
-        </div>
-
-        <div class="section-title">💻 Terminal de Comandos y Disciplina</div>
-        <div class="grid">
-            <a href="reporte_disciplinario.html" class="card card-disciplina">
-                <div class="icon">⚠️</div>
-                <h3>Reportes Disciplinarios</h3>
-                <p>Generación de actas administrativas, amonestaciones y registro de incidencias del personal.</p>
-            </a>
-
-            <a href="comandos.html" class="card card-comandos">
-                <div class="icon">💻</div>
-                <h3>Plataforma de Comandos</h3>
-                <p>Acceso maestro a la terminal de operaciones, configuraciones globales y registros técnicos.</p>
-            </a>
-
-            <a href="seguridad_integral.html" class="card card-integral">
-                <div class="icon">🌐</div>
-                <h3>Seguridad Integral</h3>
-                <p>Plataforma maestra web de gestión, capacitación y protocolos del complejo.</p>
-            </a>
-        </div>
-
-        <div class="section-title">🧠 Inteligencia Estratégica (Enlace a Gemini)</div>
-        <div class="grid">
-            <div class="card card-ai" onclick="abrirGemini('operativo')">
-                <div class="icon">🤖</div>
-                <h3>Briefing Operativo Diario</h3>
-                <p>Genera un resumen de KPIs, novedades del turno y recomendaciones para el pase de lista.</p>
-            </div>
-
-            <div class="card card-ai" onclick="abrirGemini('noticias')">
-                <div class="icon">📰</div>
-                <h3>Reporte de Riesgos (Sinaloa)</h3>
-                <p>Monitoreo de noticias de seguridad, vialidad y alertas en Mazatlán y el Estado.</p>
-            </div>
-
-            <div class="card" onclick="abrirManual()">
-                <div class="icon">📖</div>
-                <h3>Manual y Justificación</h3>
-                <p>Documento directivo sobre las ventajas operativas de la plataforma.</p>
+        <div class="seccion-panel">
+            <h2>🐕 Directorio de Mascotas 
+                <input type="text" id="buscMascota" placeholder="Buscar raza/lote..." onkeyup="filtrarTabla('tablaMascotas', 'buscMascota')" style="width: 45%; padding: 4px; font-size: 0.8em;">
+            </h2>
+            <form id="formMascotas">
+                <div class="form-row">
+                    <input type="text" id="mNombre" placeholder="Nombre Mascota" required>
+                    <select id="mTipo">
+                        <option value="Perro">Perro</option>
+                        <option value="Gato">Gato</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="mRaza" placeholder="Raza / Señas" required>
+                    <input type="text" id="mLote" placeholder="Lote" required>
+                </div>
+                <button type="submit" id="btnSubmitMascota" class="btn btn-add">Registrar Mascota</button>
+            </form>
+            <div style="max-height: 200px; overflow-y: auto;">
+                <table id="tablaMascotas">
+                    <thead><tr><th>Mascota</th><th>Tipo/Raza</th><th>Lote</th><th>Acciones</th></tr></thead>
+                    <tbody id="bodyMascotas"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div id="modalManual" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="cerrarManual()">&times;</span>
-            <h2 style="color: #0B192C; border-bottom: 2px solid #3498DB; padding-bottom: 10px;">MANUAL OPERATIVO Y VENTAJAS TÁCTICAS</h2>
-            
-            <h3>1. Objetivo de la Plataforma</h3>
-            <p>Digitalizar, centralizar y auditar los procesos de vigilancia en "El Cielo Parque Residencial", eliminando el uso de papel, reduciendo tiempos de respuesta y mejorando la comunicación con los Agentes de Prevención.</p>
-            
-            <h3>2. Funciones de los Repositorios</h3>
-            <p>Este panel integra todos los módulos operativos desarrollados en GitHub para ofrecer un control total:</p>
-            <ul>
-                <li><strong>Operación Diaria:</strong> Mapa Táctico, Roles, Pánico y Exámenes para el personal operativo.</li>
-                <li><strong>Bitácoras y Registros:</strong> Control estricto de accesos, patrullajes, drones, motos y ventas operativas.</li>
-                <li><strong>Gerencia y Portales:</strong> Dashboard Gerencial para KPIs y portales específicos para Guardia y Monitoreo.</li>
-                <li><strong>Supervisión y Auditoría:</strong> Herramientas para auditar drones, encuestas y supervisar reportes disciplinarios.</li>
-                <li><strong>Comandos y Disciplina:</strong> Plataforma de Comandos para control global y Reportes Disciplinarios.</li>
-            </ul>
-
-            <h3>3. Ventajas Competitivas para el Proyecto</h3>
-            <ul>
-                <li><strong>Trazabilidad:</strong> Todo movimiento, consigna y rol queda registrado digitalmente.</li>
-                <li><strong>Ahorro de Recursos:</strong> Disminución drástica en impresión de formatos, bitácoras y papelería.</li>
-                <li><strong>Respuesta Inmediata:</strong> Al estar montado en un servidor web (GitHub), la comandancia puede actualizar operaciones desde un celular o computadora al instante.</li>
-                <li><strong>Imagen Profesional:</strong> Proyecta ante el comité de colonos y directivos un sistema de gestión de seguridad de primer nivel, moderno y eficiente.</li>
-            </ul>
-        </div>
+    <div class="seccion-panel panel-ai">
+        <h2>🧠 Evaluación y Reporte Directivo (IA)</h2>
+        <p style="color: #555; margin-bottom: 20px;">Al hacer clic, se recopilan los KPIs de disciplina, clima laboral, operaciones y padrones para estructurar un informe formal listo para presentar a la Dirección.</p>
+        <button class="btn btn-gemini" onclick="generarReporteAI()">📋 Generar Reporte con Gemini</button>
     </div>
 
-    <div id="modalConfianza" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="cerrarSubmenuConfianza()">&times;</span>
-            <h2 style="border-bottom: 2px solid var(--gold); padding-bottom: 10px;">MENÚ CONTROL Y CONFIANZA</h2>
-            
-            <p style="margin-bottom: 30px; font-size: 0.9em;">Seleccione la herramienta de evaluación o la bitácora de resultados correspondiente:</p>
-
-            <div class="grid">
-                <a href="examen_aspirantes.html" class="card">
-                    <div class="icon">📝</div>
-                    <h3>Examen Aspirantes</h3>
-                    <p>Proceso de Selección de Seguridad: Evaluación psicológica y de confiabilidad.</p>
-                </a>
-                <a href="examen_activos.html" class="card">
-                    <div class="icon">📖</div>
-                    <h3>Examen Agentes Activos</h3>
-                    <p>Test de Actualización Operativa y Manual de Prevención.</p>
-                </a>
-
-                <a href="bitacora_reclutamiento.html" class="card">
-                    <div class="icon">📑</div>
-                    <h3>Bitácora de Reclutamiento</h3>
-                    <p>Resultados y dictámenes de aspirantes (Apto, Dudoso, No Apto).</p>
-                </a>
-                <a href="bitacora_activos.html" class="card">
-                    <div class="icon">✅</div>
-                    <h3>Bitácora de Capacitación</h3>
-                    <p>Resultados y estatus de capacitación de agentes activos.</p>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast">¡Instrucción copiada! Pegala en el chat de Gemini.</div>
+    <div id="toast" class="toast">¡Datos recopilados! Abre Gemini y pega (Ctrl+V) el texto.</div>
 
     <script>
-        function abrirManual() {
-            document.getElementById('modalManual').style.display = 'flex';
-        }
+        // Variables Globales de Padrones y Control de Edición
+        let padronVehiculos = JSON.parse(localStorage.getItem('padronVehiculos')) || [];
+        let padronMascotas = JSON.parse(localStorage.getItem('padronMascotas')) || [];
+        let editIndexVehiculo = -1;
+        let editIndexMascota = -1;
 
-        function cerrarManual() {
-            document.getElementById('modalManual').style.display = 'none';
-        }
-
-        function abrirGemini(tipo) {
-            let promptText = "";
+        window.onload = function() {
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            document.getElementById('fecha_filtro').value = `${yyyy}-${mm}-${dd}`;
             
-            if (tipo === 'operativo') {
-                promptText = "Actúa como mi Analista de Seguridad. Basado en mis registros recientes, ayúdame a estructurar mi Briefing diario para los Agentes de Prevención en El Cielo Parque Residencial. Hazme preguntas sobre qué pasó en el turno de noche, cuáles son mis KPIs actuales (cobertura, incidencias) y redacta un plan de acción de 3 puntos para mi pase de lista de hoy.";
-            } else if (tipo === 'noticias') {
-                promptText = "Actúa como mi monitor de inteligencia de fuentes abiertas (OSINT). Dame un reporte resumido de las noticias más relevantes de las últimas 24 a 48 horas en Mazatlán y el estado de Sinaloa enfocadas estrictamente en: Seguridad pública, bloqueos viales, orden público y riesgos que puedan afectar la operación de vigilancia en un complejo residencial.";
+            auditarDashboard();
+            renderizarPadrones();
+        };
+
+        function auditarDashboard() {
+            const fechaConsulta = document.getElementById('fecha_filtro').value;
+            
+            const bdAst = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
+            const bdOps = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
+            const bdRoc = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
+            const bdEnc = JSON.parse(localStorage.getItem('bd_encuestas')) || []; 
+
+            const astHoy = bdAst.filter(r => r.fecha === fechaConsulta);
+            const entradasHoy = astHoy.filter(r => r.tipo === 'ENTRADA');
+            const salidasHoy = astHoy.filter(r => r.tipo === 'SALIDA');
+            const arribosHoy = bdOps.filter(r => r.fecha === fechaConsulta && r.accion === 'ARRIBO CONFIRMADO');
+            const recorridosHoy = bdRoc.filter(r => r.fecha === fechaConsulta);
+            const encuestasHoy = bdEnc.filter(r => r.fecha === fechaConsulta);
+
+            // 1. ALERTAS
+            const panelAlertas = document.getElementById('panel-alertas');
+            panelAlertas.innerHTML = ''; 
+            
+            encuestasHoy.forEach(enc => {
+                if(enc.vulnerabilidad && enc.vulnerabilidad !== 'Ninguna' && enc.vulnerabilidad.trim() !== '') {
+                    panelAlertas.innerHTML += `<div class="alerta-critica"><div class="alerta-icono">🚨</div><div class="alerta-texto"><h4>Vulnerabilidad Detectada por ${enc.agente.replace('AGENTE ', '')}</h4><p><strong>Reporte:</strong> "${enc.vulnerabilidad}"</p></div></div>`;
+                }
+                if(enc.animo === 'Desmotivado' || enc.animo === 'Cansado') {
+                    const tipo = enc.animo === 'Desmotivado' ? 'Riesgo de Baja' : 'Desgaste Operativo';
+                    const color = enc.animo === 'Desmotivado' ? 'var(--r)' : 'var(--o)';
+                    panelAlertas.innerHTML += `<div class="alerta-retencion" style="border-left-color: ${color};"><div class="alerta-icono">⚠️</div><div class="alerta-texto"><h4 style="color:${color};">Alerta de Clima: ${tipo} (${enc.agente.replace('AGENTE ', '')})</h4><p>El elemento reporta sentirse <strong>${enc.animo.toUpperCase()}</strong>. Se sugiere acercamiento gerencial. Comentarios: "${enc.comentarios}"</p></div></div>`;
+                }
+            });
+
+            // 2. KPI: PUNTUALIDAD
+            const retadosHoy = entradasHoy.filter(r => r.estatus === 'RETARDO');
+            if (entradasHoy.length > 0) {
+                const aTiempoCount = entradasHoy.length - retadosHoy.length;
+                const pct = Math.round((aTiempoCount / entradasHoy.length) * 100);
+                document.getElementById('pct-puntualidad').innerText = pct + "%";
+                document.getElementById('pct-puntualidad').style.color = (pct >= 90) ? 'var(--g)' : 'var(--r)';
+                document.getElementById('kpi-icon-pun').innerText = (pct >= 90) ? '✔️' : '🚨';
+                document.getElementById('det-asistencia').innerText = `${entradasHoy.length} Entradas | ${retadosHoy.length} Retardos.`;
+            } else {
+                document.getElementById('pct-puntualidad').innerText = "--%";
+                document.getElementById('det-asistencia').innerText = "Sin registros.";
             }
 
-            navigator.clipboard.writeText(promptText).then(() => {
-                let toast = document.getElementById("toast");
-                toast.style.display = "block";
-                setTimeout(function(){ toast.style.display = "none"; }, 4000);
-                
-                setTimeout(function(){
-                    window.open('https://gemini.google.com/app', '_blank');
-                }, 1500);
-            }).catch(err => {
-                alert("No se pudo copiar el texto. Intenta abrir Gemini manualmente.");
+            // 3. KPI: OPERACIONES
+            const fins = recorridosHoy.filter(r => r.estado === 'FIN').length;
+            document.getElementById('val-ops').innerText = `${arribosHoy.length} / ${fins}`;
+
+            // 4. KPI: DESEMPEÑO
+            document.getElementById('r-exc').innerText = salidasHoy.filter(r => r.rating === 'EXCELENTE').length;
+            document.getElementById('r-bue').innerText = salidasHoy.filter(r => r.rating === 'BUENO').length;
+            document.getElementById('r-mal').innerText = salidasHoy.filter(r => r.rating === 'MALO').length;
+
+            generarTablaAgentes(astHoy, arribosHoy, recorridosHoy);
+        }
+
+        // --- LÓGICA DE PADRONES (ACTUALIZADA CON EDITAR/ELIMINAR) ---
+        document.getElementById('formVehiculos').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nuevoVehiculo = {
+                placa: document.getElementById('vPlaca').value.toUpperCase(),
+                lote: document.getElementById('vLote').value,
+                marca: document.getElementById('vMarca').value,
+                propietario: document.getElementById('vPropietario').value
+            };
+
+            if (editIndexVehiculo === -1) {
+                padronVehiculos.push(nuevoVehiculo); // Es un registro nuevo
+            } else {
+                padronVehiculos[editIndexVehiculo] = nuevoVehiculo; // Es una edición
+                editIndexVehiculo = -1; // Resetear índice
+                let btn = document.getElementById('btnSubmitVehiculo');
+                btn.innerText = "Registrar Vehículo";
+                btn.classList.replace('btn-edit-mode', 'btn-add');
+            }
+
+            localStorage.setItem('padronVehiculos', JSON.stringify(padronVehiculos));
+            this.reset(); 
+            renderizarPadrones();
+        });
+
+        document.getElementById('formMascotas').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nuevaMascota = {
+                nombre: document.getElementById('mNombre').value,
+                tipo: document.getElementById('mTipo').value,
+                raza: document.getElementById('mRaza').value,
+                lote: document.getElementById('mLote').value
+            };
+
+            if (editIndexMascota === -1) {
+                padronMascotas.push(nuevaMascota);
+            } else {
+                padronMascotas[editIndexMascota] = nuevaMascota;
+                editIndexMascota = -1;
+                let btn = document.getElementById('btnSubmitMascota');
+                btn.innerText = "Registrar Mascota";
+                btn.classList.replace('btn-edit-mode', 'btn-add');
+            }
+
+            localStorage.setItem('padronMascotas', JSON.stringify(padronMascotas));
+            this.reset(); 
+            renderizarPadrones();
+        });
+
+        // Funciones para Editar y Eliminar Vehículos
+        window.editarVehiculo = function(index) {
+            const v = padronVehiculos[index];
+            document.getElementById('vPlaca').value = v.placa;
+            document.getElementById('vLote').value = v.lote;
+            document.getElementById('vMarca').value = v.marca;
+            document.getElementById('vPropietario').value = v.propietario;
+            
+            editIndexVehiculo = index;
+            let btn = document.getElementById('btnSubmitVehiculo');
+            btn.innerText = "Actualizar Vehículo";
+            btn.classList.replace('btn-add', 'btn-edit-mode');
+            document.getElementById('vPlaca').focus();
+        };
+
+        window.eliminarVehiculo = function(index) {
+            if(confirm("⚠️ ¿Seguro que deseas eliminar este vehículo del padrón?")) {
+                padronVehiculos.splice(index, 1);
+                localStorage.setItem('padronVehiculos', JSON.stringify(padronVehiculos));
+                renderizarPadrones();
+            }
+        };
+
+        // Funciones para Editar y Eliminar Mascotas
+        window.editarMascota = function(index) {
+            const m = padronMascotas[index];
+            document.getElementById('mNombre').value = m.nombre;
+            document.getElementById('mTipo').value = m.tipo;
+            document.getElementById('mRaza').value = m.raza;
+            document.getElementById('mLote').value = m.lote;
+            
+            editIndexMascota = index;
+            let btn = document.getElementById('btnSubmitMascota');
+            btn.innerText = "Actualizar Mascota";
+            btn.classList.replace('btn-add', 'btn-edit-mode');
+            document.getElementById('mNombre').focus();
+        };
+
+        window.eliminarMascota = function(index) {
+            if(confirm("⚠️ ¿Seguro que deseas eliminar esta mascota del padrón?")) {
+                padronMascotas.splice(index, 1);
+                localStorage.setItem('padronMascotas', JSON.stringify(padronMascotas));
+                renderizarPadrones();
+            }
+        };
+
+        function renderizarPadrones() {
+            document.getElementById('kpi-vehiculos').innerText = padronVehiculos.length;
+            document.getElementById('kpi-mascotas').innerText = padronMascotas.length;
+
+            let bodyV = document.getElementById('bodyVehiculos');
+            bodyV.innerHTML = '';
+            padronVehiculos.forEach((v, index) => {
+                bodyV.innerHTML += `<tr>
+                    <td><strong>${v.placa}</strong></td>
+                    <td>${v.lote}</td>
+                    <td>${v.marca} <br><small>${v.propietario}</small></td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-sm btn-sm-edit" onclick="editarVehiculo(${index})" title="Editar">✏️</button>
+                        <button class="btn-sm btn-sm-del" onclick="eliminarVehiculo(${index})" title="Eliminar">🗑️</button>
+                    </td>
+                </tr>`;
+            });
+
+            let bodyM = document.getElementById('bodyMascotas');
+            bodyM.innerHTML = '';
+            padronMascotas.forEach((m, index) => {
+                bodyM.innerHTML += `<tr>
+                    <td><strong>${m.nombre}</strong></td>
+                    <td>${m.tipo} - ${m.raza}</td>
+                    <td>${m.lote}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-sm btn-sm-edit" onclick="editarMascota(${index})" title="Editar">✏️</button>
+                        <button class="btn-sm btn-sm-del" onclick="eliminarMascota(${index})" title="Eliminar">🗑️</button>
+                    </td>
+                </tr>`;
             });
         }
 
-        function abrirSubmenuConfianza() {
-            document.getElementById('modalConfianza').style.display = 'flex';
+        function filtrarTabla(tablaId, inputId) {
+            let input = document.getElementById(inputId).value.toLowerCase();
+            let filas = document.querySelectorAll(`#${tablaId} tbody tr`);
+            filas.forEach(fila => {
+                fila.style.display = fila.innerText.toLowerCase().includes(input) ? "" : "none";
+            });
         }
 
-        function cerrarSubmenuConfianza() {
-            document.getElementById('modalConfianza').style.display = 'none';
+        // --- EXPORTAR A EXCEL (NUEVA FUNCIÓN) ---
+        window.exportarExcel = function() {
+            // \uFEFF asegura que Excel lea correctamente los acentos y las ñ (UTF-8 con BOM)
+            let csvContent = "\uFEFF"; 
+            
+            // Sección Vehículos
+            csvContent += "PADRON DE VEHICULOS\n";
+            csvContent += "Placa,Lote/Residencia,Marca y Color,Propietario\n";
+            padronVehiculos.forEach(v => {
+                csvContent += `"${v.placa}","${v.lote}","${v.marca}","${v.propietario}"\n`;
+            });
+            
+            csvContent += "\n"; // Espacio entre tablas
+            
+            // Sección Mascotas
+            csvContent += "PADRON DE MASCOTAS\n";
+            csvContent += "Nombre,Tipo,Raza/Senas,Lote/Residencia\n";
+            padronMascotas.forEach(m => {
+                csvContent += `"${m.nombre}","${m.tipo}","${m.raza}","${m.lote}"\n`;
+            });
+
+            // Crear y descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Padrones_Directorio.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // --- LÓGICA DE AUDITORÍA ---
+        function generarTablaAgentes(ast, arr, rec) {
+            const tbody = document.getElementById('tabla-agentes');
+            tbody.innerHTML = '';
+            let agentesUnicos = new Set();
+            ast.forEach(r => agentesUnicos.add(r.agente));
+            arr.forEach(r => agentesUnicos.add(r.agente));
+            rec.forEach(r => agentesUnicos.add(r.agente));
+
+            if(agentesUnicos.size === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">No hay actividad operativa registrada para esta fecha.</td></tr>`;
+                return;
+            }
+
+            agentesUnicos.forEach(nombre => {
+                const entradas = ast.filter(a => a.agente === nombre && a.tipo === 'ENTRADA');
+                const salidas = ast.filter(a => a.agente === nombre && a.tipo === 'SALIDA');
+                const arribos = arr.filter(a => a.agente === nombre).length;
+                const r_ini = rec.filter(a => a.agente === nombre && a.estado === 'INICIO').length;
+                const r_fin = rec.filter(a => a.agente === nombre && a.estado === 'FIN').length;
+
+                let txtEntrada = '<span class="badge b-neu">Sin registro</span>';
+                if(entradas.length > 0) {
+                    const ult = entradas[entradas.length - 1];
+                    const bColor = ult.estatus === 'A TIEMPO' ? 'b-ok' : 'b-fail';
+                    txtEntrada = `${ult.hora} <span class="badge ${bColor}">${ult.estatus}</span>`;
+                }
+
+                let txtSalida = '<span class="badge b-neu">Sin registro</span>'; let rating = '---';
+                if(salidas.length > 0) {
+                    const ult = salidas[salidas.length - 1]; txtSalida = `${ult.hora}`;
+                    if(ult.rating === 'EXCELENTE') rating = '😄 Excelente';
+                    if(ult.rating === 'BUENO') rating = '😐 Bueno';
+                    if(ult.rating === 'MALO') rating = '😞 Malo';
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${nombre.replace('AGENTE ', '')}</strong></td><td>${txtEntrada}</td><td>${txtSalida}</td><td>${r_fin} / ${r_ini}</td><td>${arribos}</td><td>${rating}</td>`;
+                tbody.appendChild(tr);
+            });
         }
 
-        window.onclick = function(event) {
-            let modalManual = document.getElementById('modalManual');
-            let modalConfianza = document.getElementById('modalConfianza');
-            if (event.target == modalManual) {
-                modalManual.style.display = "none";
-            }
-            if (event.target == modalConfianza) {
-                modalConfianza.style.display = "none";
-            }
+        // --- EXPORTACIÓN IA (GEMINI) ---
+        function generarReporteAI() {
+            let puntualidad = document.getElementById('pct-puntualidad').innerText;
+            let operaciones = document.getElementById('val-ops').innerText;
+            let alertasCount = document.querySelectorAll('.alerta-critica, .alerta-retencion').length;
+            
+            let promptIA = `Hola Gemini. Actúa como mi Asistente de Gerencia de Seguridad. Necesito que estructures un "Informe Ejecutivo de Operaciones" formal y profesional para presentarlo a la Dirección.
+
+Por favor, utiliza estrictamente estos datos reales extraídos de mi tablero de mando del día de hoy:
+- Puntualidad y Disciplina de Tropa: ${puntualidad}.
+- Operaciones en Campo (Arribos / Rondines finalizados): ${operaciones}.
+- Alertas Críticas o de Retención reportadas: ${alertasCount}.
+- Avance del Padrón Vehicular de Residentes: ${padronVehiculos.length} vehículos registrados.
+- Avance del Padrón de Mascotas (Prevención de extravíos): ${padronMascotas.length} registros.
+
+Estructura el informe en 4 partes:
+1. Resumen Ejecutivo (Contexto general).
+2. Estado de Auditoría de Caseta, Disciplina y Operaciones (Analiza la puntualidad, rondines y alertas de las encuestas).
+3. Actualización de Padrones Internos (Beneficios de tener censados vehículos y mascotas).
+4. Conclusiones y 2 recomendaciones estratégicas para mantener el control.
+
+Usa un tono directivo, claro y orientado a la gestión y resultados operativos.`;
+
+            navigator.clipboard.writeText(promptIA).then(() => {
+                let toast = document.getElementById("toast");
+                toast.style.display = "block";
+                setTimeout(() => toast.style.display = "none", 4500);
+                setTimeout(() => window.open('https://gemini.google.com/app', '_blank'), 1500);
+            }).catch(err => {
+                alert("No se pudo copiar automáticamente. Da permisos a tu navegador.");
+            });
         }
-    </script>
-</body>
-</html>
+    </script></body></html>
