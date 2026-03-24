@@ -3,262 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Llaves - El Cielo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    
+    <title>Control de Llaves y Auditoría - El Cielo</title>
     <style>
         :root { --bg: #0B192C; --panel: #1A2B3C; --text: #E2E8F0; --accent: #3498DB; --green: #27AE60; --red: #E74C3C; --gold: #F39C12; }
-        body { margin: 0; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); color: var(--text); }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg); color: var(--text); }
         
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 1.5em; text-transform: uppercase; color: var(--gold); }
+        .header { background: #07101d; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .header h1 { margin: 0; font-size: 1.5em; color: var(--text); }
+        .header span { color: var(--gold); }
+        
+        .container { max-width: 1300px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
 
-        .panel { background: var(--panel); border: 1px solid #2a3f54; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-        
-        .form-row { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
-        @media (min-width: 600px) { .form-row { grid-template-columns: 1fr 1fr; } }
-        
-        label { font-size: 0.9em; color: #95A5A6; font-weight: bold; margin-bottom: 5px; display: block; }
-        input, select { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #334; background: #132433; color: white; box-sizing: border-box; font-size: 1em; }
+        .panel { background: var(--panel); border-radius: 8px; padding: 20px; border: 1px solid #2a3f54; }
+        .panel h2 { margin-top: 0; font-size: 1.2em; border-bottom: 1px solid #334; padding-bottom: 10px; color: var(--accent); display: flex; justify-content: space-between; align-items: center;}
+
+        /* Formulario y Buscador */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #95A5A6; }
+        input[type="text"], select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #334; background: #132433; color: white; box-sizing: border-box; font-size: 1em; }
         input:focus, select:focus { outline: none; border-color: var(--accent); }
-
-        /* Contenedor de Firma Táctil */
-        .firma-container { border: 2px dashed #7f8c8d; border-radius: 8px; background: #fff; touch-action: none; /* Bloquea el scroll al tocar aquí */ }
-        canvas { display: block; width: 100%; height: 150px; cursor: crosshair; }
-        .firma-acciones { text-align: right; margin-top: 5px; }
-        .btn-limpiar { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-
-        .btn { padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; width: 100%; font-size: 1.1em; margin-top: 10px; }
-        .btn-add { background: var(--green); }
-        .btn-pdf { background: var(--red); margin-bottom: 15px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85em; background: var(--panel); }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #2a3f54; }
-        th { background: #132433; color: var(--accent); }
-        .status-prestada { color: var(--red); font-weight: bold; }
-        .status-devuelta { color: var(--green); font-weight: bold; }
         
-        .btn-devolver { background: var(--accent); border: none; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.9em; }
+        /* Canvas de Firma */
+        .firma-container { background: #fff; border-radius: 5px; padding: 5px; margin-bottom: 10px; }
+        canvas { border: 1px dashed #ccc; width: 100%; height: 150px; cursor: crosshair; touch-action: none; background: #fff; border-radius: 3px; }
+        .btn-limpiar { background: #7f8c8d; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-top: 5px; }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 1em; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; text-align: center; margin-top: 10px; }
+        .btn-blue { background: var(--accent); }
+        .btn-blue:hover { background: #2980b9; }
+        
+        /* Buscador Auditoría */
+        .buscador-auditoria { padding: 8px; border-radius: 5px; border: 1px solid var(--gold); background: #132433; color: white; width: 60%; font-size: 0.9em; }
+
+        /* Tablas */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #2a3f54; vertical-align: middle; }
+        th { background: #132433; color: var(--gold); }
+        
+        .firma-img { max-height: 40px; background: #fff; border-radius: 3px; padding: 2px; }
+
+        /* Alertas */
+        .row-pendiente { border-left: 4px solid var(--red); background: rgba(231, 76, 60, 0.05); }
+        .badge-alerta { background: var(--red); color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; font-weight: bold; animation: blink 2s infinite; }
+        .badge-ok { background: var(--green); color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .btn-recibir { background: var(--green); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
+        .btn-recibir:hover { background: #219653; }
+        .empty-msg { text-align: center; color: #7f8c8d; padding: 20px; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🔑 Control de Llaves</h1>
-        <p style="color: #95A5A6; margin: 5px 0 0 0;">El Cielo Parque Residencial</p>
+        <h1>🔑 CONTROL DE LLAVES Y AUDITORÍA <span>CASETA</span></h1>
+        <div>El Cielo Parque Residencial</div>
     </div>
 
-    <div class="panel">
-        <form id="formLlaves">
-            <div class="form-row">
-                <div>
-                    <label>Llave / Espacio:</label>
-                    <input type="text" id="llaveId" placeholder="Ej. Cuarto de Máquinas" required>
+    <div class="container">
+        <div class="panel">
+            <h2>1. Registro de Salida</h2>
+            <form id="formLlaves">
+                <div class="form-group">
+                    <label>Agente en Caseta (Turno):</label>
+                    <input type="text" id="nombreGuardia" required placeholder="Nombre del guardia que entrega">
                 </div>
-                <div>
-                    <label>Entregada a (Nombre/Empresa):</label>
-                    <input type="text" id="persona" placeholder="Nombre de quien recibe" required>
+                <div class="form-group">
+                    <label>Llave Solicitada:</label>
+                    <input type="text" id="nombreLlave" required placeholder="Ej. Cuarto de Máquinas">
                 </div>
+                <div class="form-group">
+                    <label>Persona que recibe la llave:</label>
+                    <input type="text" id="nombrePersona" required placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Departamento / Empresa:</label>
+                    <select id="departamento">
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Administración">Administración</option>
+                        <option value="Proveedor Externo">Proveedor Externo</option>
+                        <option value="Seguridad">Seguridad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Firma de Conformidad (Quien recibe):</label>
+                    <div class="firma-container">
+                        <canvas id="pizarraFirma"></canvas>
+                        <button type="button" class="btn-limpiar" onclick="limpiarFirma()">Limpiar Firma</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-blue">Registrar Salida y Guardar Firma</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2>2. Llaves Pendientes (Fuera de Caseta)</h2>
+            <div class="table-responsive">
+                <table id="tablaPendientes">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Llave</th>
+                            <th>Entregada a</th>
+                            <th>Agente Autoriza</th>
+                            <th>Hora Salida</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyPendientes"></tbody>
+                </table>
             </div>
 
-            <label>Firma de Recepción (Firme aquí 👇):</label>
-            <div class="firma-container">
-                <canvas id="firmaCanvas"></canvas>
+            <h2 style="margin-top: 30px; border-color: var(--green); color: var(--green);">
+                3. Auditoría de Llaves 
+                <input type="text" id="buscadorAuditoria" class="buscador-auditoria" placeholder="🔍 Buscar por fecha, nombre, llave..." onkeyup="filtrarBitacora()">
+            </h2>
+            <div class="table-responsive">
+                <table id="tablaHistorial">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Llave</th>
+                            <th>Entregada a / Firma</th>
+                            <th>Agente (Caseta)</th>
+                            <th>Tiempos</th>
+                            <th>Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyHistorial"></tbody>
+                </table>
             </div>
-            <div class="firma-acciones">
-                <button type="button" class="btn-limpiar" onclick="limpiarFirma()">Limpiar Firma</button>
-            </div>
-
-            <button type="submit" class="btn btn-add">Registrar Salida de Llave</button>
-        </form>
-    </div>
-
-    <div>
-        <button class="btn btn-pdf" onclick="exportarPDF()">📄 Descargar Reporte PDF</button>
-    </div>
-    
-    <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #2a3f54;">
-        <table id="tablaLlaves">
-            <thead>
-                <tr>
-                    <th>Fecha/Hora Salida</th>
-                    <th>Llave</th>
-                    <th>Entregada a</th>
-                    <th>Estatus</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="bodyLlaves"></tbody>
-        </table>
+        </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN DEL CANVAS (SOPORTE MÓVIL Y PC) ---
-        const canvas = document.getElementById('firmaCanvas');
+        // --- LÓGICA DE LA FIRMA (CANVAS) ---
+        const canvas = document.getElementById('pizarraFirma');
         const ctx = canvas.getContext('2d');
         let dibujando = false;
 
-        // Ajustar tamaño real del canvas para evitar distorsiones
+        // Ajustar el tamaño real del canvas
         function ajustarCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width - 12; // padding
             canvas.height = 150;
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
         }
         window.addEventListener('resize', ajustarCanvas);
         ajustarCanvas();
 
-        // Obtener coordenadas exactas (Mouse o Touch)
         function obtenerPosicion(e) {
-            let rect = canvas.getBoundingClientRect();
-            let evt = e.touches ? e.touches : e;
+            const rect = canvas.getBoundingClientRect();
+            let clienteX = e.clientX || (e.touches && e.touches.clientX);
+            let clienteY = e.clientY || (e.touches && e.touches.clientY);
             return {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
+                x: clienteX - rect.left,
+                y: clienteY - rect.top
             };
         }
 
-        // Eventos de dibujo
-        function iniciarDibujo(e) {
-            e.preventDefault(); // Evita el scroll en móviles
-            dibujando = true;
-            let pos = obtenerPosicion(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
+        const iniciarDibujo = (e) => {
+            e.preventDefault(); dibujando = true;
+            const pos = obtenerPosicion(e);
+            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+        };
 
-        function trazar(e) {
-            e.preventDefault();
+        const dibujar = (e) => {
             if (!dibujando) return;
-            let pos = obtenerPosicion(e);
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }
-
-        function detenerDibujo(e) {
             e.preventDefault();
-            dibujando = false;
-        }
+            const pos = obtenerPosicion(e);
+            ctx.lineTo(pos.x, pos.y); ctx.stroke();
+        };
 
-        // Listeners Mouse
+        const detenerDibujo = () => { dibujando = false; };
+
         canvas.addEventListener('mousedown', iniciarDibujo);
-        canvas.addEventListener('mousemove', trazar);
+        canvas.addEventListener('mousemove', dibujar);
         canvas.addEventListener('mouseup', detenerDibujo);
-        canvas.addEventListener('mouseleave', detenerDibujo);
+        canvas.addEventListener('mouseout', detenerDibujo);
 
-        // Listeners Touch (Celulares)
-        canvas.addEventListener('touchstart', iniciarDibujo, { passive: false });
-        canvas.addEventListener('touchmove', trazar, { passive: false });
-        canvas.addEventListener('touchend', detenerDibujo, { passive: false });
+        // Soporte para pantallas táctiles (Celulares/Tablets)
+        canvas.addEventListener('touchstart', iniciarDibujo, {passive: false});
+        canvas.addEventListener('touchmove', dibujar, {passive: false});
+        canvas.addEventListener('touchend', detenerDibujo);
 
         function limpiarFirma() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // --- 2. GESTIÓN DE DATOS ---
-        let bitacoraLlaves = JSON.parse(localStorage.getItem('bitacoraLlaves')) || [];
+        function esFirmaVacia() {
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width; blank.height = canvas.height;
+            return canvas.toDataURL() === blank.toDataURL();
+        }
 
-        function renderizarTabla() {
-            const tbody = document.getElementById('bodyLlaves');
-            tbody.innerHTML = '';
-            
-            bitacoraLlaves.forEach((reg, index) => {
-                let estatusClass = reg.estatus === 'Pendiente' ? 'status-prestada' : 'status-devuelta';
-                let btnDevolver = reg.estatus === 'Pendiente' 
-                    ? `<button class="btn-devolver" onclick="registrarDevolucion(${index})">Recibir Llave</button>` 
-                    : `<span>Devuelta: ${reg.horaDevolucion}</span>`;
+        // --- LÓGICA DE LA BITÁCORA ---
+        let registrosLlaves = JSON.parse(localStorage.getItem('bitacoraLlaves')) || [];
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${reg.fechaSalida} <br> ${reg.horaSalida}</td>
-                        <td><strong>${reg.llave}</strong></td>
-                        <td>${reg.persona}</td>
-                        <td class="${estatusClass}">${reg.estatus}</td>
-                        <td>${btnDevolver}</td>
-                    </tr>
-                `;
-            });
+        function obtenerFecha() {
+            let opciones = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date().toLocaleDateString('es-MX', opciones);
+        }
+
+        function obtenerHora() {
+            let ahora = new Date();
+            return `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
         }
 
         document.getElementById('formLlaves').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validar que haya firmado (si el canvas está en blanco)
-            const canvasBlank = document.createElement('canvas');
-            canvasBlank.width = canvas.width; canvasBlank.height = canvas.height;
-            if (canvas.toDataURL() === canvasBlank.toDataURL()) {
-                alert("Por favor, solicite la firma de recepción.");
+            if (esFirmaVacia()) {
+                alert("⚠️ Por favor, solicita la firma de quien recibe la llave.");
                 return;
             }
 
-            const ahora = new Date();
-            const nuevoRegistro = {
-                fechaSalida: ahora.toLocaleDateString(),
-                horaSalida: ahora.toLocaleTimeString(),
-                llave: document.getElementById('llaveId').value.toUpperCase(),
-                persona: document.getElementById('persona').value.toUpperCase(),
-                estatus: 'Pendiente',
-                horaDevolucion: '-',
-                firma: canvas.toDataURL() // Guarda la firma como imagen
+            let nuevoRegistro = {
+                id: Date.now(),
+                fecha: obtenerFecha(),
+                guardia: document.getElementById('nombreGuardia').value,
+                llave: document.getElementById('nombreLlave').value,
+                persona: document.getElementById('nombrePersona').value,
+                departamento: document.getElementById('departamento').value,
+                firma: canvas.toDataURL(), // Guarda la imagen en base64
+                horaSalida: obtenerHora(),
+                horaEntrada: null,
+                estatus: 'Pendiente'
             };
 
-            bitacoraLlaves.push(nuevoRegistro);
-            localStorage.setItem('bitacoraLlaves', JSON.stringify(bitacoraLlaves));
+            registrosLlaves.push(nuevoRegistro);
+            localStorage.setItem('bitacoraLlaves', JSON.stringify(registrosLlaves));
             
-            this.reset();
+            // Limpiar formulario excepto el guardia
+            document.getElementById('nombreLlave').value = '';
+            document.getElementById('nombrePersona').value = '';
             limpiarFirma();
-            renderizarTabla();
+            renderizarTablas();
         });
 
-        window.registrarDevolucion = function(index) {
-            if(confirm('¿Confirmas que la llave fue devuelta en su lugar?')) {
-                const ahora = new Date();
-                bitacoraLlaves[index].estatus = 'Devuelta';
-                bitacoraLlaves[index].horaDevolucion = ahora.toLocaleTimeString();
-                localStorage.setItem('bitacoraLlaves', JSON.stringify(bitacoraLlaves));
-                renderizarTabla();
+        function recibirLlave(id) {
+            let registro = registrosLlaves.find(r => r.id === id);
+            if (registro) {
+                registro.horaEntrada = obtenerHora();
+                registro.estatus = 'Devuelta';
+                localStorage.setItem('bitacoraLlaves', JSON.stringify(registrosLlaves));
+                renderizarTablas();
             }
         }
 
-        // --- 3. EXPORTAR A PDF ---
-        window.exportarPDF = function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        function renderizarTablas() {
+            let bodyPendientes = document.getElementById('bodyPendientes');
+            let bodyHistorial = document.getElementById('bodyHistorial');
             
-            // Encabezado del PDF
-            doc.setFontSize(16);
-            doc.text("Bitácora de Control de Llaves", 14, 20);
-            doc.setFontSize(11);
-            doc.setTextColor(100);
-            doc.text("El Cielo Parque Residencial", 14, 28);
-            doc.text("Fecha de Reporte: " + new Date().toLocaleString(), 14, 34);
+            bodyPendientes.innerHTML = ''; bodyHistorial.innerHTML = '';
+            let pendientesCount = 0;
+            let registrosInvertidos = [...registrosLlaves].reverse();
 
-            // Preparar datos para la tabla del PDF
-            const bodyDatos = bitacoraLlaves.map(r => [
-                r.fechaSalida + ' ' + r.horaSalida,
-                r.llave,
-                r.persona,
-                r.estatus,
-                r.horaDevolucion
-            ]);
+            registrosInvertidos.forEach(registro => {
+                let fila = document.createElement('tr');
 
-            doc.autoTable({
-                startY: 40,
-                head: [['Salida', 'Llave', 'Responsable', 'Estatus', 'Devolución']],
-                body: bodyDatos,
-                theme: 'grid',
-                headStyles: { fillColor: },
-                styles: { fontSize: 9 }
+                if (registro.estatus === 'Pendiente') {
+                    pendientesCount++;
+                    fila.className = 'row-pendiente';
+                    fila.innerHTML = `
+                        <td>${registro.fecha}</td>
+                        <td><strong>${registro.llave}</strong><br><span class="badge-alerta">FALTANTE</span></td>
+                        <td>${registro.persona} <br><small>(${registro.departamento})</small></td>
+                        <td>${registro.guardia}</td>
+                        <td>${registro.horaSalida}</td>
+                        <td><button class="btn-recibir" onclick="recibirLlave(${registro.id})">⬇️ Recibir Llave</button></td>
+                    `;
+                    bodyPendientes.appendChild(fila);
+                } else {
+                    fila.className = 'fila-auditoria';
+                    fila.innerHTML = `
+                        <td>${registro.fecha}</td>
+                        <td>${registro.llave}</td>
+                        <td>${registro.persona} <br> <img src="${registro.firma}" class="firma-img" alt="Firma"></td>
+                        <td>${registro.guardia}</td>
+                        <td><small>Salida: ${registro.horaSalida}<br>Regreso: ${registro.horaEntrada}</small></td>
+                        <td><span class="badge-ok">Devuelta</span></td>
+                    `;
+                    bodyHistorial.appendChild(fila);
+                }
             });
 
-            // Descargar el archivo
-            doc.save('Reporte_Llaves_ElCielo.pdf');
+            if (pendientesCount === 0) {
+                bodyPendientes.innerHTML = '<tr><td colspan="6" class="empty-msg">Todas las llaves están en caseta.</td></tr>';
+            }
+            if (registrosLlaves.length === 0) {
+                 bodyHistorial.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay registros para auditar.</td></tr>';
+            }
         }
 
-        // Iniciar
-        renderizarTabla();
+        // --- BUSCADOR EN TIEMPO REAL ---
+        function filtrarBitacora() {
+            let input = document.getElementById("buscadorAuditoria").value.toLowerCase();
+            let filas = document.querySelectorAll("#bodyHistorial .fila-auditoria");
+            
+            filas.forEach(fila => {
+                let textoFila = fila.innerText.toLowerCase();
+                fila.style.display = textoFila.includes(input) ? "" : "none";
+            });
+        }
+
+        // Cargar datos al iniciar
+        renderizarTablas();
     </script>
 </body>
 </html>
