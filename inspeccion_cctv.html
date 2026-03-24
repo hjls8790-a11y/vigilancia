@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspección CCTV - El Cielo Parque Residencial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --p: #1A252F; --s: #2980B9; --g: #27AE60; --r: #C0392B; --w: #FFFFFF; --t: #ECF0F1; --border: #BDC3C7; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .header { background: var(--p); color: var(--w); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+        .header h1 { margin: 0; font-size: 1.8em; }
+        .header p { margin: 5px 0 0 0; color: #BDC3C7; font-size: 0.9em; }
+        
+        /* Pestañas */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 12px 24px; border: none; background: #ddd; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 1em; color: var(--p); transition: 0.3s; }
+        .tab-btn.active { background: var(--w); color: var(--s); border-top: 4px solid var(--s); }
+        
+        .tab-content { background: var(--w); padding: 25px; border-radius: 0 8px 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; }
+        .tab-content.active { display: block; }
+
+        /* Formularios */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: var(--p); }
+        input[type="text"], input[type="date"], select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 1em; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Checklist */
+        .checklist-section { margin-bottom: 25px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #F8F9F9; }
+        .checklist-section h3 { margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 8px; color: var(--s); font-size: 1.1em; }
+        .check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .check-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+        /* Botones */
+        .btn { padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 1em; display: inline-flex; align-items: center; gap: 8px;}
+        .btn-save { background: var(--g); width: 100%; justify-content: center; font-size: 1.1em; margin-top: 10px;}
+        .btn-save:hover { background: #219A52; }
+        .btn-pdf { background: var(--r); padding: 6px 12px; font-size: 0.85em; }
+        .btn-pdf:hover { background: #A93226; }
+        .btn-del { background: #7F8C8D; padding: 6px 12px; font-size: 0.85em; }
+
+        /* Tabla Bitácora */
+        .search-bar { display: flex; gap: 15px; margin-bottom: 20px; background: #F8F9F9; padding: 15px; border-radius: 8px; align-items: center;}
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--p); color: var(--w); }
+        tr:hover { background: #F2F4F4; }
+        .badge-status { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .status-ok { background: #D5F5E3; color: #1E8449; }
+        .status-fail { background: #FADBD8; color: #922B21; }
+
+        /* Contenedor oculto para el PDF */
+        #pdf-template { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📹 Plataforma de Inspección CCTV</h1>
+        <p>El Cielo Parque Residencial - Reportes Técnicos para iVMS-4200</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva')">📝 Nueva Inspección</button>
+        <button class="tab-btn" onclick="switchTab('bitacora')">🗂️ Bitácora y Reportes</button>
+    </div>
+
+    <div id="nueva" class="tab-content active">
+        <form id="formInspeccion">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fecha de Inspección:</label>
+                    <input type="date" id="iFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>ID / Número de Cámara (1 al 64):</label>
+                    <input type="text" id="iNumero" placeholder="Ej. CAM-12" required>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación (Calle, Parque, Caseta):</label>
+                    <input type="text" id="iUbicacion" placeholder="Ej. Parque Central, Poste 4" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección IP (Opcional):</label>
+                    <input type="text" id="iIP" placeholder="Ej. 192.168.1.55">
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>🛠️ Estado Físico y Hardware</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Lente sucio u obstruido (telarañas, polvo)"> Lente sucio u obstruido</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Carcasa dañada, abierta o vandalizada"> Carcasa dañada/vandalizada</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Soporte flojo o cámara movida por viento"> Soporte flojo / Cámara movida</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Cables expuestos o conectores dañados"> Cables expuestos/dañados</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Filtración de agua o condensación en lente"> Filtración de agua / Humedad</label>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>👁️ Calidad de Imagen</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Imagen fuera de foco o borrosa"> Imagen fuera de foco</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Ángulo visual desajustado (Punto ciego)"> Ángulo visual desajustado</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Reflejo IR / Visión nocturna deficiente"> Reflejo IR / Falla visión nocturna</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Colores distorsionados (Filtro IR trabado)"> Colores distorsionados / Filtro IR</label>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>💻 Conectividad y Sistema (iVMS-4200)</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Pérdida total de video (No link)"> Pérdida de video (No Link)</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Conexión intermitente / Saltos de imagen"> Conexión intermitente</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Desfase de Hora/Fecha en OSD"> Hora/Fecha desfasada (OSD)</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Falla en grabación (Sin Playback disponible)"> Sin grabación (Playback fallido)</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones Adicionales / Diagnóstico Preliminar:</label>
+                <textarea id="iNotas" placeholder="Describe cualquier otro detalle importante para el área de sistemas..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-save">💾 Guardar Inspección</button>
+        </form>
+    </div>
+
+    <div id="bitacora" class="tab-content">
+        <div class="search-bar">
+            <div class="form-group" style="flex: 1;">
+                <label>Buscar por Cámara o Ubicación:</label>
+                <input type="text" id="buscTexto" placeholder="Ej. CAM-12, Parque..." onkeyup="filtrarBitacora()">
+            </div>
+            <div class="form-group">
+                <label>Filtrar por Fecha:</label>
+                <input type="date" id="buscFecha" onchange="filtrarBitacora()">
+            </div>
+            <button class="btn btn-del" style="margin-top: 20px;" onclick="document.getElementById('buscFecha').value=''; filtrarBitacora();">Limpiar Fecha</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="tablaBitacora">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cámara</th>
+                        <th>Ubicación</th>
+                        <th>Estatus</th>
+                        <th>Fallas Detectadas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyBitacora">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="pdf-container" style="display: none;">
+        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333;">
+            <div style="border-bottom: 3px solid #1A252F; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h2 style="margin: 0; color: #1A252F;">REPORTE TÉCNICO DE INSPECCIÓN CCTV</h2>
+                    <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial</h4>
+                </div>
+                <div style="text-align: right;">
+                    <strong style="font-size: 1.2em; color: #C0392B;" id="pdf-folio"></strong><br>
+                    <span id="pdf-fecha"></span>
+                </div>
+            </div>
+
+            <div style="background: #F2F3F4; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3 style="margin-top:0; color: #2980B9; font-size: 1.1em;">Datos del Equipo</h3>
+                <table style="width: 100%; font-size: 0.95em;">
+                    <tr>
+                        <td style="padding: 5px; width: 50%;"><strong>Identificador:</strong> <span id="pdf-camara"></span></td>
+                        <td style="padding: 5px; width: 50%;"><strong>Dirección IP:</strong> <span id="pdf-ip"></span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="padding: 5px;"><strong>Ubicación Física:</strong> <span id="pdf-ubicacion"></span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Estatus de la Inspección</h3>
+                <p id="pdf-estatus-txt" style="font-size: 1.1em; font-weight: bold; margin: 10px 0;"></p>
+                <div id="pdf-fallas-container">
+                    <p style="margin-bottom: 5px;"><strong>Anomalías Reportadas:</strong></p>
+                    <ul id="pdf-fallas-lista" style="margin-top: 5px; color: #C0392B;"></ul>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Observaciones del Supervisor</h3>
+                <p id="pdf-notas" style="background: #FDEDEC; padding: 15px; border-radius: 5px; border-left: 5px solid #C0392B; white-space: pre-wrap; font-size: 0.95em;"></p>
+            </div>
+
+            <div style="margin-top: 50px; text-align: center;">
+                <p style="margin: 0;">_________________________________________</p>
+                <p style="margin: 5px 0 0 0; font-weight: bold;">Firma del Supervisor de Seguridad</p>
+                <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Documento generado desde Plataforma de Mando CCTV</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Establecer fecha de hoy por defecto
+        document.getElementById('iFecha').valueAsDate = new Date();
+
+        // Lógica de Pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'bitacora') cargarBitacora();
+        }
+
+        // Base de datos local
+        let bdInspecciones = JSON.parse(localStorage.getItem('bd_cctv_inspecciones')) || [];
+
+        // Guardar Inspección
+        document.getElementById('formInspeccion').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Recopilar fallas
+            let fallas = [];
+            document.querySelectorAll('.chk-falla:checked').forEach(chk => {
+                fallas.push(chk.value);
+            });
+
+            const nuevaInsp = {
+                id: Date.now(), // ID único para el registro
+                fecha: document.getElementById('iFecha').value,
+                camara: document.getElementById('iNumero').value.toUpperCase(),
+                ubicacion: document.getElementById('iUbicacion').value,
+                ip: document.getElementById('iIP').value || 'N/A',
+                fallas: fallas,
+                notas: document.getElementById('iNotas').value,
+                estatus: fallas.length === 0 ? 'ÓPTIMO' : 'CON FALLAS'
+            };
+
+            bdInspecciones.unshift(nuevaInsp); // Agregar al inicio
+            localStorage.setItem('bd_cctv_inspecciones', JSON.stringify(bdInspecciones));
+            
+            alert('✅ Inspección guardada correctamente.');
+            this.reset();
+            document.getElementById('iFecha').valueAsDate = new Date();
+            switchTab('bitacora');
+        });
+
+        // Cargar y Renderizar Bitácora
+        function cargarBitacora() {
+            filtrarBitacora(); // Llama al filtro para pintar la tabla
+        }
+
+        // Buscador y Filtros
+        function filtrarBitacora() {
+            const texto = document.getElementById('buscTexto').value.toLowerCase();
+            const fecha = document.getElementById('buscFecha').value;
+            const tbody = document.getElementById('bodyBitacora');
+            tbody.innerHTML = '';
+
+            const filtrados = bdInspecciones.filter(insp => {
+                const matchTexto = insp.camara.toLowerCase().includes(texto) || insp.ubicacion.toLowerCase().includes(texto);
+                const matchFecha = fecha === '' || insp.fecha === fecha;
+                return matchTexto && matchFecha;
+            });
+
+            if(filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
+                return;
+            }
+
+            filtrados.forEach(insp => {
+                const badgeClass = insp.estatus === 'ÓPTIMO' ? 'status-ok' : 'status-fail';
+                const fallasTxt = insp.fallas.length > 0 ? `${insp.fallas.length} problema(s)` : 'Ninguno';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${insp.fecha}</strong></td>
+                        <td>${insp.camara}</td>
+                        <td>${insp.ubicacion}</td>
+                        <td><span class="badge-status ${badgeClass}">${insp.estatus}</span></td>
+                        <td style="font-size:0.85em;">${fallasTxt}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="btn btn-pdf" onclick="prepararPDF(${insp.id})" title="Generar PDF Formal para Sistemas">📄 Exportar PDF</button>
+                            <button class="btn btn-del" onclick="eliminarRegistro(${insp.id})" title="Eliminar Registro">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function eliminarRegistro(id) {
+            if(confirm('⚠️ ¿Estás seguro de eliminar este registro de la bitácora?')) {
+                bdInspecciones = bdInspecciones.filter(insp => insp.id !== id);
+                localStorage.setItem('bd_cctv_inspecciones', JSON.stringify(bdInspecciones));
+                cargarBitacora();
+            }
+        }
+
+        // --- LÓGICA PARA GENERAR PDF FORMAL ---
+        function prepararPDF(id) {
+            // Buscar el registro exacto
+            const insp = bdInspecciones.find(i => i.id === id);
+            if(!insp) return;
+
+            // Llenar la plantilla invisible
+            document.getElementById('pdf-folio').innerText = `TICKET #${insp.id.toString().slice(-6)}`;
+            document.getElementById('pdf-fecha').innerHTML = `<strong>Fecha de Inspección:</strong> ${insp.fecha}`;
+            document.getElementById('pdf-camara').innerText = insp.camara;
+            document.getElementById('pdf-ip').innerText = insp.ip;
+            document.getElementById('pdf-ubicacion').innerText = insp.ubicacion;
+            
+            const estatusEl = document.getElementById('pdf-estatus-txt');
+            if(insp.estatus === 'ÓPTIMO') {
+                estatusEl.innerText = '✅ EQUIPO OPERANDO CON NORMALIDAD';
+                estatusEl.style.color = '#27AE60';
+                document.getElementById('pdf-fallas-container').style.display = 'none';
+            } else {
+                estatusEl.innerText = '⚠️ EQUIPO REQUIERE MANTENIMIENTO TÉCNICO';
+                estatusEl.style.color = '#C0392B';
+                document.getElementById('pdf-fallas-container').style.display = 'block';
+                
+                const ulFallas = document.getElementById('pdf-fallas-lista');
+                ulFallas.innerHTML = '';
+                insp.fallas.forEach(f => {
+                    ulFallas.innerHTML += `<li>${f}</li>`;
+                });
+            }
+
+            const notasEl = document.getElementById('pdf-notas');
+            if(insp.notas.trim() === '') {
+                notasEl.innerText = 'Sin observaciones adicionales.';
+                notasEl.style.background = '#F2F3F4';
+                notasEl.style.borderLeftColor = '#BDC3C7';
+            } else {
+                notasEl.innerText = insp.notas;
+                notasEl.style.background = insp.estatus === 'ÓPTIMO' ? '#E8F8F5' : '#FDEDEC';
+                notasEl.style.borderLeftColor = insp.estatus === 'ÓPTIMO' ? '#1E8449' : '#C0392B';
+            }
+
+            // Invocar html2pdf
+            const elemento = document.getElementById('pdf-content');
+            
+            // Mostrar temporalmente el contenedor para que la librería lo lea bien
+            const container = document.getElementById('pdf-container');
+            container.style.display = 'block';
+
+            const opt = {
+                margin:       10,
+                filename:     `Reporte_CCTV_${insp.camara}_${insp.fecha}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generar y luego volver a ocultar
+            html2pdf().set(opt).from(elemento).save().then(() => {
+                container.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
