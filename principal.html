@@ -132,10 +132,6 @@
         </div>
     </div>
 
-    <div style="text-align: right; margin-bottom: 15px;">
-        <button class="btn btn-add" style="width: auto; padding: 10px 20px; background-color: var(--g);" onclick="exportarExcel()">📥 Descargar Padrones (Excel)</button>
-    </div>
-
     <div class="directorios-grid">
         <div class="seccion-panel">
             <h2>🚘 Directorio de Vehículos 
@@ -190,7 +186,7 @@
 
     <div class="seccion-panel panel-ai">
         <h2>🧠 Evaluación y Reporte Directivo (IA)</h2>
-        <p style="color: #555; margin-bottom: 20px;">Al hacer clic, se recopilan los KPIs de disciplina, clima laboral, operaciones y padrones para estructurar un informe formal listo para presentar a la Dirección.</p>
+        <p style="color: #555; margin-bottom: 20px;">Al hacer clic, se recopilan los KPIs de disciplina, clima laboral, operaciones y padrones para estructurar un informe formal listo para presentar a la Dirección de El Cielo.</p>
         <button class="btn btn-gemini" onclick="generarReporteAI()">📋 Generar Reporte con Gemini</button>
     </div>
 
@@ -331,7 +327,7 @@
             let btn = document.getElementById('btnSubmitVehiculo');
             btn.innerText = "Actualizar Vehículo";
             btn.classList.replace('btn-add', 'btn-edit-mode');
-            document.getElementById('vPlaca').focus();
+            document.getElementById('vPlaca').focus(); // Lleva la vista al formulario
         };
 
         window.eliminarVehiculo = function(index) {
@@ -406,38 +402,6 @@
             });
         }
 
-        // --- EXPORTAR A EXCEL (NUEVA FUNCIÓN) ---
-        window.exportarExcel = function() {
-            // \uFEFF asegura que Excel lea correctamente los acentos y las ñ (UTF-8 con BOM)
-            let csvContent = "\uFEFF"; 
-            
-            // Sección Vehículos
-            csvContent += "PADRON DE VEHICULOS\n";
-            csvContent += "Placa,Lote/Residencia,Marca y Color,Propietario\n";
-            padronVehiculos.forEach(v => {
-                csvContent += `"${v.placa}","${v.lote}","${v.marca}","${v.propietario}"\n`;
-            });
-            
-            csvContent += "\n"; // Espacio entre tablas
-            
-            // Sección Mascotas
-            csvContent += "PADRON DE MASCOTAS\n";
-            csvContent += "Nombre,Tipo,Raza/Senas,Lote/Residencia\n";
-            padronMascotas.forEach(m => {
-                csvContent += `"${m.nombre}","${m.tipo}","${m.raza}","${m.lote}"\n`;
-            });
-
-            // Crear y descargar archivo
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Padrones_Directorio.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
-
         // --- LÓGICA DE AUDITORÍA ---
         function generarTablaAgentes(ast, arr, rec) {
             const tbody = document.getElementById('tabla-agentes');
@@ -486,7 +450,7 @@
             let operaciones = document.getElementById('val-ops').innerText;
             let alertasCount = document.querySelectorAll('.alerta-critica, .alerta-retencion').length;
             
-            let promptIA = `Hola Gemini. Actúa como mi Asistente de Gerencia de Seguridad. Necesito que estructures un "Informe Ejecutivo de Operaciones" formal y profesional para presentarlo a la Dirección.
+            let promptIA = `Hola Gemini. Actúa como mi Asistente de Gerencia de Seguridad. Necesito que estructures un "Informe Ejecutivo de Operaciones" formal y profesional para presentarlo a la Dirección de El Cielo Parque Residencial.
 
 Por favor, utiliza estrictamente estos datos reales extraídos de mi tablero de mando del día de hoy:
 - Puntualidad y Disciplina de Tropa: ${puntualidad}.
