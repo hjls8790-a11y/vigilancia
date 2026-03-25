@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permisos de Obra - El Cielo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --p: #1A252F; --s: #2980B9; --g: #27AE60; --w: #FFFFFF; --t: #ECF0F1; --border: #BDC3C7; --warn: #F39C12; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .header { background: var(--p); color: var(--w); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; border-bottom: 4px solid var(--warn);}
+        .header h1 { margin: 0; font-size: 1.8em; }
+        .header p { margin: 5px 0 0 0; color: #BDC3C7; font-size: 0.9em; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 12px 24px; border: none; background: #ddd; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 1em; color: var(--p); transition: 0.3s; }
+        .tab-btn.active { background: var(--w); color: var(--s); border-top: 4px solid var(--s); }
+        .tab-content { background: var(--w); padding: 25px; border-radius: 0 8px 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; }
+        .tab-content.active { display: block; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: var(--p); }
+        input[type="text"], input[type="time"], input[type="date"], select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 1em; }
+        textarea { resize: vertical; min-height: 100px; }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-send { background: var(--g); width: 100%; font-size: 1.1em; margin-top: 10px; padding: 15px;}
+        .btn-send:hover { background: #219A52; }
+        .btn-auth { background: var(--s); padding: 8px 15px; font-size: 0.85em; }
+        
+        .info-box { background: #FEF9E7; border-left: 4px solid var(--warn); padding: 15px; margin-bottom: 20px; font-size: 0.9em; color: #7E5109; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--p); color: var(--w); }
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .bg-pend { background: #FCF3CF; color: #9A7D0A; }
+        .bg-auth { background: #D5F5E3; color: #1E8449; }
+        
+        /* Modal Código */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
+        .modal input { width: 80%; padding: 10px; text-align: center; font-size: 1.2em; letter-spacing: 2px; margin: 15px 0; border: 2px solid var(--s); border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🏗️ Solicitud de Permisos Extraordinarios</h1>
+        <p>El Cielo Parque Residencial - Control de Obras</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva')">📝 Solicitar Permiso</button>
+        <button class="tab-btn" onclick="switchTab('estado')">🔍 Mis Permisos</button>
+    </div>
+
+    <div id="nueva" class="tab-content active">
+        <div class="info-box">
+            <strong>Instrucciones:</strong> Llene el formulario. Al enviarlo se generará un PDF. <strong>Debe enviar ese PDF por WhatsApp al encargado de seguridad</strong> para su evaluación. El permiso no será válido hasta recibir el código de autorización.
+        </div>
+
+        <form id="formPermiso">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre del Contratista o Residente:</label>
+                    <input type="text" id="pNombre" required placeholder="Ej. Arq. Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label>Lote / Ubicación de Obra:</label>
+                    <input type="text" id="pLote" required placeholder="Ej. Lote 45, Manzana 3">
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Permiso Requerido:</label>
+                    <select id="pTipo" required>
+                        <option value="">Seleccione una opción...</option>
+                        <option value="Extensión de horario">Extensión de horario</option>
+                        <option value="Trabajos con tapial abajo">Trabajos con tapial abajo</option>
+                        <option value="Uso de lote vecino para maniobras">Uso de lote vecino para maniobras</option>
+                        <option value="Ingreso de vehículos extra">Ingreso de vehículos extra (Colados/Material)</option>
+                        <option value="Ruido fuera de horario (Emergencia)">Ruido fuera de horario (Emergencia)</option>
+                        <option value="Otro">Otro (Especificar en descripción)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha del Permiso:</label>
+                    <input type="date" id="pFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora de Inicio:</label>
+                    <input type="time" id="pHoraInicio" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora de Término:</label>
+                    <input type="time" id="pHoraFin" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción Exacta de la Necesidad:</label>
+                <textarea id="pDesc" required placeholder="Explique a detalle qué maniobra va a realizar, cuántos trabajadores se quedan, o qué maquinaria ingresa..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-send">📄 Generar PDF y Enviar a WhatsApp</button>
+        </form>
+    </div>
+
+    <div id="estado" class="tab-content">
+        <h3>Historial de Solicitudes</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr><th>Folio</th><th>Fecha</th><th>Lote</th><th>Tipo</th><th>Estatus</th><th>Acción</th></tr>
+                </thead>
+                <tbody id="bodyPermisos"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="pdf-container" style="display: none;">
+        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333;">
+            <div style="text-align: center; border-bottom: 2px solid #F39C12; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="margin: 0;">SOLICITUD DE PERMISO EXTRAORDINARIO DE OBRA</h2>
+                <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial</h4>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div><strong>Folio:</strong> <span id="pdf-folio" style="color: #C0392B;"></span></div>
+                <div><strong>Estatus:</strong> PENDIENTE DE AUTORIZACIÓN</div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 30%;"><strong>Contratista:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-nombre"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Lote/Obra:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-lote"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Tipo de Permiso:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-tipo"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Fecha y Jornada:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-jornada"></td></tr>
+            </table>
+
+            <div style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0;">Descripción de la Maniobra:</h4>
+                <div id="pdf-desc" style="padding: 15px; border: 1px solid #ddd; background: #FDFEFE; min-height: 80px;"></div>
+            </div>
+
+            <div style="margin-top: 50px; text-align: center;">
+                <p>_____________________________________</p>
+                <p style="margin: 0; font-size: 0.9em;">Firma o Sello de Autorización (Seguridad)</p>
+                <p style="font-size: 0.8em; color: gray;">Documento no válido sin el Código de Autorización Digital o firma física.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalCodigo" class="modal">
+        <div class="modal-content">
+            <h3>Ingresar Autorización</h3>
+            <p style="font-size:0.9em; color:#555;">Ingrese el PIN proporcionado por Seguridad para validar este permiso.</p>
+            <input type="text" id="inputPin" placeholder="Ej. 1234" maxlength="4">
+            <br>
+            <button class="btn btn-send" onclick="verificarCodigo()" style="width: auto;">Validar</button>
+            <button class="btn" style="background: #95A5A6; width: auto;" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pFecha').valueAsDate = new Date();
+        const numeroWhatsApp = "526695931812"; 
+        let bdPermisos = JSON.parse(localStorage.getItem('bd_permisos_obra')) || [];
+        let permisoActualParaValidar = null;
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'estado') renderizarTabla();
+        }
+
+        document.getElementById('formPermiso').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Generar un número de folio de 4 dígitos
+            const folioId = Math.floor(1000 + Math.random() * 9000); 
+            // El PIN de seguridad será el folio al revés (puedes cambiar esta lógica si quieres)
+            const pinSeguridad = folioId.toString().split('').reverse().join(''); 
+
+            const nuevoPermiso = {
+                folio: folioId,
+                pin: pinSeguridad,
+                nombre: document.getElementById('pNombre').value,
+                lote: document.getElementById('pLote').value,
+                tipo: document.getElementById('pTipo').value,
+                fecha: document.getElementById('pFecha').value,
+                horario: `${document.getElementById('pHoraInicio').value} a ${document.getElementById('pHoraFin').value}`,
+                desc: document.getElementById('pDesc').value,
+                estatus: 'PENDIENTE'
+            };
+
+            bdPermisos.unshift(nuevoPermiso);
+            localStorage.setItem('bd_permisos_obra', JSON.stringify(bdPermisos));
+
+            generarPDFyEnviar(nuevoPermiso);
+        });
+
+        function generarPDFyEnviar(permiso) {
+            // Llenar PDF
+            document.getElementById('pdf-folio').innerText = `OBRA-${permiso.folio}`;
+            document.getElementById('pdf-nombre').innerText = permiso.nombre;
+            document.getElementById('pdf-lote').innerText = permiso.lote;
+            document.getElementById('pdf-tipo').innerText = permiso.tipo;
+            document.getElementById('pdf-jornada').innerText = `${permiso.fecha} (${permiso.horario})`;
+            document.getElementById('pdf-desc').innerText = permiso.desc;
+
+            const elemento = document.getElementById('pdf-content');
+            const container = document.getElementById('pdf-container');
+            container.style.display = 'block';
+
+            const nombreArchivo = `Permiso_${permiso.lote}_Folio${permiso.folio}.pdf`;
+
+            // Generar PDF
+            html2pdf().set({
+                margin: 10, filename: nombreArchivo,
+                image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(elemento).save().then(() => {
+                container.style.display = 'none';
+                
+                // Construir mensaje de WhatsApp
+                const mensaje = `Hola Hugo, soy ${permiso.nombre} del lote ${permiso.lote}. Solicito un permiso extraordinario por: *${permiso.tipo}*.%0A%0A*Detalles:* ${permiso.desc}%0A*Horario:* ${permiso.horario}%0A%0AEn un momento te adjunto el PDF de la solicitud (Folio: ${permiso.folio}) para tu revisión. Quedo en espera del PIN de autorización.`;
+                
+                const url = `https://wa.me/${numeroWhatsApp}?text=${mensaje}`;
+                
+                alert("¡El PDF se ha descargado!\n\nSe abrirá WhatsApp. Por favor, envía el mensaje automático y ADJUNTA EL PDF descargado para que Seguridad lo evalúe.");
+                
+                // Resetear y limpiar formulario
+                document.getElementById('formPermiso').reset();
+                document.getElementById('pFecha').valueAsDate = new Date();
+                
+                // Abrir WhatsApp
+                window.open(url, '_blank');
+                switchTab('estado');
+            });
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('bodyPermisos');
+            tbody.innerHTML = '';
+            
+            if(bdPermisos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay permisos solicitados.</td></tr>';
+                return;
+            }
+
+            bdPermisos.forEach(p => {
+                const badge = p.estatus === 'PENDIENTE' ? '<span class="badge bg-pend">⏳ Pendiente</span>' : '<span class="badge bg-auth">✅ Autorizado</span>';
+                const boton = p.estatus === 'PENDIENTE' ? `<button class="btn btn-auth" onclick="abrirModal(${p.folio})">Validar PIN</button>` : `<span style="color:#27AE60; font-weight:bold;">¡Válido!</span>`;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.folio}</strong></td>
+                        <td>${p.fecha}</td>
+                        <td>${p.lote}</td>
+                        <td>${p.tipo}</td>
+                        <td>${badge}</td>
+                        <td>${boton}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abrirModal(folio) {
+            permisoActualParaValidar = bdPermisos.find(p => p.folio === folio);
+            document.getElementById('inputPin').value = '';
+            document.getElementById('modalCodigo').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalCodigo').style.display = 'none';
+            permisoActualParaValidar = null;
+        }
+
+        function verificarCodigo() {
+            const pinIngresado = document.getElementById('inputPin').value;
+            if(permisoActualParaValidar && pinIngresado === permisoActualParaValidar.pin) {
+                permisoActualParaValidar.estatus = 'AUTORIZADO';
+                localStorage.setItem('bd_permisos_obra', JSON.stringify(bdPermisos));
+                alert("✅ ¡Permiso Autorizado con éxito! Ya puedes mostrar esta pantalla a los guardias.");
+                cerrarModal();
+                renderizarTabla();
+            } else {
+                alert("❌ PIN Incorrecto. Solicita el PIN correcto a Seguridad.");
+            }
+        }
+    </script>
+</body>
+</html>
