@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspección Control de Accesos - El Cielo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --p: #2C3E50; --s: #E67E22; --g: #27AE60; --r: #C0392B; --w: #FFFFFF; --t: #ECF0F1; --border: #BDC3C7; --ai: #8E44AD; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
+        .header { background: var(--p); color: var(--w); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; border-bottom: 4px solid var(--s);}
+        .header h1 { margin: 0; font-size: 1.8em; }
+        .header p { margin: 5px 0 0 0; color: #BDC3C7; font-size: 0.9em; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 12px 24px; border: none; background: #ddd; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 1em; color: var(--p); transition: 0.3s; }
+        .tab-btn.active { background: var(--w); color: var(--s); border-top: 4px solid var(--s); }
+        .tab-content { background: var(--w); padding: 25px; border-radius: 0 8px 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; }
+        .tab-content.active { display: block; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: var(--p); }
+        input[type="text"], input[type="date"], select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 1em; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .checklist-section { margin-bottom: 25px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #F8F9F9; }
+        .checklist-section h3 { margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 8px; color: var(--s); font-size: 1.1em; }
+        .check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .check-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 0.9em; display: inline-flex; align-items: center; justify-content: center; gap: 5px;}
+        .btn-save { background: var(--g); width: 100%; font-size: 1.1em; margin-top: 10px; padding: 15px;}
+        .btn-save:hover { background: #219A52; }
+        .btn-pdf { background: var(--r); } .btn-pdf:hover { background: #A93226; }
+        .btn-ai { background: var(--ai); } .btn-ai:hover { background: #732D91; }
+        .btn-del { background: #7F8C8D; }
+
+        .search-bar { display: flex; gap: 15px; margin-bottom: 20px; background: #F8F9F9; padding: 15px; border-radius: 8px; align-items: center;}
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--p); color: var(--w); }
+        tr:hover { background: #F2F4F4; }
+        .badge-status { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .status-ok { background: #D5F5E3; color: #1E8449; }
+        .status-fail { background: #FADBD8; color: #922B21; }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ai); color: white; padding: 15px 25px; border-radius: 5px; font-weight: bold; display: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚧 Inspección de Control de Accesos</h1>
+        <p>El Cielo Parque Residencial - Plataforma Técnica</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva')">📝 Nueva Inspección</button>
+        <button class="tab-btn" onclick="switchTab('bitacora')">🗂️ Bitácora y Reportes</button>
+    </div>
+
+    <div id="nueva" class="tab-content active">
+        <form id="formAcceso">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fecha de Inspección:</label>
+                    <input type="date" id="iFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación / Caseta:</label>
+                    <select id="iUbicacion" required>
+                        <option value="">Seleccione...</option>
+                        <option value="Caseta Principal (Residentes)">Caseta Principal (Residentes)</option>
+                        <option value="Caseta Principal (Visitas)">Caseta Principal (Visitas)</option>
+                        <option value="Entrada Proveedores">Entrada Proveedores</option>
+                        <option value="Acceso Casa Club">Acceso Casa Club</option>
+                        <option value="Otro">Otro (Especificar en notas)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Equipo Principal Afectado/Inspeccionado:</label>
+                    <input type="text" id="iEquipo" placeholder="Ej. Barrera Vehicular Norte, Interphone 1..." required>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>⚙️ Mecánica y Física (Barreras y Pistones)</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Brazo de barrera roto, caído o descalibrado"> Brazo roto/descalibrado</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Pistón sin fuerza o con fuga de aceite"> Pistón sin fuerza / Fuga</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Fotoceldas sucias, obstruidas o desalineadas"> Fotoceldas sucias/desalineadas</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Gabinete abierto o vandalizado"> Gabinete expuesto</label>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>🔌 Electrónica y Red (Controladoras y Routers)</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Tarjeta controladora sin energía o bloqueada"> Tarjeta controladora sin energía</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Router/Switch sin conexión a internet (Foco rojo)"> Router sin conexión (Offline)</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Loop magnético (masa) no detecta vehículos"> Loop magnético no detecta</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="UPS/No-Break emitiendo pitido o batería agotada"> Falla en UPS / Energía</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Lector RFID/Antena no lee tarjetas o tags"> Lector de Tags/Tarjetas no lee</label>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>🧠 Lógica y Software (App e Interphone IA)</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="App de Control de Accesos no sincroniza (Lentitud)"> App no sincroniza QR/Datos</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Interphone (IA) no procesa comandos de voz/rostros"> Interphone IA no responde</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Interphone sin audio bidireccional"> Interphone sin audio</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Diagnóstico Preliminar / Observaciones:</label>
+                <textarea id="iNotas" placeholder="Describe el contexto de la falla, si hubo un corte de luz previo, si un auto golpeó la barrera, etc."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-save">💾 Guardar Inspección de Accesos</button>
+        </form>
+    </div>
+
+    <div id="bitacora" class="tab-content">
+        <div class="search-bar">
+            <div class="form-group" style="flex: 1;">
+                <label>Buscar Caseta o Equipo:</label>
+                <input type="text" id="buscTexto" placeholder="Ej. Barrera, Proveedores..." onkeyup="filtrarBitacora()">
+            </div>
+            <div class="form-group">
+                <label>Filtrar por Fecha:</label>
+                <input type="date" id="buscFecha" onchange="filtrarBitacora()">
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="tablaBitacora">
+                <thead>
+                    <tr><th>Fecha</th><th>Ubicación</th><th>Equipo</th><th>Estatus</th><th>Fallas</th><th>Acciones</th></tr>
+                </thead>
+                <tbody id="bodyBitacora"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">¡Prompt de Diagnóstico copiado! Redirigiendo a Gemini...</div>
+
+    <div id="pdf-container" style="display: none;">
+        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333;">
+            <div style="border-bottom: 3px solid #E67E22; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h2 style="margin: 0; color: #2C3E50;">REPORTE TÉCNICO: CONTROL DE ACCESOS</h2>
+                    <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial</h4>
+                </div>
+                <div style="text-align: right;">
+                    <strong style="font-size: 1.2em; color: #C0392B;" id="pdf-folio"></strong><br>
+                    <span id="pdf-fecha"></span>
+                </div>
+            </div>
+
+            <div style="background: #F2F3F4; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3 style="margin-top:0; color: #E67E22; font-size: 1.1em;">Datos del Punto de Acceso</h3>
+                <p style="margin: 5px 0;"><strong>Ubicación / Caseta:</strong> <span id="pdf-ubicacion"></span></p>
+                <p style="margin: 5px 0;"><strong>Equipo Afectado:</strong> <span id="pdf-equipo"></span></p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #E67E22; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Diagnóstico Físico y Lógico</h3>
+                <p id="pdf-estatus-txt" style="font-size: 1.1em; font-weight: bold; margin: 10px 0;"></p>
+                <div id="pdf-fallas-container">
+                    <p style="margin-bottom: 5px;"><strong>Anomalías Reportadas por el Supervisor:</strong></p>
+                    <ul id="pdf-fallas-lista" style="margin-top: 5px; color: #C0392B;"></ul>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #E67E22; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Observaciones Operativas</h3>
+                <p id="pdf-notas" style="background: #FDEDEC; padding: 15px; border-radius: 5px; border-left: 5px solid #C0392B; white-space: pre-wrap; font-size: 0.95em;"></p>
+            </div>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <p style="margin: 0;">_________________________________________</p>
+                <p style="margin: 5px 0 0 0; font-weight: bold;">Firma del Supervisor de Seguridad</p>
+                <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Plataforma de Mando - Operaciones</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('iFecha').valueAsDate = new Date();
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'bitacora') cargarBitacora();
+        }
+
+        let bdAccesos = JSON.parse(localStorage.getItem('bd_accesos_inspecciones')) || [];
+
+        document.getElementById('formAcceso').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let fallas = [];
+            document.querySelectorAll('.chk-falla:checked').forEach(chk => fallas.push(chk.value));
+
+            const nuevaInsp = {
+                id: Date.now(),
+                fecha: document.getElementById('iFecha').value,
+                ubicacion: document.getElementById('iUbicacion').value,
+                equipo: document.getElementById('iEquipo').value.toUpperCase(),
+                fallas: fallas,
+                notas: document.getElementById('iNotas').value,
+                estatus: fallas.length === 0 ? 'ÓPTIMO' : 'FALLA TÉCNICA'
+            };
+
+            bdAccesos.unshift(nuevaInsp);
+            localStorage.setItem('bd_accesos_inspecciones', JSON.stringify(bdAccesos));
+            
+            alert('✅ Inspección de Acceso guardada.');
+            this.reset();
+            document.getElementById('iFecha').valueAsDate = new Date();
+            switchTab('bitacora');
+        });
+
+        function cargarBitacora() { filtrarBitacora(); }
+
+        function filtrarBitacora() {
+            const texto = document.getElementById('buscTexto').value.toLowerCase();
+            const fecha = document.getElementById('buscFecha').value;
+            const tbody = document.getElementById('bodyBitacora');
+            tbody.innerHTML = '';
+
+            const filtrados = bdAccesos.filter(insp => {
+                const matchTexto = insp.ubicacion.toLowerCase().includes(texto) || insp.equipo.toLowerCase().includes(texto);
+                const matchFecha = fecha === '' || insp.fecha === fecha;
+                return matchTexto && matchFecha;
+            });
+
+            if(filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
+                return;
+            }
+
+            filtrados.forEach(insp => {
+                const badgeClass = insp.estatus === 'ÓPTIMO' ? 'status-ok' : 'status-fail';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${insp.fecha}</strong></td>
+                        <td>${insp.ubicacion}</td>
+                        <td>${insp.equipo}</td>
+                        <td><span class="badge-status ${badgeClass}">${insp.estatus}</span></td>
+                        <td style="font-size:0.85em;">${insp.fallas.length} hallazgos</td>
+                        <td style="white-space: nowrap;">
+                            <button class="btn btn-pdf" onclick="prepararPDF(${insp.id})" title="Generar Ticket PDF">📄 PDF</button>
+                            ${insp.fallas.length > 0 ? `<button class="btn btn-ai" onclick="pedirDiagnosticoIA(${insp.id})" title="Pedir diagnóstico a Gemini IA">🧠 Diagnóstico IA</button>` : ''}
+                            <button class="btn btn-del" onclick="eliminarRegistro(${insp.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function eliminarRegistro(id) {
+            if(confirm('⚠️ ¿Seguro de eliminar este registro?')) {
+                bdAccesos = bdAccesos.filter(insp => insp.id !== id);
+                localStorage.setItem('bd_accesos_inspecciones', JSON.stringify(bdAccesos));
+                cargarBitacora();
+            }
+        }
+
+        // --- LÓGICA DE INTELIGENCIA ARTIFICIAL (GEMINI) ---
+        function pedirDiagnosticoIA(id) {
+            const insp = bdAccesos.find(i => i.id === id);
+            if(!insp) return;
+
+            const listaFallas = insp.fallas.join(", ");
+            const promptIA = `Hola Gemini. Actúa como un Ingeniero en Seguridad Electrónica y Redes experto en Control de Accesos. 
+Soy el Supervisor de Seguridad y estoy reportando una falla en el siguiente equipo:
+
+- Ubicación: ${insp.ubicacion}
+- Equipo: ${insp.equipo}
+- Síntomas y Fallas detectadas físicamente: ${listaFallas}.
+- Mis observaciones en campo: "${insp.notas}"
+
+Con base en esto, dame un "Diagnóstico Técnico Preliminar" breve y directo, y dime cuáles son las 3 pruebas o reinicios básicos que yo puedo hacer en campo antes de escalar el ticket al Ingeniero de Sistemas.`;
+
+            navigator.clipboard.writeText(promptIA).then(() => {
+                let toast = document.getElementById("toast");
+                toast.style.display = "block";
+                setTimeout(() => toast.style.display = "none", 4000);
+                setTimeout(() => window.open('https://gemini.google.com/app', '_blank'), 1500);
+            }).catch(err => alert("Error al copiar. Da permisos a tu navegador."));
+        }
+
+        function prepararPDF(id) {
+            const insp = bdAccesos.find(i => i.id === id);
+            if(!insp) return;
+
+            document.getElementById('pdf-folio').innerText = `TICKET-ACC #${insp.id.toString().slice(-6)}`;
+            document.getElementById('pdf-fecha').innerHTML = `<strong>Fecha:</strong> ${insp.fecha}`;
+            document.getElementById('pdf-ubicacion').innerText = insp.ubicacion;
+            document.getElementById('pdf-equipo').innerText = insp.equipo;
+            
+            const estatusEl = document.getElementById('pdf-estatus-txt');
+            if(insp.estatus === 'ÓPTIMO') {
+                estatusEl.innerText = '✅ SISTEMA DE ACCESO OPERANDO NORMALMENTE';
+                estatusEl.style.color = '#27AE60';
+                document.getElementById('pdf-fallas-container').style.display = 'none';
+            } else {
+                estatusEl.innerText = '⚠️ EQUIPO FUERA DE LÍNEA O CON ANOMALÍAS';
+                estatusEl.style.color = '#C0392B';
+                document.getElementById('pdf-fallas-container').style.display = 'block';
+                
+                const ulFallas = document.getElementById('pdf-fallas-lista');
+                ulFallas.innerHTML = '';
+                insp.fallas.forEach(f => { ulFallas.innerHTML += `<li>${f}</li>`; });
+            }
+
+            const notasEl = document.getElementById('pdf-notas');
+            notasEl.innerText = insp.notas.trim() === '' ? 'Sin observaciones adicionales.' : insp.notas;
+
+            const container = document.getElementById('pdf-container');
+            container.style.display = 'block';
+
+            html2pdf().set({
+                margin: 10, filename: `Ticket_Acceso_${insp.equipo}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(document.getElementById('pdf-content')).save().then(() => {
+                container.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
