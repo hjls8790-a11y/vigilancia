@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Inspecciones - El Cielo</title>
+    <style>
+        :root { --p: #1A252F; --s: #2980B9; --acceso: #E67E22; --t: #ECF0F1; --w: #FFFFFF; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box;}
+        
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: var(--p); margin: 0; font-size: 2.5em; }
+        .header p { color: #7F8C8D; font-size: 1.2em; margin-top: 10px; font-weight: bold; }
+
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; width: 100%; max-width: 900px; }
+        
+        .card { background: var(--w); border-radius: 15px; padding: 40px 20px; text-align: center; text-decoration: none; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; position: relative; overflow: hidden; display: block;}
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        
+        /* Barra de color superior en las tarjetas */
+        .card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 8px; }
+        .card.cctv::before { background-color: var(--s); }
+        .card.acceso::before { background-color: var(--acceso); }
+
+        .card-icon { font-size: 4em; margin-bottom: 20px; }
+        .card-title { color: var(--p); font-size: 1.5em; margin: 0 0 10px 0; font-weight: bold; }
+        .card-desc { color: #7F8C8D; font-size: 1em; margin: 0; line-height: 1.5; }
+        
+        .btn-ingresar { display: inline-block; margin-top: 25px; padding: 12px 30px; border-radius: 25px; font-weight: bold; color: var(--w); text-decoration: none; transition: 0.3s; }
+        .card.cctv .btn-ingresar { background-color: var(--s); }
+        .card.acceso .btn-ingresar { background-color: var(--acceso); }
+        .card:hover .btn-ingresar { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Centro de Auditoría Técnica</h1>
+        <p>El Cielo Parque Residencial</p>
+    </div>
+
+    <div class="menu-grid">
+        <a href="inspeccion_cctv.html" class="card cctv">
+            <div class="card-icon">📹</div>
+            <h2 class="card-title">Inspección CCTV</h2>
+            <p class="card-desc">Checklist de fallas físicas, pérdida de enlace y calidad de imagen para la red Hikvision y plataforma iVMS-4200.</p>
+            <span class="btn-ingresar">Ingresar al Módulo</span>
+        </a>
+
+        <a href="inspeccion_accesos.html" class="card acceso">
+            <div class="card-icon">🚧</div>
+            <h2 class="card-title">Control de Accesos</h2>
+            <p class="card-desc">Auditoría de barreras vehiculares, controladoras, routers, y sistemas lógicos (Interphone IA / App móvil).</p>
+            <span class="btn-ingresar">Ingresar al Módulo</span>
+        </a>
+    </div>
+
+</body>
+</html>
