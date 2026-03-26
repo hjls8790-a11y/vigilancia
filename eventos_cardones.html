@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventos Club Cardones - Prevención</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --p: #0E2F44; --s: #D4AF37; --g: #27AE60; --w: #FFFFFF; --t: #F4F6F7; --border: #BDC3C7; --bad: #C0392B; --good: #F39C12; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: #333; }
+        .header { background: var(--p); color: var(--w); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; border-bottom: 4px solid var(--s);}
+        .header h1 { margin: 0; font-size: 1.8em; letter-spacing: 1px;}
+        .header p { margin: 5px 0 0 0; color: #BDC3C7; font-size: 0.9em; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        .tab-btn { padding: 12px 20px; border: none; background: #ddd; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 0.95em; color: var(--p); transition: 0.3s; white-space: nowrap;}
+        .tab-btn.active { background: var(--w); color: var(--p); border-top: 4px solid var(--s); }
+        .tab-content { background: var(--w); padding: 25px; border-radius: 0 8px 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; }
+        .tab-content.active { display: block; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 0.85em; color: var(--p); text-transform: uppercase; }
+        input[type="text"], input[type="number"], input[type="time"], input[type="date"], select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 1em; }
+        textarea { resize: vertical; min-height: 80px; }
+        
+        .radio-group { display: flex; gap: 15px; align-items: center; height: 100%; padding: 10px 0;}
+        .radio-group label { text-transform: none; font-size: 1em; font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 5px;}
+
+        .btn { padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-send { background: var(--p); width: 100%; font-size: 1.1em; margin-top: 10px; padding: 15px;}
+        .btn-send:hover { background: #081d2a; }
+        .btn-pdf { background: var(--s); color: var(--p); padding: 8px 12px; font-size: 0.85em; }
+        .btn-rate { background: #8E44AD; padding: 8px 12px; font-size: 0.85em; }
+
+        .section-title { color: var(--s); border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 15px; margin-top: 0;}
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--p); color: var(--w); }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        
+        /* Modal Calificación */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; }
+        .rating-btns { display: flex; gap: 10px; margin: 15px 0; }
+        .rate-btn { flex: 1; padding: 15px; border: none; border-radius: 5px; font-weight: bold; color: white; cursor: pointer; }
+        .rate-exc { background: var(--g); } .rate-reg { background: var(--good); } .rate-bad { background: var(--bad); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🗓️ Logística de Eventos</h1>
+        <p>Club Cardones & Seguridad El Cielo Parque Residencial</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('registro')">📝 Nuevo Evento (Gerencia)</button>
+        <button class="tab-btn" onclick="switchTab('auditoria')">🛡️ Panel de Seguridad (Auditoría)</button>
+    </div>
+
+    <div id="registro" class="tab-content active">
+        <form id="formEvento">
+            <h3 class="section-title">Datos Generales del Evento</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre del Evento:</label>
+                    <input type="text" id="eNombre" required placeholder="Ej. Torneo de Padel, Boda civil...">
+                </div>
+                <div class="form-group">
+                    <label>Lugar:</label>
+                    <select id="eLugar" required>
+                        <option value="">Seleccione ubicación...</option>
+                        <option value="Salón">Salón</option>
+                        <option value="Jardín">Jardín</option>
+                        <option value="Work Space">Work Space</option>
+                        <option value="Terraza">Terraza</option>
+                        <option value="Salón Guayacanes">Salón Guayacanes</option>
+                        <option value="Canchas Padel (1ra Etapa)">Canchas Padel (1ra Etapa)</option>
+                        <option value="Canchas Padel (2da Etapa)">Canchas Padel (2da Etapa)</option>
+                        <option value="Cancha Fútbol Chica">Cancha Fútbol Chica</option>
+                        <option value="Cancha Fútbol Grande">Cancha Fútbol Grande</option>
+                        <option value="Pickleball">Pickleball</option>
+                        <option value="Básquetbol">Básquetbol</option>
+                        <option value="Canchas de Tennis">Canchas de Tennis</option>
+                        <option value="Alberca">Alberca</option>
+                        <option value="Restaurante">Restaurante</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" id="eFecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Horario:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="time" id="eHoraInicio" required style="width: 50%;">
+                        <input type="time" id="eHoraFin" required style="width: 50%;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Núm. de Invitados (Aprox):</label>
+                    <input type="number" id="eInvitados" required placeholder="Ej. 50">
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Organizador:</label>
+                    <input type="text" id="eOrgNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono del Organizador:</label>
+                    <input type="text" id="eOrgTel" required>
+                </div>
+            </div>
+
+            <h3 class="section-title">Requerimientos Operativos</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>¿Requiere Proveedor Externo?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="eProv" value="Sí" required> Sí</label>
+                        <label><input type="radio" name="eProv" value="No"> No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>¿Elemento fijo p/ salida de proveedores?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="eFijo" value="Sí" required> Sí</label>
+                        <label><input type="radio" name="eFijo" value="No"> No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>¿Habrá Valet Parking?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="eValet" value="Sí" required> Sí</label>
+                        <label><input type="radio" name="eValet" value="No"> No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Carritos de Golf (Traslados):</label>
+                    <select id="eCarritos" required>
+                        <option value="0">Ninguno (0)</option>
+                        <option value="1">1 Carrito</option>
+                        <option value="2">2 Carritos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Consignas Específicas para Seguridad:</label>
+                <textarea id="eConsignas" placeholder="Ej. Prestar especial atención a la puerta norte, no permitir el ingreso de bebidas de cristal, etc."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-send">📲 Registrar Evento y Notificar a Seguridad</button>
+        </form>
+    </div>
+
+    <div id="auditoria" class="tab-content">
+        <h3 class="section-title">Bitácora de Eventos y Órdenes de Servicio</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr><th>Fecha</th><th>Evento / Lugar</th><th>Invitados</th><th>Logística</th><th>Calificación Gerencia</th><th>Acciones</th></tr>
+                </thead>
+                <tbody id="bodyEventos"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalCalificar" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--p);">Evaluar Desempeño de Seguridad</h3>
+            <p style="font-size:0.9em; color:#666;">Evento: <strong id="califEventoNombre"></strong></p>
+            
+            <div class="rating-btns">
+                <button class="rate-btn rate-exc" onclick="setCalificacion('Excelente')">⭐ Excelente</button>
+                <button class="rate-btn rate-reg" onclick="setCalificacion('Bueno')">👍 Bueno</button>
+                <button class="rate-btn rate-bad" onclick="setCalificacion('Malo')">⚠️ Malo</button>
+            </div>
+            
+            <div class="form-group" style="margin-top:15px;">
+                <label>Observaciones de Gerencia:</label>
+                <textarea id="califObs" placeholder="Escriba comentarios, áreas de mejora o felicitaciones para el equipo..."></textarea>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top: 15px;">
+                <button class="btn btn-send" style="margin:0;" onclick="guardarCalificacion()">Guardar Evaluación</button>
+                <button class="btn" style="background:#95A5A6; width:100%; margin:0;" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-container" style="display: none;">
+        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333;">
+            <div style="border-bottom: 3px solid #0E2F44; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h2 style="margin: 0; color: #0E2F44;">ORDEN DE SERVICIO - PREVENCIÓN</h2>
+                    <h4 style="margin: 5px 0 0 0; color: #D4AF37;">Club Cardones / El Cielo Parque Residencial</h4>
+                </div>
+                <div style="text-align: right;">
+                    <strong style="font-size: 1.2em; color: #C0392B;" id="pdf-folio"></strong>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95em;">
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7; width: 30%;"><strong>Nombre del Evento:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-nombre"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Lugar:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-lugar"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Fecha y Horario:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-fecha"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Aforo Aproximado:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-invitados"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Organizador:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-organizador"></td></tr>
+            </table>
+
+            <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Requerimientos Logísticos (Gerencia)</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>Proveedores Externos:</strong> <span id="pdf-prov"></span></li>
+                <li><strong>Elemento fijo p/ Proveedores:</strong> <span id="pdf-fijo"></span></li>
+                <li><strong>Servicio de Valet Parking:</strong> <span id="pdf-valet"></span></li>
+                <li><strong>Carritos de Golf asignados:</strong> <span id="pdf-carts"></span></li>
+            </ul>
+
+            <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em; margin-top:20px;">Consignas Específicas de Seguridad</h3>
+            <p id="pdf-consignas" style="background: #FEF9E7; padding: 15px; border-radius: 5px; border-left: 5px solid #F39C12; white-space: pre-wrap; font-size: 0.95em;"></p>
+            
+            <div style="margin-top: 60px; display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <p>___________________________</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 0.9em;">Lic. Vanesa</p>
+                    <p style="margin: 0; font-size: 0.8em; color: gray;">Gerencia Club Cardones</p>
+                </div>
+                <div>
+                    <p>___________________________</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 0.9em;">Prevención y Seguridad</p>
+                    <p style="margin: 0; font-size: 0.8em; color: gray;">Acuse de Recibo en Turno</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('eFecha').valueAsDate = new Date();
+        const numeroWhatsAppHugo = "526695931812"; 
+        let bdEventos = JSON.parse(localStorage.getItem('bd_eventos_cardones')) || [];
+        let eventoAcalificar = null;
+        let calificacionTemp = '';
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'auditoria') renderizarTabla();
+        }
+
+        document.getElementById('formEvento').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const folioId = Math.floor(1000 + Math.random() * 9000); 
+            
+            const nuevoEvento = {
+                id: folioId,
+                nombre: document.getElementById('eNombre').value,
+                lugar: document.getElementById('eLugar').value,
+                fecha: document.getElementById('eFecha').value,
+                horario: `${document.getElementById('eHoraInicio').value} a ${document.getElementById('eHoraFin').value}`,
+                invitados: document.getElementById('eInvitados').value,
+                orgNombre: document.getElementById('eOrgNombre').value,
+                orgTel: document.getElementById('eOrgTel').value,
+                prov: document.querySelector('input[name="eProv"]:checked').value,
+                fijo: document.querySelector('input[name="eFijo"]:checked').value,
+                valet: document.querySelector('input[name="eValet"]:checked').value,
+                carts: document.getElementById('eCarritos').value,
+                consignas: document.getElementById('eConsignas').value || 'Sin consignas especiales.',
+                evaluacion: null, // Para cuando Lic Vanesa califique
+                observacionesEval: ''
+            };
+
+            bdEventos.unshift(nuevoEvento);
+            localStorage.setItem('bd_eventos_cardones', JSON.stringify(bdEventos));
+
+            // Construir mensaje de WhatsApp para Hugo
+            const mensaje = `*NUEVO EVENTO CLUB CARDONES*%0A%0A*Evento:* ${nuevoEvento.nombre}%0A*Lugar:* ${nuevoEvento.lugar}%0A*Fecha:* ${nuevoEvento.fecha} (${nuevoEvento.horario})%0A*Invitados:* ${nuevoEvento.invitados}%0A%0A*Logística:*%0A- Elemento fijo: ${nuevoEvento.fijo}%0A- Carritos: ${nuevoEvento.carts}%0A- Valet: ${nuevoEvento.valet}%0A%0A*Consignas:* ${nuevoEvento.consignas}%0A%0A_Notificación automática desde Plataforma_`;
+            
+            const url = `https://wa.me/${numeroWhatsAppHugo}?text=${mensaje}`;
+            
+            alert("✅ Evento registrado en bitácora.\n\nSe abrirá WhatsApp para notificar a Seguridad inmediatamente.");
+            this.reset();
+            document.getElementById('eFecha').valueAsDate = new Date();
+            window.open(url, '_blank');
+        });
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('bodyEventos');
+            tbody.innerHTML = '';
+            
+            if(bdEventos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay eventos registrados.</td></tr>';
+                return;
+            }
+
+            bdEventos.forEach(ev => {
+                let badgeCalif = '<span style="color:gray; font-size:0.9em;">Pendiente</span>';
+                if(ev.evaluacion === 'Excelente') badgeCalif = '⭐ <strong style="color:#27AE60;">Excelente</strong>';
+                if(ev.evaluacion === 'Bueno') badgeCalif = '👍 <strong style="color:#F39C12;">Bueno</strong>';
+                if(ev.evaluacion === 'Malo') badgeCalif = '⚠️ <strong style="color:#C0392B;">Malo</strong>';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${ev.fecha}</strong><br><span style="font-size:0.8em; color:gray;">${ev.horario}</span></td>
+                        <td><strong>${ev.nombre}</strong><br><span style="color:#2980B9;">📍 ${ev.lugar}</span></td>
+                        <td>${ev.invitados} pax</td>
+                        <td style="font-size:0.85em;">
+                            Fijo: ${ev.fijo} | Carts: ${ev.carts}
+                        </td>
+                        <td>${badgeCalif}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="btn btn-pdf" onclick="prepararPDF(${ev.id})" title="Generar Orden para Guardias">📄 PDF</button>
+                            ${!ev.evaluacion ? `<button class="btn btn-rate" onclick="abrirModalCalificar(${ev.id})">Evaluar</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- LÓGICA DE CALIFICACIÓN ---
+        function abrirModalCalificar(id) {
+            eventoAcalificar = bdEventos.find(e => e.id === id);
+            document.getElementById('califEventoNombre').innerText = eventoAcalificar.nombre;
+            document.getElementById('califObs').value = '';
+            calificacionTemp = '';
+            
+            // Limpiar estilos de botones
+            document.querySelectorAll('.rate-btn').forEach(btn => btn.style.opacity = '1');
+            document.getElementById('modalCalificar').style.display = 'flex';
+        }
+
+        function setCalificacion(val) {
+            calificacionTemp = val;
+            // Efecto visual simple
+            document.querySelectorAll('.rate-btn').forEach(btn => btn.style.opacity = '0.4');
+            event.currentTarget.style.opacity = '1';
+        }
+
+        function guardarCalificacion() {
+            if(!calificacionTemp) { alert("Seleccione una calificación (Excelente, Bueno, Malo)."); return; }
+            
+            eventoAcalificar.evaluacion = calificacionTemp;
+            eventoAcalificar.observacionesEval = document.getElementById('califObs').value;
+            
+            localStorage.setItem('bd_eventos_cardones', JSON.stringify(bdEventos));
+            alert("✅ Evaluación guardada en la bitácora de auditoría.");
+            cerrarModal();
+            renderizarTabla();
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalCalificar').style.display = 'none';
+            eventoAcalificar = null;
+        }
+
+        // --- LÓGICA DE PDF ---
+        function prepararPDF(id) {
+            const ev = bdEventos.find(e => e.id === id);
+            if(!ev) return;
+
+            document.getElementById('pdf-folio').innerText = `FOLIO-${ev.id}`;
+            document.getElementById('pdf-nombre').innerText = ev.nombre;
+            document.getElementById('pdf-lugar').innerText = ev.lugar;
+            document.getElementById('pdf-fecha').innerText = `${ev.fecha} / ${ev.horario}`;
+            document.getElementById('pdf-invitados').innerText = `${ev.invitados} personas`;
+            document.getElementById('pdf-organizador').innerText = `${ev.orgNombre} (Tel: ${ev.orgTel})`;
+            
+            document.getElementById('pdf-prov').innerText = ev.prov;
+            document.getElementById('pdf-fijo').innerText = ev.fijo;
+            document.getElementById('pdf-valet').innerText = ev.valet;
+            document.getElementById('pdf-carts').innerText = ev.carts;
+            document.getElementById('pdf-consignas').innerText = ev.consignas;
+
+            const container = document.getElementById('pdf-container');
+            container.style.display = 'block';
+
+            html2pdf().set({
+                margin: 15, filename: `Orden_Servicio_${ev.lugar}_${ev.fecha}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(document.getElementById('pdf-content')).save().then(() => {
+                container.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
