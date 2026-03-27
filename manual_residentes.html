@@ -458,11 +458,12 @@
             }
         });
 
-        // Lógica del Texto a Voz (Modo Lector Exacto)
+        // Lógica del Texto a Voz (Fragmentado para evitar que se bloquee el audio)
         let synth = window.speechSynthesis;
         let leyendo = false;
+        let indiceActual = 0;
+        let fragmentos = [];
 
-        // Este texto corresponde exactamente palabra por palabra a la información visual mostrada en la pantalla.
         const textoParaLeer = `
 Guía de Accesos para Residentes. 
 ¡Hola, estimado residente! Bienvenido al manual interactivo de seguridad. 
@@ -518,6 +519,9 @@ Nuestro Compromiso: Este control estricto nos permite tener un censo exacto de p
 Fin del manual. Si tiene dudas, presione el botón de WhatsApp en su pantalla para contactar a Seguridad.
         `;
 
+        // Dividimos el texto en un array de líneas/párrafos cortos
+        fragmentos = textoParaLeer.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+
         function toggleLectura() {
             const btn = document.getElementById('btn-lector');
             const icon = document.getElementById('lector-icon');
@@ -530,28 +534,49 @@ Fin del manual. Si tiene dudas, presione el botón de WhatsApp en su pantalla pa
                 icon.innerText = '🔊';
                 textoBtn.innerText = 'Escuchar Manual en Audio';
             } else {
-                synth.cancel(); // Cancelar cualquier lectura previa
-                
-                let utterance = new SpeechSynthesisUtterance(textoParaLeer);
-                utterance.lang = 'es-MX';
-                utterance.rate = 0.95; // Velocidad cómoda y seria
-                
-                utterance.onend = function() {
-                    leyendo = false;
-                    btn.classList.remove('activo');
-                    icon.innerText = '🔊';
-                    textoBtn.innerText = 'Escuchar Manual en Audio';
-                };
-
-                synth.speak(utterance);
+                synth.cancel(); 
                 leyendo = true;
+                indiceActual = 0;
                 btn.classList.add('activo');
                 icon.innerText = '⏹️';
                 textoBtn.innerText = 'Detener Audio';
+                leerSiguienteFragmento();
             }
         }
 
-        // Detener audio al salir
+        function leerSiguienteFragmento() {
+            if (!leyendo) return;
+
+            if (indiceActual >= fragmentos.length) {
+                // Se acabó el texto
+                leyendo = false;
+                document.getElementById('btn-lector').classList.remove('activo');
+                document.getElementById('lector-icon').innerText = '🔊';
+                document.getElementById('lector-texto').innerText = 'Escuchar Manual en Audio';
+                return;
+            }
+
+            let utterance = new SpeechSynthesisUtterance(fragmentos[indiceActual]);
+            utterance.lang = 'es-MX';
+            utterance.rate = 0.95;
+
+            // Cuando termine este pedacito, que lea el siguiente
+            utterance.onend = function() {
+                indiceActual++;
+                leerSiguienteFragmento();
+            };
+
+            // Prevención de errores por si el navegador bloquea un fragmento
+            utterance.onerror = function(event) {
+                console.warn('Error al leer fragmento:', event);
+                indiceActual++;
+                leerSiguienteFragmento();
+            };
+
+            synth.speak(utterance);
+        }
+
+        // Si el residente sale o recarga la página, apagamos el audio
         window.onbeforeunload = function() {
             if(synth) { synth.cancel(); }
         };
