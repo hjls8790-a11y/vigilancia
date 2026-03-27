@@ -49,6 +49,34 @@
             margin-right: auto;
         }
 
+        /* Botón Lector de Voz */
+        .btn-lector {
+            background-color: var(--secondary);
+            color: var(--primary);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-lector:hover {
+            transform: scale(1.05);
+            background-color: #F1C40F;
+        }
+
+        .btn-lector.activo {
+            background-color: var(--danger);
+            color: white;
+        }
+
         /* Contenedor principal */
         .container {
             max-width: 1000px;
@@ -211,6 +239,10 @@
     <header>
         <h1>Guía de Accesos para Residentes</h1>
         <p>Bienvenido al manual interactivo de seguridad de El Cielo Parque Residencial. Seleccione un módulo para conocer nuestros protocolos.</p>
+        
+        <button id="btn-lector" class="btn-lector" onclick="toggleLectura()">
+            <span id="lector-icon">🔊</span> <span id="lector-texto">Escuchar Manual en Audio</span>
+        </button>
     </header>
 
     <div class="container">
@@ -393,6 +425,7 @@
     </a>
 
     <script>
+        // Lógica de Modales
         function openModal(id) {
             document.getElementById(id).classList.add('active');
             document.body.style.overflow = 'hidden'; // Evita que el fondo haga scroll
@@ -403,7 +436,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Cerrar modal al hacer clic fuera del contenido
         window.onclick = function(event) {
             if (event.target.classList.contains('modal-overlay')) {
                 event.target.classList.remove('active');
@@ -411,7 +443,6 @@
             }
         }
 
-        // Cerrar con la tecla Escape
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape") {
                 const modals = document.querySelectorAll('.modal-overlay.active');
@@ -421,6 +452,81 @@
                 });
             }
         });
+
+        // Lógica del Texto a Voz (Modo Lector)
+        let synth = window.speechSynthesis;
+        let leyendo = false;
+
+        // Texto redactado específicamente para que suene natural al ser leído
+        const textoParaLeer = `
+            Guía de Accesos para Residentes. Bienvenido al manual interactivo de seguridad de El Cielo Parque Residencial.
+            
+            Sección 1: Etiquetas Vehiculares o Stickers.
+            La etiqueta de acceso vehicular es un beneficio exclusivo para residentes de El Cielo.
+            Funcionamiento en Caseta: Apertura automática del Carril Izquierdo, Exclusivo Residentes. Recomendamos ampliamente su uso, ya que cuenta con radares y antenas para una lectura rápida. El sticker también abre el Carril Central, de Visitas y Residentes.
+            Políticas de Asignación: Las etiquetas se otorgan únicamente para vehículos que el residente pueda comprobar que pernoctan en su domicilio. No se emiten para familiares no residentes, amigos o conocidos. El sticker no tiene fecha de vigencia.
+            Reemplazos y Cambios: Si cambia de vehículo, es obligatorio reportarlo a la Administración para dar de baja la etiqueta anterior y adquirir una nueva.
+            
+            Sección 2: Aplicación El Cielo.
+            Como propietario, tiene derecho a vincular hasta 2 dispositivos móviles. La App le permite gestionar accesos y visitas de manera cómoda.
+            Generación de Invitaciones: En la barra inferior, seleccione Invitaciones y luego Nueva invitación. Podrá elegir entre: Un solo uso, ideal para visitas casuales. Y Por tiempo, para eventos, donde deberá configurar fecha y hora de inicio y término.
+            Bondades: Tus visitas ingresarán de forma fluida. El equipo de monitoreo realiza una inspección visual remota para garantizar que se cumpla el reglamento.
+            Restricciones Importantes: No abra las puertas si no se encuentra en el sitio. Las invitaciones por App son exclusivas para familiares, amigos y visitas de confianza. Queda estrictamente prohibido generar invitaciones para trabajadores, ya que ellos tienen su propio protocolo.
+
+            Sección 3: Sistema de Interfón.
+            Es la vía principal de comunicación con nuestra caseta de seguridad.
+            Cómo debe utilizarlo su visita: 1. Presionar la tecla Call. 2. Esperar la respuesta de la operadora. 3. Indicar claramente el número de domicilio. 4. Aguardar la conexión.
+            Protocolo de Seguridad: Una vez que usted autoriza el acceso, el agente registra la identificación y fotografía las placas del vehículo. Un agente de patrullaje escolta a la visita hasta su domicilio.
+            Casos de Uso: Utilice el interfón para autorizar trabajadores domésticos, gaseras, paqueterías, taxis, o entrega de comida. No lo utilice para contratistas de mantenimiento pesado.
+
+            Sección 4: Registro de Proveedores.
+            Para mantener un entorno seguro, todo trabajador o contratista debe ser registrado previamente en nuestra plataforma Condo Senior.
+            Pasos para el Alta: Acceda a la plataforma. Seleccione el tipo de ingreso. Complete los datos del trabajador y el sistema generará un código QR que deberá compartir con su proveedor.
+            El registro debe realizarse con al menos 24 horas de anticipación. En casos emergentes, puede registrar el mismo día, pero es obligatorio avisar a la Comandancia de Seguridad.
+            
+            Fin del manual. Si tiene dudas, presione el botón de WhatsApp en su pantalla para contactar a Seguridad.
+        `;
+
+        function toggleLectura() {
+            const btn = document.getElementById('btn-lector');
+            const icon = document.getElementById('lector-icon');
+            const textoBtn = document.getElementById('lector-texto');
+
+            if (leyendo) {
+                // Detener la lectura
+                synth.cancel();
+                leyendo = false;
+                btn.classList.remove('activo');
+                icon.innerText = '🔊';
+                textoBtn.innerText = 'Escuchar Manual en Audio';
+            } else {
+                // Iniciar la lectura
+                // Cancelar cualquier lectura previa por si acaso
+                synth.cancel(); 
+                
+                let utterance = new SpeechSynthesisUtterance(textoParaLeer);
+                utterance.lang = 'es-MX'; // Español de México
+                utterance.rate = 0.95; // Velocidad un poco más relajada para que se entienda bien
+                
+                utterance.onend = function() {
+                    leyendo = false;
+                    btn.classList.remove('activo');
+                    icon.innerText = '🔊';
+                    textoBtn.innerText = 'Escuchar Manual en Audio';
+                };
+
+                synth.speak(utterance);
+                leyendo = true;
+                btn.classList.add('activo');
+                icon.innerText = '⏹️';
+                textoBtn.innerText = 'Detener Audio';
+            }
+        }
+
+        // Si el usuario cierra o recarga la página, detener el audio para que no siga sonando
+        window.onbeforeunload = function() {
+            if(synth) { synth.cancel(); }
+        };
     </script>
 </body>
 </html>
