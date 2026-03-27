@@ -40,11 +40,26 @@
             letter-spacing: 1px;
         }
 
+        .saludo {
+            font-size: 1.2rem;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .eslogan {
+            font-size: 1.1rem;
+            color: var(--secondary);
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 20px;
+            letter-spacing: 1.5px;
+        }
+
         header p {
             margin-top: 10px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             opacity: 0.9;
-            max-width: 600px;
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -54,12 +69,12 @@
             background-color: var(--secondary);
             color: var(--primary);
             border: none;
-            padding: 10px 24px;
-            border-radius: 25px;
+            padding: 12px 26px;
+            border-radius: 30px;
             font-size: 1.05rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 25px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
             display: inline-flex;
@@ -189,7 +204,7 @@
         .modal-body { padding: 25px; }
         .modal-body h3 { color: var(--primary); border-bottom: 2px solid #E2E8F0; padding-bottom: 8px; margin-top: 25px;}
         .modal-body h3:first-child { margin-top: 0; }
-        .modal-body ul { padding-left: 20px; }
+        .modal-body ul, .modal-body ol { padding-left: 20px; }
         .modal-body li { margin-bottom: 10px; }
 
         /* Estilos de Alertas y Notas */
@@ -238,7 +253,9 @@
 
     <header>
         <h1>Guía de Accesos para Residentes</h1>
-        <p>Bienvenido al manual interactivo de seguridad de El Cielo Parque Residencial. Seleccione un módulo para conocer nuestros protocolos.</p>
+        <p class="saludo">¡Hola, estimado residente! Bienvenido al manual interactivo de seguridad.</p>
+        <p class="eslogan">"FIRMEZA, NO PREPOTENCIA"</p>
+        <p>Seleccione un módulo para conocer nuestros protocolos obligatorios.</p>
         
         <button id="btn-lector" class="btn-lector" onclick="toggleLectura()">
             <span id="lector-icon">🔊</span> <span id="lector-texto">Escuchar Manual en Audio</span>
@@ -250,13 +267,13 @@
             <div class="card" onclick="openModal('modal-stickers')">
                 <div class="card-icon">🚗</div>
                 <div class="card-title">Etiquetas Vehiculares (Stickers)</div>
-                <div class="card-desc">Protocolos para el ingreso ágil y exclusivo de propietarios al residencial.</div>
+                <div class="card-desc">Protocolos para el ingreso ágil, exclusivo e intransferible de propietarios.</div>
             </div>
 
             <div class="card" onclick="openModal('modal-app')">
                 <div class="card-icon">📱</div>
                 <div class="card-title">App "El Cielo"</div>
-                <div class="card-desc">Gestión de aperturas e invitaciones digitales para visitas y familiares.</div>
+                <div class="card-desc">Gestión de aperturas e invitaciones digitales para familiares y visitas.</div>
             </div>
 
             <div class="card" onclick="openModal('modal-interfon')">
@@ -268,7 +285,7 @@
             <div class="card" onclick="openModal('modal-proveedores')">
                 <div class="card-icon">🛠️</div>
                 <div class="card-title">Registro de Proveedores</div>
-                <div class="card-desc">Plataforma CondoSenior para el control estricto de trabajadores externos.</div>
+                <div class="card-desc">Plataforma CondoSenior para el control estricto y obligatorio de externos.</div>
             </div>
         </div>
     </div>
@@ -280,24 +297,24 @@
                 <button class="close-btn" onclick="closeModal('modal-stickers')">&times;</button>
             </div>
             <div class="modal-body">
-                <p>La etiqueta de acceso vehicular (Sticker) es un beneficio <strong>exclusivo para residentes</strong> de El Cielo Parque Residencial.</p>
+                <p>La etiqueta de acceso vehicular es un beneficio <strong>exclusivo e intransferible</strong> para residentes de El Cielo Parque Residencial.</p>
                 
                 <h3>Funcionamiento en Caseta</h3>
                 <ul>
-                    <li>Apertura automática del <strong>Carril Izquierdo (Exclusivo Residentes)</strong>: Recomendamos ampliamente su uso, ya que cuenta con radares y antenas de largo alcance para una lectura rápida.</li>
-                    <li>Apertura del <strong>Carril Central (Visitas/Residentes)</strong>.</li>
+                    <li><strong>Apertura automática del Carril Izquierdo (Exclusivo Residentes):</strong> Su uso es prioritario. Cuenta con radares de largo alcance para lectura rápida.</li>
+                    <li><strong>Apertura del Carril Central:</strong> Para visitas y residentes.</li>
                 </ul>
 
-                <h3>Políticas de Asignación</h3>
+                <h3>Políticas de Asignación Obligatorias</h3>
                 <ul>
-                    <li>Las etiquetas se otorgan <strong>únicamente</strong> para vehículos que el residente pueda comprobar que pernoctan en su domicilio.</li>
-                    <li>No se emiten etiquetas para familiares no residentes, amigos o conocidos.</li>
+                    <li>Las etiquetas se otorgan <strong>únicamente</strong> para vehículos que el residente compruebe documentalmente que pernoctan en su domicilio.</li>
+                    <li><strong>No se emiten etiquetas para familiares no residentes, amigos o conocidos, sin excepciones.</strong></li>
                     <li>El sticker no tiene fecha de vigencia.</li>
                 </ul>
 
                 <div class="alert alert-info">
                     <strong>🔄 Reemplazos y Cambios:</strong><br>
-                    Si cambia de vehículo, es obligatorio reportarlo a la Administración para dar de baja la etiqueta anterior y adquirir una nueva. En caso de falla técnica del sistema, la etiqueta será reemplazada de forma gratuita.
+                    Si cambia de vehículo, es obligatorio reportarlo a la Administración para dar de baja la etiqueta anterior y adquirir una nueva. En caso de falla técnica del sistema, se reemplaza gratuitamente.
                 </div>
             </div>
         </div>
@@ -310,35 +327,29 @@
                 <button class="close-btn" onclick="closeModal('modal-app')">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Como propietario, usted tiene derecho a vincular hasta <strong>2 dispositivos móviles</strong>. La App le permite gestionar accesos y visitas de manera cómoda.</p>
+                <p>Como propietario, usted tiene derecho a vincular hasta <strong>2 dispositivos móviles</strong>. La App le permite gestionar accesos de manera cómoda, pero con estricta responsabilidad.</p>
 
                 <h3>Panel de Control Principal</h3>
-                <p>Al abrir la aplicación, visualizará botones para la apertura remota:</p>
-                <ul>
-                    <li><strong>Visitas / Residentes:</strong> Abre la pluma del carril central.</li>
-                    <li><strong>Peatonal Derecho / Izquierdo:</strong> Liberación de puertas peatonales.</li>
-                    <li><strong>Salida Vehicular Derecha:</strong> Apertura para egreso de visitas.</li>
-                </ul>
+                <p>Al abrir la aplicación, visualizará botones para la apertura remota de <strong>visitas, accesos peatonales y salida vehicular</strong>.</p>
 
                 <h3>Generación de Invitaciones</h3>
-                <p>En la barra inferior, seleccione <strong>Invitaciones</strong> y luego el botón azul <strong>+ Nueva invitación</strong>. Podrá elegir entre:</p>
+                <p>En la sección de <strong>Invitaciones</strong>, podrá generar:</p>
                 <ul>
-                    <li><strong>Un solo uso:</strong> Ideal para visitas casuales. Solo requiere ingresar el nombre y un comentario.</li>
-                    <li><strong>Por tiempo:</strong> Para eventos. Deberá configurar una fecha/hora de inicio (Desde) y de término (Hasta).</li>
+                    <li><strong>Pases de un solo uso:</strong> Para visitas casuales.</li>
+                    <li><strong>Pases por tiempo:</strong> Para eventos, definiendo hora de inicio y término.</li>
                 </ul>
-                <p>Una vez creada, presione <strong>Compartir</strong> para enviarla vía WhatsApp o copiando el enlace a su invitado.</p>
 
                 <div class="alert alert-success">
                     <strong>🛡️ Bondades del Sistema:</strong><br>
-                    Tus visitas ingresarán de forma fluida, sin molestias. El equipo de monitoreo realiza una inspección visual remota para garantizar que se cumpla el reglamento de seguridad.
+                    Sus visitas ingresarán de forma fluida. El equipo de monitoreo realiza una inspección visual remota para garantizar que se cumpla el reglamento.
                 </div>
 
                 <div class="alert alert-danger">
-                    <strong>⚠️ RESTRICCIONES IMPORTANTES:</strong>
+                    <strong>⚠️ RESTRICCIONES INQUEBRANTABLES:</strong>
                     <ul>
-                        <li><strong>No aperture puertas si no se encuentra en el sitio.</strong> Abrir a ciegas provoca confusión en los carriles y vulnera la seguridad.</li>
-                        <li>Las invitaciones por App son exclusivas para familiares, amigos y visitas de confianza.</li>
-                        <li><strong>QUEDA ESTRICTAMENTE PROHIBIDO</strong> generar invitaciones QR para trabajadores (plomería, electricidad, jardinería, etc.). Ellos tienen su propio protocolo.</li>
+                        <li><strong>Queda estrictamente prohibido aperturar puertas si no se encuentra en el sitio o no tiene contacto visual.</strong> Abrir a ciegas vulnera la seguridad de todos.</li>
+                        <li>Las invitaciones por App son exclusivas para familiares y visitas de confianza.</li>
+                        <li><strong>PROHIBIDO generar invitaciones por App para trabajadores, plomería, electricidad o jardinería.</strong> Ellos tienen su propio protocolo obligatorio.</li>
                     </ul>
                 </div>
             </div>
@@ -352,33 +363,27 @@
                 <button class="close-btn" onclick="closeModal('modal-interfon')">&times;</button>
             </div>
             <div class="modal-body">
-                <p>El sistema de intercomunicación se activa una vez que usted habita en el residencial. Es la vía principal de comunicación con nuestra caseta de seguridad.</p>
+                <p>Es la vía principal de comunicación con nuestra caseta de seguridad.</p>
 
-                <h3>¿Cómo utilizarlo desde la caseta (para su visita)?</h3>
+                <h3>Pasos para su visita en caseta:</h3>
                 <ol>
                     <li>Presionar la tecla <strong>"Call"</strong> en el tablero.</li>
-                    <li>Esperar la respuesta de la operadora o Inteligencia Artificial.</li>
-                    <li>Indicar claramente el número de domicilio (ej. "101").</li>
-                    <li>Aguardar la conexión telefónica con el residente.</li>
+                    <li>Esperar la respuesta de la operadora.</li>
+                    <li>Indicar claramente el número de domicilio.</li>
+                    <li>Aguardar la conexión telefónica.</li>
                 </ol>
-                <p><em>Consejo: Si la conexión falla, esperar 2 minutos sin volver a presionar "Call" para que el agente de turno establezca el enlace.</em></p>
 
                 <h3>Protocolo de Seguridad y Escolta</h3>
-                <p>Una vez que usted (el residente) autoriza el acceso vía interfón, Seguridad activa el siguiente protocolo:</p>
-                <ol>
-                    <li>El agente de monitoreo registra la identificación oficial y fotografía las placas del vehículo.</li>
-                    <li>Un agente de patrullaje <strong>escolta a la visita</strong> directamente hasta su domicilio.</li>
-                    <li>En caso de proveedores permitidos, el agente verifica que no se desvíen de su ruta y confirma su salida del residencial.</li>
-                </ol>
+                <p>Al autorizar el acceso, el agente de monitoreo registra identificación y placas. Un agente de patrullaje escolta a la visita directamente hasta su domicilio. En caso de proveedores permitidos, se verifica que no se desvíen de su ruta.</p>
 
                 <div class="alert alert-info">
-                    <strong>📌 Casos de Uso Recomendados:</strong><br>
-                    Utilice el interfón para autorizar: Trabajadores domésticos, gaseras, paqueterías, taxis/Uber, entrega de comida, o visitas que no cuenten con datos móviles.
+                    <strong>📌 Casos de Uso Permitidos:</strong><br>
+                    Utilice el interfón para autorizar: trabajadores domésticos, gaseras, paqueterías, Uber o entrega de comida.
                 </div>
                 
                 <div class="alert alert-danger">
-                    <strong>⚠️ RESTRICCIÓN:</strong><br>
-                    No utilice el interfón para autorizar el ingreso de contratistas (albañilería, mantenimiento pesado). Todo trabajo que requiera permiso de administración debe registrarse en la plataforma CondoSenior.
+                    <strong>⚠️ RESTRICCIÓN ABSOLUTA:</strong><br>
+                    No utilice el interfón para autorizar el ingreso de contratistas de albañilería o mantenimiento pesado. Todo trabajo debe registrarse obligatoriamente en la plataforma CondoSenior.
                 </div>
             </div>
         </div>
@@ -391,27 +396,27 @@
                 <button class="close-btn" onclick="closeModal('modal-proveedores')">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Para mantener un entorno seguro y ordenado, todo trabajador, contratista o proveedor de servicios técnicos debe ser registrado previamente en nuestra plataforma.</p>
+                <p>Para mantener un entorno seguro, todo trabajador, contratista o proveedor técnico debe ser registrado previamente en la plataforma CondoSenior.</p>
 
                 <a href="https://proveedores.condosenior.com/" target="_blank" class="btn-link">Acceder a Plataforma CondoSenior</a>
 
                 <h3>Pasos para el Alta</h3>
                 <ol>
                     <li>Acceda a la plataforma con su <strong>Código de Referencia</strong>.</li>
-                    <li>Seleccione el tipo de ingreso: <em>Peatonal, Vehicular o Externo</em>.</li>
-                    <li>Complete los datos del trabajador (Nombre, CURP, Fotografías de rostro e INE, y datos del vehículo si aplica).</li>
-                    <li>El sistema generará un código QR que deberá compartir con su proveedor.</li>
+                    <li>Seleccione el tipo de ingreso.</li>
+                    <li>Complete los datos exactos del trabajador, incluyendo <strong>fotografías de rostro e INE</strong>.</li>
+                    <li>El sistema generará un código QR para el proveedor.</li>
                 </ol>
 
-                <h3>Parámetros de Anticipación</h3>
+                <h3>Parámetros de Anticipación Obligatorios</h3>
                 <ul>
-                    <li>El registro debe realizarse con al menos <strong>24 horas de anticipación</strong>.</li>
-                    <li><strong>Casos Emergentes:</strong> Pueden registrarse el mismo día, pero es obligatorio avisar a la Comandancia de Seguridad para que aprueben la información de manera expedita.</li>
+                    <li>El registro es obligatorio con al menos <strong>24 horas de anticipación</strong>.</li>
+                    <li><strong>Casos Emergentes:</strong> Pueden registrarse el mismo día, pero es forzoso avisar a la Comandancia de Seguridad para su aprobación expedita. <strong>Sin registro previo, se negará el acceso en caseta.</strong></li>
                 </ul>
 
                 <div class="alert alert-success">
                     <strong>🛡️ Nuestro Compromiso:</strong><br>
-                    Este control en tiempo real nos permite tener un censo exacto de personas ajenas al residencial, garantizar vialidades despejadas y prevenir incidentes. Nuestro personal está en constante capacitación para ofrecerle atención y proximidad.
+                    Este control estricto nos permite tener un censo exacto de personas ajenas al residencial y prevenir incidentes.
                 </div>
             </div>
         </div>
@@ -428,7 +433,7 @@
         // Lógica de Modales
         function openModal(id) {
             document.getElementById(id).classList.add('active');
-            document.body.style.overflow = 'hidden'; // Evita que el fondo haga scroll
+            document.body.style.overflow = 'hidden'; 
         }
 
         function closeModal(id) {
@@ -453,38 +458,64 @@
             }
         });
 
-        // Lógica del Texto a Voz (Modo Lector)
+        // Lógica del Texto a Voz (Modo Lector Exacto)
         let synth = window.speechSynthesis;
         let leyendo = false;
 
-        // Texto redactado específicamente para que suene natural al ser leído
+        // Este texto corresponde exactamente palabra por palabra a la información visual mostrada en la pantalla.
         const textoParaLeer = `
-            Guía de Accesos para Residentes. Bienvenido al manual interactivo de seguridad de El Cielo Parque Residencial.
-            
-            Sección 1: Etiquetas Vehiculares o Stickers.
-            La etiqueta de acceso vehicular es un beneficio exclusivo para residentes de El Cielo.
-            Funcionamiento en Caseta: Apertura automática del Carril Izquierdo, Exclusivo Residentes. Recomendamos ampliamente su uso, ya que cuenta con radares y antenas para una lectura rápida. El sticker también abre el Carril Central, de Visitas y Residentes.
-            Políticas de Asignación: Las etiquetas se otorgan únicamente para vehículos que el residente pueda comprobar que pernoctan en su domicilio. No se emiten para familiares no residentes, amigos o conocidos. El sticker no tiene fecha de vigencia.
-            Reemplazos y Cambios: Si cambia de vehículo, es obligatorio reportarlo a la Administración para dar de baja la etiqueta anterior y adquirir una nueva.
-            
-            Sección 2: Aplicación El Cielo.
-            Como propietario, tiene derecho a vincular hasta 2 dispositivos móviles. La App le permite gestionar accesos y visitas de manera cómoda.
-            Generación de Invitaciones: En la barra inferior, seleccione Invitaciones y luego Nueva invitación. Podrá elegir entre: Un solo uso, ideal para visitas casuales. Y Por tiempo, para eventos, donde deberá configurar fecha y hora de inicio y término.
-            Bondades: Tus visitas ingresarán de forma fluida. El equipo de monitoreo realiza una inspección visual remota para garantizar que se cumpla el reglamento.
-            Restricciones Importantes: No abra las puertas si no se encuentra en el sitio. Las invitaciones por App son exclusivas para familiares, amigos y visitas de confianza. Queda estrictamente prohibido generar invitaciones para trabajadores, ya que ellos tienen su propio protocolo.
+Guía de Accesos para Residentes. 
+¡Hola, estimado residente! Bienvenido al manual interactivo de seguridad. 
+Firmeza, no prepotencia. 
+Seleccione un módulo para conocer nuestros protocolos obligatorios.
 
-            Sección 3: Sistema de Interfón.
-            Es la vía principal de comunicación con nuestra caseta de seguridad.
-            Cómo debe utilizarlo su visita: 1. Presionar la tecla Call. 2. Esperar la respuesta de la operadora. 3. Indicar claramente el número de domicilio. 4. Aguardar la conexión.
-            Protocolo de Seguridad: Una vez que usted autoriza el acceso, el agente registra la identificación y fotografía las placas del vehículo. Un agente de patrullaje escolta a la visita hasta su domicilio.
-            Casos de Uso: Utilice el interfón para autorizar trabajadores domésticos, gaseras, paqueterías, taxis, o entrega de comida. No lo utilice para contratistas de mantenimiento pesado.
+Módulo 1: Etiquetas Vehiculares o Stickers. 
+La etiqueta de acceso vehicular es un beneficio exclusivo e intransferible para residentes de El Cielo Parque Residencial. 
+Funcionamiento en Caseta: 
+Apertura automática del Carril Izquierdo, Exclusivo Residentes: Su uso es prioritario. Cuenta con radares de largo alcance para lectura rápida. 
+Apertura del Carril Central: Para visitas y residentes.
+Políticas de Asignación Obligatorias: 
+Las etiquetas se otorgan únicamente para vehículos que el residente compruebe documentalmente que pernoctan en su domicilio. 
+No se emiten etiquetas para familiares no residentes, amigos o conocidos, sin excepciones. 
+El sticker no tiene fecha de vigencia. 
+Reemplazos y Cambios: Si cambia de vehículo, es obligatorio reportarlo a la Administración para dar de baja la etiqueta anterior y adquirir una nueva. En caso de falla técnica del sistema, se reemplaza gratuitamente.
 
-            Sección 4: Registro de Proveedores.
-            Para mantener un entorno seguro, todo trabajador o contratista debe ser registrado previamente en nuestra plataforma Condo Senior.
-            Pasos para el Alta: Acceda a la plataforma. Seleccione el tipo de ingreso. Complete los datos del trabajador y el sistema generará un código QR que deberá compartir con su proveedor.
-            El registro debe realizarse con al menos 24 horas de anticipación. En casos emergentes, puede registrar el mismo día, pero es obligatorio avisar a la Comandancia de Seguridad.
-            
-            Fin del manual. Si tiene dudas, presione el botón de WhatsApp en su pantalla para contactar a Seguridad.
+Módulo 2: Aplicación El Cielo. 
+Como propietario, usted tiene derecho a vincular hasta 2 dispositivos móviles. La App le permite gestionar accesos de manera cómoda, pero con estricta responsabilidad. 
+Panel de Control Principal: Al abrir la aplicación, visualizará botones para la apertura remota de visitas, accesos peatonales y salida vehicular. 
+Generación de Invitaciones: En la sección de Invitaciones, podrá generar: 
+Pases de un solo uso: Para visitas casuales. 
+Pases por tiempo: Para eventos, definiendo hora de inicio y término. 
+Bondades del Sistema: Sus visitas ingresarán de forma fluida. El equipo de monitoreo realiza una inspección visual remota para garantizar que se cumpla el reglamento. 
+Restricciones Inquebrantables: 
+Queda estrictamente prohibido aperturar puertas si no se encuentra en el sitio o no tiene contacto visual. Abrir a ciegas vulnera la seguridad de todos. 
+Las invitaciones por App son exclusivas para familiares y visitas de confianza. 
+PROHIBIDO generar invitaciones por App para trabajadores, plomería, electricidad o jardinería. Ellos tienen su propio protocolo obligatorio.
+
+Módulo 3: Sistema de Interfón. 
+Es la vía principal de comunicación con nuestra caseta de seguridad. 
+Pasos para su visita en caseta: 
+1. Presionar la tecla Call en el tablero. 
+2. Esperar la respuesta de la operadora. 
+3. Indicar claramente el número de domicilio. 
+4. Aguardar la conexión telefónica. 
+Protocolo de Seguridad y Escolta: Al autorizar el acceso, el agente de monitoreo registra identificación y placas. Un agente de patrullaje escolta a la visita directamente hasta su domicilio. En caso de proveedores permitidos, se verifica que no se desvíen de su ruta. 
+Casos de Uso Permitidos: Utilice el interfón para autorizar: trabajadores domésticos, gaseras, paqueterías, Uber o entrega de comida. 
+Restricción Absoluta: No utilice el interfón para autorizar el ingreso de contratistas de albañilería o mantenimiento pesado. Todo trabajo debe registrarse obligatoriamente en la plataforma Condo Senior.
+
+Módulo 4: Registro de Proveedores. 
+Para mantener un entorno seguro, todo trabajador, contratista o proveedor técnico debe ser registrado previamente en la plataforma Condo Senior. 
+Pasos para el Alta: 
+1. Acceda a la plataforma con su Código de Referencia. 
+2. Seleccione el tipo de ingreso. 
+3. Complete los datos exactos del trabajador, incluyendo fotografías de rostro e I N E. 
+4. El sistema generará un código Q R para el proveedor. 
+Parámetros de Anticipación Obligatorios: 
+El registro es obligatorio con al menos 24 horas de anticipación. 
+Casos Emergentes: Pueden registrarse el mismo día, pero es forzoso avisar a la Comandancia de Seguridad para su aprobación expedita. Sin registro previo, se negará el acceso en caseta. 
+Nuestro Compromiso: Este control estricto nos permite tener un censo exacto de personas ajenas al residencial y prevenir incidentes.
+
+Fin del manual. Si tiene dudas, presione el botón de WhatsApp en su pantalla para contactar a Seguridad.
         `;
 
         function toggleLectura() {
@@ -493,20 +524,17 @@
             const textoBtn = document.getElementById('lector-texto');
 
             if (leyendo) {
-                // Detener la lectura
                 synth.cancel();
                 leyendo = false;
                 btn.classList.remove('activo');
                 icon.innerText = '🔊';
                 textoBtn.innerText = 'Escuchar Manual en Audio';
             } else {
-                // Iniciar la lectura
-                // Cancelar cualquier lectura previa por si acaso
-                synth.cancel(); 
+                synth.cancel(); // Cancelar cualquier lectura previa
                 
                 let utterance = new SpeechSynthesisUtterance(textoParaLeer);
-                utterance.lang = 'es-MX'; // Español de México
-                utterance.rate = 0.95; // Velocidad un poco más relajada para que se entienda bien
+                utterance.lang = 'es-MX';
+                utterance.rate = 0.95; // Velocidad cómoda y seria
                 
                 utterance.onend = function() {
                     leyendo = false;
@@ -523,7 +551,7 @@
             }
         }
 
-        // Si el usuario cierra o recarga la página, detener el audio para que no siga sonando
+        // Detener audio al salir
         window.onbeforeunload = function() {
             if(synth) { synth.cancel(); }
         };
