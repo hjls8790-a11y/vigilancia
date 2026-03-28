@@ -145,11 +145,11 @@
         </div>
         <div class="form-group">
             <label for="lugar">Lugar del incidente:</label>
-            <input type="text" id="lugar" placeholder="Ej. Caseta Norte, Barda Perimetral Sur..." required>
+            <input type="text" id="lugar" required>
         </div>
         <div class="form-group">
             <label for="descripcion">Descripción del incidente:</label>
-            <textarea id="descripcion" placeholder="Describa a detalle qué ocurrió..." required></textarea>
+            <textarea id="descripcion" required></textarea>
         </div>
 
         <h2>Análisis Causa Raíz</h2>
@@ -166,7 +166,7 @@
             <textarea id="q3" required></textarea>
         </div>
         <div class="form-group">
-            <label for="q4">4. ¿Cuáles fueron las causas subyacentes? (Fallas en procedimientos, tecnología, capacitación)</label>
+            <label for="q4">4. ¿Cuáles fueron las causas subyacentes?</label>
             <textarea id="q4" required></textarea>
         </div>
         <div class="form-group">
@@ -274,11 +274,14 @@
                 })
             });
 
+            const resultData = await response.json();
+
+            // Aquí atrapamos el error REAL de Google
             if (!response.ok) {
-                throw new Error('Error de conexión con la API de IA. Verifica tu conexión a internet o los límites de la API.');
+                const mensajeError = resultData.error?.message || 'Error desconocido';
+                throw new Error(`Google rechazó la conexión. Razón: ${mensajeError}`);
             }
 
-            const resultData = await response.json();
             let aiText = resultData.candidates.content.parts.text;
 
             aiText = aiText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
@@ -290,7 +293,7 @@
             resultsContainer.style.display = 'block';
 
         } catch (error) {
-            aiOutput.innerHTML = `<span style="color: red;"><strong>Error:</strong> ${error.message}</span>`;
+            aiOutput.innerHTML = `<span style="color: red;"><strong>¡Ups! Falló la API:</strong><br><br>${error.message}</span>`;
             resultsContainer.style.display = 'block';
         } finally {
             btnSubmit.disabled = false;
