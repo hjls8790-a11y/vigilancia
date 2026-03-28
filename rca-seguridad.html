@@ -6,8 +6,8 @@
     <title>Análisis Causa Raíz (RCA) - Seguridad</title>
     <style>
         :root {
-            --primary: #0A2540; /* Azul oscuro */
-            --secondary: #D4AF37; /* Dorado */
+            --primary: #0A2540;
+            --secondary: #D4AF37;
             --bg: #F8FAFC;
             --surface: #FFFFFF;
             --text: #334155;
@@ -42,18 +42,9 @@
 
         h1 { margin-top: 0; text-align: center; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 20px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 20px; }
+        .form-row .form-group { flex: 1; }
 
         label {
             display: block;
@@ -79,10 +70,7 @@
             background-color: #FFF;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
+        textarea { resize: vertical; min-height: 80px; }
 
         button {
             background-color: var(--primary);
@@ -102,22 +90,15 @@
             gap: 10px;
         }
 
-        button:hover {
-            background-color: #1a3a5c;
-        }
+        button:hover { background-color: #1a3a5c; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
 
-        button:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        /* Sección de Resultados IA */
         #ai-results-container {
             display: none;
             margin-top: 40px;
             padding: 25px;
-            background-color: #F0FDF4; /* Fondo verde muy claro */
-            border-left: 5px solid #16A34A; /* Borde verde éxito */
+            background-color: #F0FDF4;
+            border-left: 5px solid #16A34A;
             border-radius: 8px;
         }
 
@@ -142,9 +123,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        .ai-content {
-            white-space: pre-wrap;
-        }
+        .ai-content { white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -224,8 +203,7 @@
 </div>
 
 <script>
-    // === CONFIGURACIÓN DE LA API DE GEMINI ===
-    // PEGA TU CLAVE ENTRE LAS COMILLAS SIMPLES A CONTINUACIÓN:
+    // Tu API Key de Gemini
     const GEMINI_API_KEY = 'AIzaSyAH9TvJnH8KuA4h7Ar5Lck1RTXki_nISQ4'; 
 
     document.getElementById('rca-form').addEventListener('submit', async function(e) {
@@ -271,7 +249,7 @@
         - Acción: ${data.accion} (Responsable: ${data.responsable}, Fecha: ${data.fecha_implementacion})
         
         Tu tarea es generar la sección de "Seguimiento" estructurada. Necesito que:
-        1. Evalúes brevemente si las acciones correctivas propuestas son suficientes o si sugieres protocolos adicionales (ej. modelos Zero Trust, controles de acceso).
+        1. Evalúes brevemente si las acciones correctivas propuestas son suficientes o si sugieres protocolos adicionales.
         2. Estructures un plan de seguimiento a 7, 15 y 30 días para verificar la eficacia de la acción.
         3. Generes un listado de "Puntos de Mejora Continua" para evitar la reincidencia, redactados de forma clara y directiva para los agentes de seguridad y administración.
         
@@ -297,7 +275,7 @@
             });
 
             if (!response.ok) {
-                throw new Error('Error de conexión con la API de IA. Revisa tu API Key.');
+                throw new Error('Error de conexión con la API de IA. Verifica tu conexión a internet o los límites de la API.');
             }
 
             const resultData = await response.json();
