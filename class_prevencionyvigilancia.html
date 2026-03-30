@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Class Seguridad Residencial</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        header { background: #2c3e50; color: #fff; padding: 2rem; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        .module { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #2980b9; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .quiz-container { background: #e8f6f3; padding: 20px; border-radius: 8px; border-left: 5px solid #1abc9c; }
+        .btn { background: #2980b9; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #3498db; }
+        .hidden { display: none; }
+        .feedback { margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🛡️ Master Class: Seguridad Táctica Residencial</h1>
+    <p>22 Hectáreas | Prevención | Excelencia Operativa</p>
+</header>
+
+<div id="content-module" class="module">
+    <h2>Módulo 1: Contenido de la Master Class</h2>
+    <p><strong>1. Patrullaje de Coincidencia:</strong> Estar donde ocurre la acción basándose en datos, no en el azar.</p>
+    <p><strong>2. Puntos Vulnerables:</strong> Vigilancia intensiva en zonas de malla ciclónica y futuros accesos. Inspección física manual.</p>
+    <p><strong>3. Intercepción Pasiva:</strong> Confirmar arribos de visitas mediante técnicas de <em>Posicionamiento Anticipado</em> y <em>Anclaje de Coartada</em>.</p>
+    <p><strong>4. Control de Accesos:</strong> Diferenciación técnica entre acceso automatizado (residentes) y manual/escaneado (proveedores).</p>
+    <button class="btn" onclick="showQuiz()">Ir a Evaluación de Agentes</button>
+</div>
+
+<div id="quiz-module" class="module hidden">
+    <h2>Módulo 2: Evaluación de Competencias</h2>
+    <div class="quiz-container">
+        <p><strong>Pregunta 1:</strong> ¿Qué técnica se debe usar para confirmar una visita sin molestar al residente?</p>
+        <input type="radio" name="q1" value="a"> Seguirlo de cerca con la moto.<br>
+        <input type="radio" name="q1" value="b"> Posicionamiento anticipado y observación periférica.<br>
+        <input type="radio" name="q1" value="c"> Pedirle que se detenga para revisar su identificación de nuevo.<br>
+        <button class="btn" style="margin-top:10px" onclick="checkAnswer('q1', 'b')">Verificar</button>
+        <div id="res-q1" class="feedback"></div>
+    </div>
+
+    <div class="quiz-container" style="margin-top:20px">
+        <p><strong>Pregunta 2 (Caso):</strong> Detectas un corte en la malla ciclónica. ¿Qué haces?</p>
+        <input type="radio" name="q2" value="a"> Ignorarlo si el cerco eléctrico funciona.<br>
+        <input type="radio" name="q2" value="b"> Reportar al final del turno.<br>
+        <input type="radio" name="q2" value="c"> Reporte inmediato, inspección y vigilancia fija temporal.<br>
+        <button class="btn" style="margin-top:10px" onclick="checkAnswer('q2', 'c')">Verificar</button>
+        <div id="res-q2" class="feedback"></div>
+    </div>
+    <br>
+    <button class="btn" onclick="showContent()">Volver a la Clase</button>
+</div>
+
+<script>
+    function showQuiz() {
+        document.getElementById('content-module').classList.add('hidden');
+        document.getElementById('quiz-module').classList.remove('hidden');
+    }
+    function showContent() {
+        document.getElementById('quiz-module').classList.add('hidden');
+        document.getElementById('content-module').classList.remove('hidden');
+    }
+    function checkAnswer(question, correct) {
+        const selected = document.querySelector(`input[name="${question}"]:checked`);
+        const feedback = document.getElementById(`res-${question}`);
+        if (!selected) {
+            feedback.innerHTML = "Por favor selecciona una opción.";
+            return;
+        }
+        if (selected.value === correct) {
+            feedback.innerHTML = "✅ ¡Correcto! Aplicas el protocolo táctico adecuadamente.";
+            feedback.style.color = "green";
+        } else {
+            feedback.innerHTML = "❌ Incorrecto. Revisa el Módulo de Intercepción Pasiva.";
+            feedback.style.color = "red";
+        }
+    }
+</script>
+
+</body>
+</html>
