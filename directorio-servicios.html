@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directorio de Servicios - El Cielo Parque Residencial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --text: #334155;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 10px 0; font-size: 1.8rem; }
+        .header p { margin: 0; color: #cbd5e1; }
+
+        .resident-setup {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary);
+        }
+
+        .resident-setup input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .grid-categorias {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .btn-categoria {
+            background: var(--card-bg);
+            border: 2px solid transparent;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-categoria:hover {
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+            color: var(--secondary);
+        }
+
+        .icon { font-size: 2rem; }
+
+        .lista-contratistas, .perfil-contratista {
+            display: none;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tarjeta-contratista {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-accion {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.3s;
+        }
+
+        .btn-ver { background: var(--secondary); }
+        .btn-whatsapp { background: #25D366; width: 100%; margin-top: 15px; font-size: 1.1rem; padding: 15px;}
+        .btn-pdf { background: var(--primary); width: 100%; margin-top: 10px; font-size: 1.1rem; padding: 15px;}
+        .btn-volver { background: #64748b; margin-bottom: 20px; }
+        
+        .btn-accion:hover { opacity: 0.9; }
+
+        .historial-casas {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--success);
+        }
+
+        /* Formato oculto exclusivo para generar el PDF limpio */
+        #pase-pdf {
+            display: none;
+            padding: 40px;
+            background: white;
+            color: black;
+            font-family: Arial, sans-serif;
+        }
+        
+        #pase-pdf h2 { color: #0f172a; border-bottom: 2px solid #0f172a; padding-bottom: 10px;}
+        .pdf-dato { margin-bottom: 15px; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Directorio de Servicios de Confianza</h1>
+        <p>El Cielo Parque Residencial</p>
+    </div>
+
+    <div class="resident-setup">
+        <label><strong>Paso 1:</strong> Ingresa tu domicilio para generar pases y cotizaciones</label>
+        <input type="text" id="domicilio-residente" placeholder="Ej. Lote 45, Calle Bugambilias" required>
+    </div>
+
+    <div id="vista-categorias" class="grid-categorias">
+        </div>
+
+    <div id="vista-lista" class="lista-contratistas">
+        <button class="btn-accion btn-volver" onclick="mostrarVista('categorias')">⬅ Volver a Categorías</button>
+        <h2 id="titulo-categoria" style="color: var(--primary);"></h2>
+        <div id="contenedor-lista"></div>
+    </div>
+
+    <div id="vista-perfil" class="perfil-contratista">
+        <button class="btn-accion btn-volver" onclick="mostrarVista('lista')">⬅ Volver a la Lista</button>
+        <div id="contenedor-perfil"></div>
+    </div>
+</div>
+
+<div id="pase-pdf">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2>PASE DE ACCESO AUTORIZADO</h2>
+        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong></p>
+    </div>
+    <div class="pdf-dato"><strong>Fecha de emisión:</strong> <span id="pdf-fecha"></span></div>
+    <div class="pdf-dato"><strong>Domicilio Autorizante:</strong> <span id="pdf-domicilio"></span></div>
+    <hr style="margin: 20px 0;">
+    <div class="pdf-dato"><strong>Contratista Autorizado:</strong> <span id="pdf-nombre"></span></div>
+    <div class="pdf-dato"><strong>Servicio a realizar:</strong> <span id="pdf-servicio"></span></div>
+    <div class="pdf-dato"><strong>Validación de Seguridad:</strong> Contratista verificado en el Padrón de Confianza.</div>
+    <div style="margin-top: 50px; text-align: center; border-top: 1px solid black; width: 200px; margin-left: auto; margin-right: auto; padding-top: 10px;">
+        Firma del Residente
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // BASE DE DATOS - ALIMENTA AQUÍ TUS DATOS
+    // ==========================================
+    
+    const categorias = [
+        { id: 'plomeria', nombre: 'Plomería', icono: '🚰' },
+        { id: 'electricidad', nombre: 'Electricidad', icono: '⚡' },
+        { id: 'albercas', nombre: 'Mantenimiento de Albercas', icono: '🏊' },
+        { id: 'albanileria', nombre: 'Albañilería', icono: '🧱' },
+        { id: 'jardineria', nombre: 'Jardinería', icono: '🌿' },
+        { id: 'carpinteria', nombre: 'Carpintería', icono: '🪚' },
+        { id: 'climas', nombre: 'Aires Acondicionados', icono: '❄️' },
+        { id: 'pintura', nombre: 'Pintura', icono: '🎨' },
+        { id: 'generales', nombre: 'Servicios Generales', icono: '🛠️' }
+    ];
+
+    // AQUÍ AGREGAS LOS CONTRATISTAS. Solo copia el formato de los ejemplos.
+    const contratistas = [
+        { 
+            id: 1, 
+            categoria: 'plomeria', 
+            nombre: 'Juan Pérez', 
+            telefono: '5215551234567', // Con código de país, sin el +
+            especialidad: 'Reparación de fugas, destapes, instalación de tuberías.', 
+            domicilios: 'Ha trabajado en: Lote 12, Lote 45, Lote 88' 
+        },
+        { 
+            id: 2, 
+            categoria: 'plomeria', 
+            nombre: 'Servicios Hidráulicos Martínez', 
+            telefono: '5215550001122', 
+            especialidad: 'Instalación de bombas, hidroneumáticos y calentadores.', 
+            domicilios: 'Ha trabajado en: Lote 5, Lote 21' 
+        },
+        { 
+            id: 3, 
+            categoria: 'electricidad', 
+            nombre: 'Carlos Gómez', 
+            telefono: '5215559876543', 
+            especialidad: 'Cableado estructurado, instalación de luminarias y cortos circuitos.', 
+            domicilios: 'Ha trabajado en: Lote 3, Lote 104' 
+        },
+        { 
+            id: 4, 
+            categoria: 'climas', 
+            nombre: 'Refrigeración Frío Max', 
+            telefono: '5215553334455', 
+            especialidad: 'Mantenimiento preventivo y correctivo de Minisplits.', 
+            domicilios: 'Ha trabajado en: Lote 50, Lote 61, Lote 90' 
+        }
+    ];
+
+    // ==========================================
+    // LÓGICA DE LA PLATAFORMA
+    // ==========================================
+
+    let categoriaActual = '';
+
+    // Iniciar la plataforma cargando los botones
+    function inicializar() {
+        const grid = document.getElementById('vista-categorias');
+        categorias.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-categoria';
+            btn.onclick = () => cargarContratistas(cat.id, cat.nombre);
+            btn.innerHTML = `<span class="icon">${cat.icono}</span><span>${cat.nombre}</span>`;
+            grid.appendChild(btn);
+        });
+    }
+
+    // Mostrar diferentes pantallas
+    function mostrarVista(vista) {
+        document.getElementById('vista-categorias').style.display = 'none';
+        document.getElementById('vista-lista').style.display = 'none';
+        document.getElementById('vista-perfil').style.display = 'none';
+        
+        if(vista === 'categorias') document.getElementById('vista-categorias').style.display = 'grid';
+        if(vista === 'lista') document.getElementById('vista-lista').style.display = 'block';
+        if(vista === 'perfil') document.getElementById('vista-perfil').style.display = 'block';
+    }
+
+    // Cargar la lista al elegir una categoría
+    function cargarContratistas(idCategoria, nombreCategoria) {
+        categoriaActual = idCategoria;
+        document.getElementById('titulo-categoria').innerText = 'Especialistas en ' + nombreCategoria;
+        const contenedor = document.getElementById('contenedor-lista');
+        contenedor.innerHTML = '';
+
+        const filtrados = contratistas.filter(c => c.categoria === idCategoria);
+
+        if(filtrados.length === 0) {
+            contenedor.innerHTML = '<p>Aún no hay contratistas validados en esta categoría.</p>';
+        } else {
+            filtrados.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'tarjeta-contratista';
+                div.innerHTML = `
+                    <div>
+                        <h3 style="margin:0 0 5px 0;">${c.nombre}</h3>
+                        <small style="color: #64748b;">Verificado por Seguridad ✓</small>
+                    </div>
+                    <button class="btn-accion btn-ver" onclick="verPerfil(${c.id})">Ver Perfil</button>
+                `;
+                contenedor.appendChild(div);
+            });
+        }
+        mostrarVista('lista');
+    }
+
+    // Cargar el currículum del contratista
+    function verPerfil(idContratista) {
+        const c = contratistas.find(x => x.id === idContratista);
+        const cat = categorias.find(x => x.id === c.categoria);
+        const contenedor = document.getElementById('contenedor-perfil');
+
+        contenedor.innerHTML = `
+            <h2 style="margin-bottom: 5px;">${c.nombre}</h2>
+            <h4 style="margin-top: 0; color: var(--secondary);">${cat.nombre}</h4>
+            
+            <p><strong>Especialidad:</strong><br>${c.especialidad}</p>
+            
+            <div class="historial-casas">
+                <strong>🛡️ Referencias de Confianza:</strong><br>
+                ${c.domicilios}
+            </div>
+
+            <button class="btn-accion btn-whatsapp" onclick="enviarWhatsApp('${c.telefono}', '${c.nombre}', '${cat.nombre}')">
+                💬 Solicitar Cotización por WhatsApp
+            </button>
+
+            <button class="btn-accion btn-pdf" onclick="generarPDF('${c.nombre}', '${cat.nombre}')">
+                📄 Generar Pase de Acceso para Vigilancia
+            </button>
+        `;
+        mostrarVista('perfil');
+    }
+
+    // Enviar mensaje de WhatsApp
+    function enviarWhatsApp(telefono, nombre, servicio) {
+        const domicilio = document.getElementById('domicilio-residente').value.trim();
+        if(!domicilio) {
+            alert("Por favor, ingresa tu domicilio en la parte superior (Paso 1) para que el contratista sepa a dónde acudir.");
+            return;
+        }
+
+        const mensaje = `Hola ${nombre}, soy residente de El Cielo Parque Residencial en el domicilio: ${domicilio}. Me comunico a través del directorio de confianza para solicitar una cotización sobre servicios de ${servicio}. ¿Tiene disponibilidad?`;
+        
+        const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    }
+
+    // Generar PDF para la caseta
+    function generarPDF(nombre, servicio) {
+        const domicilio = document.getElementById('domicilio-residente').value.trim();
+        if(!domicilio) {
+            alert("Por favor, ingresa tu domicilio en la parte superior (Paso 1) para que el pase tenga validez en caseta.");
+            return;
+        }
+
+        // Llenar los datos de la plantilla
+        const fechaActual = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('pdf-fecha').innerText = fechaActual;
+        document.getElementById('pdf-domicilio').innerText = domicilio;
+        document.getElementById('pdf-nombre').innerText = nombre;
+        document.getElementById('pdf-servicio').innerText = servicio;
+
+        // Mostrar temporalmente el Div para tomarle la "foto" PDF
+        const elementoPDF = document.getElementById('pase-pdf');
+        elementoPDF.style.display = 'block';
+
+        const opt = {
+            margin:       1,
+            filename:     `Pase_Acceso_${nombre.replace(/\s+/g, '_')}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Generar PDF y luego volver a ocultar el div
+        html2pdf().set(opt).from(elementoPDF).save().then(() => {
+            elementoPDF.style.display = 'none';
+            alert("El pase se ha descargado. Puedes enviarlo por WhatsApp al grupo de vigilancia o al guardia en turno.");
+        });
+    }
+
+    // Arrancar la App
+    window.onload = inicializar;
+
+</script>
+
+</body>
+</html>
