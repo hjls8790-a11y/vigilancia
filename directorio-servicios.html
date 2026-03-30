@@ -143,8 +143,9 @@
             font-family: Arial, sans-serif;
         }
         
-        #pase-pdf h2 { color: #0f172a; border-bottom: 2px solid #0f172a; padding-bottom: 10px;}
+        #pase-pdf h2 { color: #0f172a; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 5px;}
         .pdf-dato { margin-bottom: 15px; font-size: 1.2rem; }
+        .folio-destacado { color: #dc2626; font-weight: bold; font-size: 1.3rem; margin-bottom: 25px; text-align: right;}
     </style>
 </head>
 <body>
@@ -176,10 +177,13 @@
 </div>
 
 <div id="pase-pdf">
-    <div style="text-align: center; margin-bottom: 30px;">
+    <div style="text-align: center;">
         <h2>PASE DE ACCESO AUTORIZADO</h2>
-        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong></p>
+        <p style="margin-top: 5px;"><strong>EL CIELO PARQUE RESIDENCIAL</strong></p>
     </div>
+    
+    <div class="folio-destacado">FOLIO: <span id="pdf-folio"></span></div>
+
     <div class="pdf-dato"><strong>Fecha de emisión:</strong> <span id="pdf-fecha"></span></div>
     <div class="pdf-dato"><strong>Domicilio Autorizante:</strong> <span id="pdf-domicilio"></span></div>
     <hr style="margin: 20px 0;">
@@ -193,7 +197,7 @@
 
 <script>
     // ==========================================
-    // BASE DE DATOS - ALIMENTA AQUÍ TUS DATOS
+    // BASE DE DATOS
     // ==========================================
     
     const categorias = [
@@ -208,13 +212,12 @@
         { id: 'generales', nombre: 'Servicios Generales', icono: '🛠️' }
     ];
 
-    // AQUÍ AGREGAS LOS CONTRATISTAS. Solo copia el formato de los ejemplos.
     const contratistas = [
         { 
             id: 1, 
             categoria: 'plomeria', 
             nombre: 'Hugo pruebas', 
-            telefono: '526695931812', // Con código de país, sin el +
+            telefono: '526695931812', 
             especialidad: 'Reparación de fugas, destapes, instalación de tuberías.', 
             domicilios: 'Ha trabajado en: Lote 12, Lote 45, Lote 88' 
         },
@@ -241,7 +244,14 @@
             telefono: '5215553334455', 
             especialidad: 'Mantenimiento preventivo y correctivo de Minisplits.', 
             domicilios: 'Ha trabajado en: Lote 50, Lote 61, Lote 90' 
-        }
+        },
+            id: 5, 
+            categoria: 'jardineria', 
+            nombre: 'Refrigeración Frío Max', 
+            telefono: '5215553334455', 
+            especialidad: 'Paisajismo.', 
+            domicilios: 'Ha trabajado en: Lote 50, Lote 61, Lote 90' 
+        {
     ];
 
     // ==========================================
@@ -250,7 +260,6 @@
 
     let categoriaActual = '';
 
-    // Iniciar la plataforma cargando los botones
     function inicializar() {
         const grid = document.getElementById('vista-categorias');
         categorias.forEach(cat => {
@@ -262,7 +271,6 @@
         });
     }
 
-    // Mostrar diferentes pantallas
     function mostrarVista(vista) {
         document.getElementById('vista-categorias').style.display = 'none';
         document.getElementById('vista-lista').style.display = 'none';
@@ -273,7 +281,6 @@
         if(vista === 'perfil') document.getElementById('vista-perfil').style.display = 'block';
     }
 
-    // Cargar la lista al elegir una categoría
     function cargarContratistas(idCategoria, nombreCategoria) {
         categoriaActual = idCategoria;
         document.getElementById('titulo-categoria').innerText = 'Especialistas en ' + nombreCategoria;
@@ -301,7 +308,6 @@
         mostrarVista('lista');
     }
 
-    // Cargar el currículum del contratista
     function verPerfil(idContratista) {
         const c = contratistas.find(x => x.id === idContratista);
         const cat = categorias.find(x => x.id === c.categoria);
@@ -329,7 +335,6 @@
         mostrarVista('perfil');
     }
 
-    // Enviar mensaje de WhatsApp
     function enviarWhatsApp(telefono, nombre, servicio) {
         const domicilio = document.getElementById('domicilio-residente').value.trim();
         if(!domicilio) {
@@ -343,7 +348,9 @@
         window.open(url, '_blank');
     }
 
-    // Generar PDF para la caseta
+    // ==========================================
+    // GENERACIÓN DE PDF Y FOLIO
+    // ==========================================
     function generarPDF(nombre, servicio) {
         const domicilio = document.getElementById('domicilio-residente').value.trim();
         if(!domicilio) {
@@ -351,20 +358,39 @@
             return;
         }
 
-        // Llenar los datos de la plantilla
-        const fechaActual = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-        document.getElementById('pdf-fecha').innerText = fechaActual;
+        // 1. CONSTRUCCIÓN DEL FOLIO
+        const hoy = new Date();
+        // Formato de fecha (ej. 30032026)
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const anio = hoy.getFullYear();
+        const fechaStr = `${dia}${mes}${anio}`;
+        
+        // Tomar las primeras 4 letras de la categoría (ej. PLOM de plomeria)
+        const prefijo = categoriaActual.substring(0, 4).toUpperCase();
+        
+        // Generar un número de 3 dígitos (ej. 084)
+        const sufijoAleatorio = String(Math.floor(Math.random() * 900) + 100); 
+        
+        // Unir el folio completo
+        const folioCompleto = `${prefijo}-${fechaStr}-${sufijoAleatorio}`;
+
+        // 2. LLENAR LOS DATOS EN LA PLANTILLA
+        const fechaActualTexto = hoy.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        document.getElementById('pdf-folio').innerText = folioCompleto;
+        document.getElementById('pdf-fecha').innerText = fechaActualTexto;
         document.getElementById('pdf-domicilio').innerText = domicilio;
         document.getElementById('pdf-nombre').innerText = nombre;
         document.getElementById('pdf-servicio').innerText = servicio;
 
-        // Mostrar temporalmente el Div para tomarle la "foto" PDF
+        // Mostrar temporalmente el Div para tomarle la foto PDF
         const elementoPDF = document.getElementById('pase-pdf');
         elementoPDF.style.display = 'block';
 
         const opt = {
             margin:       1,
-            filename:     `Pase_Acceso_${nombre.replace(/\s+/g, '_')}.pdf`,
+            filename:     `Pase_Acceso_${folioCompleto}.pdf`, // El archivo descargado llevará el folio en el nombre
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -373,7 +399,7 @@
         // Generar PDF y luego volver a ocultar el div
         html2pdf().set(opt).from(elementoPDF).save().then(() => {
             elementoPDF.style.display = 'none';
-            alert("El pase se ha descargado. Puedes enviarlo por WhatsApp al grupo de vigilancia o al guardia en turno.");
+            alert(`El pase ${folioCompleto} se ha descargado. Puedes enviarlo por WhatsApp al grupo de vigilancia o al guardia en turno.`);
         });
     }
 
