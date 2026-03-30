@@ -245,13 +245,14 @@
             especialidad: 'Mantenimiento preventivo y correctivo de Minisplits.', 
             domicilios: 'Ha trabajado en: Lote 50, Lote 61, Lote 90' 
         },
+        { 
             id: 5, 
             categoria: 'jardineria', 
-            nombre: 'Refrigeración Frío Max', 
+            nombre: 'Paisajismo Jardines', 
             telefono: '5215553334455', 
             especialidad: 'Paisajismo.', 
             domicilios: 'Ha trabajado en: Lote 50, Lote 61, Lote 90' 
-        {
+        }
     ];
 
     // ==========================================
@@ -360,19 +361,13 @@
 
         // 1. CONSTRUCCIÓN DEL FOLIO
         const hoy = new Date();
-        // Formato de fecha (ej. 30032026)
         const dia = String(hoy.getDate()).padStart(2, '0');
         const mes = String(hoy.getMonth() + 1).padStart(2, '0');
         const anio = hoy.getFullYear();
         const fechaStr = `${dia}${mes}${anio}`;
         
-        // Tomar las primeras 4 letras de la categoría (ej. PLOM de plomeria)
         const prefijo = categoriaActual.substring(0, 4).toUpperCase();
-        
-        // Generar un número de 3 dígitos (ej. 084)
         const sufijoAleatorio = String(Math.floor(Math.random() * 900) + 100); 
-        
-        // Unir el folio completo
         const folioCompleto = `${prefijo}-${fechaStr}-${sufijoAleatorio}`;
 
         // 2. LLENAR LOS DATOS EN LA PLANTILLA
@@ -390,7 +385,7 @@
 
         const opt = {
             margin:       1,
-            filename:     `Pase_Acceso_${folioCompleto}.pdf`, // El archivo descargado llevará el folio en el nombre
+            filename:     `Pase_Acceso_${folioCompleto}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
