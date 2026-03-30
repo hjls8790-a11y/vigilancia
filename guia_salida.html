@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Salida de Materiales - El Cielo Parque Residencial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #0ea5e9;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --text: #334155;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        .header p { margin: 5px 0 0 0; color: #64748b; font-weight: bold; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        /* Tabla de materiales dinámica */
+        .items-section {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .items-header h3 { margin: 0; color: var(--primary); }
+
+        .btn-add {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-generar {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: opacity 0.3s;
+        }
+
+        .btn-generar:hover { opacity: 0.9; }
+
+        /* =========================================
+           FORMATO OCULTO PARA EL PDF OFICIAL
+           ========================================= */
+        #pdf-template {
+            display: none;
+            padding: 40px;
+            background: white;
+            color: black;
+            font-family: Arial, sans-serif;
+        }
+
+        .pdf-header {
+            text-align: center;
+            border-bottom: 3px solid #0f172a;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pdf-header h2 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        .pdf-header p { margin: 5px 0 0 0; font-size: 14px; }
+        
+        .pdf-folio {
+            text-align: right;
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .pdf-dato {
+            background: #f8fafc;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pdf-dato strong { display: inline-block; width: 120px; }
+
+        .pdf-tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .pdf-tabla th, .pdf-tabla td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .pdf-tabla th { background-color: #0f172a; color: white; }
+
+        .pdf-firmas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .linea-firma {
+            border-top: 1px solid black;
+            padding-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .pdf-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .item-row { grid-template-columns: 60px 1fr 1fr 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Autorización de Salida de Materiales</h1>
+        <p>El Cielo Parque Residencial</p>
+    </div>
+
+    <div id="formulario-salida">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Lote / Obra de Origen:</label>
+                <input type="text" id="origen" placeholder="Ej. Lote 45" required>
+            </div>
+            <div class="form-group">
+                <label>Contratista / Residente Responsable:</label>
+                <input type="text" id="responsable" placeholder="Nombre de quien autoriza" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nombre de quien retira (Transportista/Trabajador):</label>
+                <input type="text" id="portador" placeholder="Nombre completo" required>
+            </div>
+            <div class="form-group">
+                <label>Vehículo (Placas y Modelo):</label>
+                <input type="text" id="vehiculo" placeholder="Ej. Nissan NP300 - ABC-1234">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Motivo de la salida:</label>
+            <input type="text" id="motivo" placeholder="Ej. Devolución de herramienta, fin de obra, reparación..." required>
+        </div>
+
+        <div class="items-section">
+            <div class="items-header">
+                <h3>Lista de Materiales / Herramientas</h3>
+                <button class="btn-add" onclick="agregarFila()">+ Agregar Fila</button>
+            </div>
+            <div id="contenedor-items">
+                <div class="item-row">
+                    <input type="text" class="item-cant" placeholder="Cant." required>
+                    <input type="text" class="item-desc" placeholder="Descripción del artículo" required>
+                    <input type="text" class="item-obs" placeholder="Marca / Serie / Notas">
+                    <button class="btn-remove" onclick="eliminarFila(this)">X</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-generar" onclick="generarPDF()">Generar Guía Oficial (PDF)</button>
+    </div>
+</div>
+
+<div id="pdf-template">
+    <div class="pdf-header">
+        <h2>GUÍA DE SALIDA DE MATERIAL / EQUIPO</h2>
+        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong> - DEPARTAMENTO DE SEGURIDAD</p>
+    </div>
+
+    <div class="pdf-folio">FOLIO: <span id="pdf-folio"></span></div>
+
+    <div class="pdf-grid">
+        <div class="pdf-dato"><strong>Fecha:</strong> <span id="pdf-fecha"></span></div>
+        <div class="pdf-dato"><strong>Lote/Origen:</strong> <span id="pdf-origen"></span></div>
+        <div class="pdf-dato"><strong>Autoriza:</strong> <span id="pdf-responsable"></span></div>
+        <div class="pdf-dato"><strong>Retira:</strong> <span id="pdf-portador"></span></div>
+        <div class="pdf-dato"><strong>Vehículo:</strong> <span id="pdf-vehiculo"></span></div>
+        <div class="pdf-dato"><strong>Motivo:</strong> <span id="pdf-motivo"></span></div>
+    </div>
+
+    <table class="pdf-tabla">
+        <thead>
+            <tr>
+                <th style="width: 10%;">CANT.</th>
+                <th style="width: 50%;">DESCRIPCIÓN DEL ARTÍCULO / HERRAMIENTA</th>
+                <th style="width: 40%;">OBSERVACIONES / SERIE</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-tabla-body">
+            </tbody>
+    </table>
+
+    <div class="pdf-firmas">
+        <div>
+            <br><br><br>
+            <div class="linea-firma">
+                FIRMA DE AUTORIZACIÓN<br>
+                <span id="pdf-firma-responsable" style="font-weight: normal; font-size: 12px;"></span><br>
+                <span style="font-weight: normal; font-size: 11px;">(Residente de Obra / Contratista)</span>
+            </div>
+        </div>
+        <div>
+            <br><br><br>
+            <div class="linea-firma">
+                VERIFICACIÓN EN CASETA<br>
+                <span style="font-weight: normal; font-size: 12px;">Nombre y Firma del Guardia en Turno</span><br>
+                <span style="font-weight: normal; font-size: 11px;">(Seguridad Privada)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="pdf-footer">
+        * Este documento es estrictamente para control interno de seguridad. El guardia en turno tiene la facultad de cotejar físicamente los artículos descritos en este pase con los que se encuentran en el vehículo. Cualquier discrepancia invalidará esta guía.
+    </div>
+</div>
+
+<script>
+    // Lógica para agregar y quitar filas de materiales
+    function agregarFila() {
+        const contenedor = document.getElementById('contenedor-items');
+        const nuevaFila = document.createElement('div');
+        nuevaFila.className = 'item-row';
+        nuevaFila.innerHTML = `
+            <input type="text" class="item-cant" placeholder="Cant." required>
+            <input type="text" class="item-desc" placeholder="Descripción del artículo" required>
+            <input type="text" class="item-obs" placeholder="Marca / Serie / Notas">
+            <button class="btn-remove" onclick="eliminarFila(this)">X</button>
+        `;
+        contenedor.appendChild(nuevaFila);
+    }
+
+    function eliminarFila(boton) {
+        const fila = boton.parentElement;
+        // Evitar que borren la última fila
+        if (document.querySelectorAll('.item-row').length > 1) {
+            fila.remove();
+        } else {
+            alert("Debe incluir al menos un artículo.");
+        }
+    }
+
+    // Generación del PDF
+    function generarPDF() {
+        // 1. Validar campos básicos
+        const origen = document.getElementById('origen').value.trim();
+        const responsable = document.getElementById('responsable').value.trim();
+        const portador = document.getElementById('portador').value.trim();
+        
+        if(!origen || !responsable || !portador) {
+            alert("Por favor, llene los campos principales (Lote, Responsable y Portador) para emitir la guía.");
+            return;
+        }
+
+        // 2. Generar Folio Automático (SAL-FECHA-NUMERO)
+        const hoy = new Date();
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const anio = hoy.getFullYear();
+        const sufijoAleatorio = String(Math.floor(Math.random() * 900) + 100); 
+        const folioCompleto = `SAL-${dia}${mes}${anio}-${sufijoAleatorio}`;
+
+        // 3. Llenar los datos de cabecera en la plantilla PDF
+        document.getElementById('pdf-folio').innerText = folioCompleto;
+        document.getElementById('pdf-fecha').innerText = hoy.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+        document.getElementById('pdf-origen').innerText = origen;
+        document.getElementById('pdf-responsable').innerText = responsable;
+        document.getElementById('pdf-firma-responsable').innerText = responsable;
+        document.getElementById('pdf-portador').innerText = portador;
+        document.getElementById('pdf-vehiculo').innerText = document.getElementById('vehiculo').value.trim() || 'No especificado / Peatonal';
+        document.getElementById('pdf-motivo').innerText = document.getElementById('motivo').value.trim();
+
+        // 4. Extraer los datos de la tabla dinámica y pasarlos a la tabla del PDF
+        const filas = document.querySelectorAll('.item-row');
+        const tbodyPDF = document.getElementById('pdf-tabla-body');
+        tbodyPDF.innerHTML = ''; // Limpiar tabla anterior
+
+        let itemsValidos = 0;
+
+        filas.forEach(fila => {
+            const cant = fila.querySelector('.item-cant').value.trim();
+            const desc = fila.querySelector('.item-desc').value.trim();
+            const obs = fila.querySelector('.item-obs').value.trim();
+
+            if(cant && desc) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center;"><strong>${cant}</strong></td>
+                    <td>${desc}</td>
+                    <td>${obs || '-'}</td>
+                `;
+                tbodyPDF.appendChild(tr);
+                itemsValidos++;
+            }
+        });
+
+        if(itemsValidos === 0) {
+            alert("Debe agregar al menos un artículo con cantidad y descripción.");
+            return;
+        }
+
+        // 5. Mostrar temporalmente la plantilla para imprimirla
+        const elementoPDF = document.getElementById('pdf-template');
+        elementoPDF.style.display = 'block';
+
+        const opt = {
+            margin:       0.5,
+            filename:     `Guia_Salida_${folioCompleto}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // 6. Ejecutar html2pdf y ocultar la plantilla al terminar
+        html2pdf().set(opt).from(elementoPDF).save().then(() => {
+            elementoPDF.style.display = 'none';
+            alert(`La guía ${folioCompleto} se ha descargado exitosamente. Envíela por WhatsApp a la caseta de vigilancia.`);
+        });
+    }
+</script>
+
+</body>
+</html>
