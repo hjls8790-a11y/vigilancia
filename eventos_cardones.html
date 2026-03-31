@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventos Club Cardones - Prevención</title>
+    <title>Coordinación de Eventos - Club Cardones</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --p: #0E2F44; --s: #D4AF37; --g: #27AE60; --w: #FFFFFF; --t: #F4F6F7; --border: #BDC3C7; --bad: #C0392B; --good: #F39C12; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: #333; }
@@ -35,6 +36,14 @@
 
         .section-title { color: var(--s); border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 15px; margin-top: 0;}
 
+        /* Estilos del panel de proveedor dinámico */
+        #panelProveedor { display: none; background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 5px solid var(--p); margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .reglamento-box { background: #FEF9E7; border: 2px dashed #F39C12; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .reglamento-box h4 { margin: 0 0 10px 0; color: #D35400; display: flex; align-items: center; gap: 8px; }
+        .reglamento-box ul { margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.6; color: #333; }
+        .checkbox-confirm { display: flex; align-items: center; gap: 10px; margin-top: 15px; font-weight: bold; color: var(--bad); cursor: pointer; }
+        .checkbox-confirm input { transform: scale(1.5); cursor: pointer; }
+
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: var(--p); color: var(--w); }
@@ -51,13 +60,13 @@
 <body>
 
     <div class="header">
-        <h1>🗓️ Logística de Eventos</h1>
+        <h1>🗓️ Logística de Eventos - Coordinadores</h1>
         <p>Club Cardones & Seguridad El Cielo Parque Residencial</p>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('registro')">📝 Nuevo Evento (Gerencia)</button>
-        <button class="tab-btn" onclick="switchTab('auditoria')">🛡️ Panel de Seguridad (Auditoría)</button>
+        <button class="tab-btn active" onclick="switchTab('registro')">📝 Solicitar Logística (Nuevo Evento)</button>
+        <button class="tab-btn" onclick="switchTab('auditoria')">🛡️ Mis Eventos y Evaluaciones</button>
     </div>
 
     <div id="registro" class="tab-content active">
@@ -66,7 +75,7 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>Nombre del Evento:</label>
-                    <input type="text" id="eNombre" required placeholder="Ej. Torneo de Padel, Boda civil...">
+                    <input type="text" id="eNombre" required placeholder="Ej. Boda Civil Familia Pérez">
                 </div>
                 <div class="form-group">
                     <label>Lugar:</label>
@@ -81,19 +90,16 @@
                         <option value="Canchas Padel (2da Etapa)">Canchas Padel (2da Etapa)</option>
                         <option value="Cancha Fútbol Chica">Cancha Fútbol Chica</option>
                         <option value="Cancha Fútbol Grande">Cancha Fútbol Grande</option>
-                        <option value="Pickleball">Pickleball</option>
-                        <option value="Básquetbol">Básquetbol</option>
-                        <option value="Canchas de Tennis">Canchas de Tennis</option>
                         <option value="Alberca">Alberca</option>
                         <option value="Restaurante">Restaurante</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Fecha:</label>
+                    <label>Fecha del Evento:</label>
                     <input type="date" id="eFecha" required>
                 </div>
                 <div class="form-group">
-                    <label>Horario:</label>
+                    <label>Horario del Evento:</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="time" id="eHoraInicio" required style="width: 50%;">
                         <input type="time" id="eHoraFin" required style="width: 50%;">
@@ -104,31 +110,13 @@
                     <input type="number" id="eInvitados" required placeholder="Ej. 50">
                 </div>
                 <div class="form-group">
-                    <label>Nombre del Organizador:</label>
-                    <input type="text" id="eOrgNombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Teléfono del Organizador:</label>
-                    <input type="text" id="eOrgTel" required>
+                    <label>Coordinador Responsable:</label>
+                    <input type="text" id="eOrgNombre" required placeholder="Tu nombre">
                 </div>
             </div>
 
             <h3 class="section-title">Requerimientos Operativos</h3>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>¿Requiere Proveedor Externo?</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="eProv" value="Sí" required> Sí</label>
-                        <label><input type="radio" name="eProv" value="No"> No</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>¿Elemento fijo p/ salida de proveedores?</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="eFijo" value="Sí" required> Sí</label>
-                        <label><input type="radio" name="eFijo" value="No"> No</label>
-                    </div>
-                </div>
                 <div class="form-group">
                     <label>¿Habrá Valet Parking?</label>
                     <div class="radio-group">
@@ -144,23 +132,83 @@
                         <option value="2">2 Carritos</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>¿Elemento fijo p/ salida de proveedores?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="eFijo" value="Sí" required> Sí</label>
+                        <label><input type="radio" name="eFijo" value="No"> No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>¿Requiere Proveedor Externo?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="eProv" value="Sí" required onchange="toggleProveedor(true)"> Sí</label>
+                        <label><input type="radio" name="eProv" value="No" onchange="toggleProveedor(false)"> No</label>
+                    </div>
+                </div>
             </div>
 
+            <div id="panelProveedor">
+                <h3 class="section-title" style="color: var(--p);">📦 Detalles del Proveedor Externo</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Proveedor (Empresa/Persona):</label>
+                        <input type="text" id="pNombre" placeholder="Ej. Decoraciones Mágicas SA">
+                    </div>
+                    <div class="form-group">
+                        <label>Actividad o Giro:</label>
+                        <input type="text" id="pGiro" placeholder="Ej. Mobiliario, Sonido, Florista...">
+                    </div>
+                    <div class="form-group">
+                        <label>Núm. de Personas del Equipo:</label>
+                        <input type="number" id="pCantidad" placeholder="Ej. 4">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Retiro de Equipos:</label>
+                        <input type="date" id="pFechaRetiro">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Nombres de los Integrantes del Equipo:</label>
+                    <textarea id="pNombres" placeholder="1. Juan Pérez&#10;2. Carlos Gómez&#10;..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Notas Especiales del Proveedor:</label>
+                    <textarea id="pNotas" placeholder="Ej. Llegarán a las 10:00 AM para descargar, traen un camión de 3 toneladas..."></textarea>
+                </div>
+
+                <div class="reglamento-box">
+                    <h4>⚠️ Reglamento de Uso de Montacargas</h4>
+                    <ul>
+                        <li>Usen <strong>solo para materiales</strong>, no personas 🚷.</li>
+                        <li>Botón Verde superior "⬆️" (Subir).</li>
+                        <li>Botón verde inferior "⬇️" (Bajar).</li>
+                        <li>Botón rojo 🛑 paro de emergencia.</li>
+                        <li><strong>PESO MÁXIMO: 800 Kg.</strong></li>
+                        <li>Por favor cerrar puertas antes de bajar o subir.</li>
+                        <li>Tomen precauciones, lleguen con tiempo para evitar prisas, la seguridad es lo primero.</li>
+                    </ul>
+                    <label class="checkbox-confirm">
+                        <input type="checkbox" id="pReglamentoConfirm" value="Confirmado">
+                        Confirmo que he compartido estas reglas con el proveedor.
+                    </label>
+                </div>
+            </div>
             <div class="form-group">
-                <label>Consignas Específicas para Seguridad:</label>
-                <textarea id="eConsignas" placeholder="Ej. Prestar especial atención a la puerta norte, no permitir el ingreso de bebidas de cristal, etc."></textarea>
+                <label>Consignas Específicas para Seguridad (General del evento):</label>
+                <textarea id="eConsignas" placeholder="Ej. Revisar invitaciones en puerta, prohibido el paso con cristales..."></textarea>
             </div>
 
-            <button type="submit" class="btn btn-send">📲 Registrar Evento y Notificar a Seguridad</button>
+            <button type="submit" class="btn btn-send">📲 Generar Orden y Notificar a Seguridad</button>
         </form>
     </div>
 
     <div id="auditoria" class="tab-content">
-        <h3 class="section-title">Bitácora de Eventos y Órdenes de Servicio</h3>
+        <h3 class="section-title">Mis Eventos Solicitados</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
-                    <tr><th>Fecha</th><th>Evento / Lugar</th><th>Invitados</th><th>Logística</th><th>Calificación Gerencia</th><th>Acciones</th></tr>
+                    <tr><th>Fecha</th><th>Evento / Lugar</th><th>Invitados</th><th>Proveedor Ext.</th><th>Mi Evaluación a Seguridad</th><th>Acciones</th></tr>
                 </thead>
                 <tbody id="bodyEventos"></tbody>
             </table>
@@ -171,6 +219,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:var(--p);">Evaluar Desempeño de Seguridad</h3>
             <p style="font-size:0.9em; color:#666;">Evento: <strong id="califEventoNombre"></strong></p>
+            <p style="font-size:0.8em; color:gray;">Como coordinador, evalúa el apoyo brindado por el equipo de prevención en este evento.</p>
             
             <div class="rating-btns">
                 <button class="rate-btn rate-exc" onclick="setCalificacion('Excelente')">⭐ Excelente</button>
@@ -179,8 +228,8 @@
             </div>
             
             <div class="form-group" style="margin-top:15px;">
-                <label>Observaciones de Gerencia:</label>
-                <textarea id="califObs" placeholder="Escriba comentarios, áreas de mejora o felicitaciones para el equipo..."></textarea>
+                <label>Observaciones del Coordinador:</label>
+                <textarea id="califObs" placeholder="Escriba comentarios, áreas de mejora o felicitaciones para los guardias..."></textarea>
             </div>
             
             <div style="display:flex; gap:10px; margin-top: 15px;">
@@ -207,16 +256,34 @@
                 <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Lugar:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-lugar"></td></tr>
                 <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Fecha y Horario:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-fecha"></td></tr>
                 <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Aforo Aproximado:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-invitados"></td></tr>
-                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Organizador:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-organizador"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ddd; background: #F4F6F7;"><strong>Coordinador Resp.:</strong></td><td style="padding: 8px; border: 1px solid #ddd;" id="pdf-organizador"></td></tr>
             </table>
 
-            <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Requerimientos Logísticos (Gerencia)</h3>
+            <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Requerimientos Logísticos</h3>
             <ul style="line-height: 1.8;">
-                <li><strong>Proveedores Externos:</strong> <span id="pdf-prov"></span></li>
-                <li><strong>Elemento fijo p/ Proveedores:</strong> <span id="pdf-fijo"></span></li>
                 <li><strong>Servicio de Valet Parking:</strong> <span id="pdf-valet"></span></li>
                 <li><strong>Carritos de Golf asignados:</strong> <span id="pdf-carts"></span></li>
+                <li><strong>Elemento fijo p/ Proveedores:</strong> <span id="pdf-fijo"></span></li>
             </ul>
+
+            <div id="pdf-seccion-proveedor" style="display: none; margin-top: 20px;">
+                <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Datos de Proveedor Externo</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.9em;">
+                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7; width: 30%;"><strong>Proveedor/Empresa:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pNombre"></td></tr>
+                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Giro / Actividad:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pGiro"></td></tr>
+                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Total de Personal:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pCantidad"></td></tr>
+                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Fecha de Retiro:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pRetiro"></td></tr>
+                </table>
+                <p style="font-size: 0.9em; margin: 5px 0;"><strong>Personal Autorizado:</strong> <span id="pdf-pNombres"></span></p>
+                <p style="font-size: 0.9em; margin: 5px 0;"><strong>Notas del Proveedor:</strong> <span id="pdf-pNotas"></span></p>
+                <p style="font-size: 0.85em; color: #D35400; font-weight: bold; margin-top: 10px;">* El coordinador confirma haber notificado al proveedor sobre el reglamento de montacargas.</p>
+                
+                <div id="pdf-qr-box" style="text-align: center; margin-top: 20px; padding: 10px; border: 1px solid #ddd; background: #fdfbf7; display: none;">
+                    <p style="font-weight: bold; margin-top: 0; color: #0E2F44;">PASE QR DE ACCESO PARA PERSONAL DEL PROVEEDOR</p>
+                    <div id="qrcode" style="display: inline-block; margin-bottom: 10px;"></div>
+                    <p style="font-size: 0.8em; color: gray; margin: 0;">Escanee este código en caseta para verificar la lista de personal autorizado.</p>
+                </div>
+            </div>
 
             <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em; margin-top:20px;">Consignas Específicas de Seguridad</h3>
             <p id="pdf-consignas" style="background: #FEF9E7; padding: 15px; border-radius: 5px; border-left: 5px solid #F39C12; white-space: pre-wrap; font-size: 0.95em;"></p>
@@ -224,8 +291,8 @@
             <div style="margin-top: 60px; display: flex; justify-content: space-around; text-align: center;">
                 <div>
                     <p>___________________________</p>
-                    <p style="margin: 0; font-weight: bold; font-size: 0.9em;">Lic. Vanesa</p>
-                    <p style="margin: 0; font-size: 0.8em; color: gray;">Gerencia Club Cardones</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 0.9em;" id="firma-coordinador">Coordinador</p>
+                    <p style="margin: 0; font-size: 0.8em; color: gray;">Responsable del Evento</p>
                 </div>
                 <div>
                     <p>___________________________</p>
@@ -239,7 +306,7 @@
     <script>
         document.getElementById('eFecha').valueAsDate = new Date();
         const numeroWhatsAppHugo = "526695931812"; 
-        let bdEventos = JSON.parse(localStorage.getItem('bd_eventos_cardones')) || [];
+        let bdEventos = JSON.parse(localStorage.getItem('bd_eventos_coord')) || [];
         let eventoAcalificar = null;
         let calificacionTemp = '';
 
@@ -251,11 +318,38 @@
             if(tabId === 'auditoria') renderizarTabla();
         }
 
+        // Mostrar/Ocultar Panel de Proveedores
+        function toggleProveedor(mostrar) {
+            const panel = document.getElementById('panelProveedor');
+            const inputs = panel.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], textarea');
+            const checkbox = document.getElementById('pReglamentoConfirm');
+
+            if(mostrar) {
+                panel.style.display = 'block';
+                // Hacer requeridos los campos vitales del proveedor
+                document.getElementById('pNombre').required = true;
+                document.getElementById('pGiro').required = true;
+                checkbox.required = true;
+            } else {
+                panel.style.display = 'none';
+                inputs.forEach(i => { i.required = false; i.value = ''; });
+                checkbox.required = false;
+                checkbox.checked = false;
+            }
+        }
+
         document.getElementById('formEvento').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const reqProveedor = document.querySelector('input[name="eProv"]:checked').value;
+            if(reqProveedor === "Sí" && !document.getElementById('pReglamentoConfirm').checked) {
+                alert("Debe confirmar que ha compartido el reglamento del montacargas con el proveedor.");
+                return;
+            }
+
             const folioId = Math.floor(1000 + Math.random() * 9000); 
             
+            // Recolectar datos básicos
             const nuevoEvento = {
                 id: folioId,
                 nombre: document.getElementById('eNombre').value,
@@ -264,26 +358,44 @@
                 horario: `${document.getElementById('eHoraInicio').value} a ${document.getElementById('eHoraFin').value}`,
                 invitados: document.getElementById('eInvitados').value,
                 orgNombre: document.getElementById('eOrgNombre').value,
-                orgTel: document.getElementById('eOrgTel').value,
-                prov: document.querySelector('input[name="eProv"]:checked').value,
                 fijo: document.querySelector('input[name="eFijo"]:checked').value,
                 valet: document.querySelector('input[name="eValet"]:checked').value,
                 carts: document.getElementById('eCarritos').value,
+                reqProv: reqProveedor,
                 consignas: document.getElementById('eConsignas').value || 'Sin consignas especiales.',
-                evaluacion: null, // Para cuando Lic Vanesa califique
-                observacionesEval: ''
+                evaluacion: null, 
+                observacionesEval: '',
+                // Datos del proveedor
+                provNombre: '', provGiro: '', provCant: '', provFechaRetiro: '', provNombres: '', provNotas: ''
             };
 
-            bdEventos.unshift(nuevoEvento);
-            localStorage.setItem('bd_eventos_cardones', JSON.stringify(bdEventos));
+            // Recolectar datos del proveedor si aplica
+            if (reqProveedor === "Sí") {
+                nuevoEvento.provNombre = document.getElementById('pNombre').value;
+                nuevoEvento.provGiro = document.getElementById('pGiro').value;
+                nuevoEvento.provCant = document.getElementById('pCantidad').value;
+                nuevoEvento.provFechaRetiro = document.getElementById('pFechaRetiro').value;
+                nuevoEvento.provNombres = document.getElementById('pNombres').value;
+                nuevoEvento.provNotas = document.getElementById('pNotas').value;
+            }
 
-            // Construir mensaje de WhatsApp para Hugo
-            const mensaje = `*NUEVO EVENTO CLUB CARDONES*%0A%0A*Evento:* ${nuevoEvento.nombre}%0A*Lugar:* ${nuevoEvento.lugar}%0A*Fecha:* ${nuevoEvento.fecha} (${nuevoEvento.horario})%0A*Invitados:* ${nuevoEvento.invitados}%0A%0A*Logística:*%0A- Elemento fijo: ${nuevoEvento.fijo}%0A- Carritos: ${nuevoEvento.carts}%0A- Valet: ${nuevoEvento.valet}%0A%0A*Consignas:* ${nuevoEvento.consignas}%0A%0A_Notificación automática desde Plataforma_`;
+            bdEventos.unshift(nuevoEvento);
+            localStorage.setItem('bd_eventos_coord', JSON.stringify(bdEventos));
+
+            // Construir mensaje de WhatsApp
+            let mensajeWsp = `*NUEVO EVENTO CLUB CARDONES*%0A%0A*Coordinador:* ${nuevoEvento.orgNombre}%0A*Evento:* ${nuevoEvento.nombre}%0A*Lugar:* ${nuevoEvento.lugar}%0A*Fecha:* ${nuevoEvento.fecha} (${nuevoEvento.horario})%0A*Invitados:* ${nuevoEvento.invitados}%0A%0A*Logística:*%0A- Valet: ${nuevoEvento.valet}%0A- Carritos: ${nuevoEvento.carts}`;
             
-            const url = `https://wa.me/${numeroWhatsAppHugo}?text=${mensaje}`;
+            if(reqProveedor === "Sí") {
+                mensajeWsp += `%0A%0A*PROVEEDOR EXTERNO:*%0A- Nombre: ${nuevoEvento.provNombre} (${nuevoEvento.provGiro})%0A- Personal: ${nuevoEvento.provCant} pax.%0A- Elemento fijo: ${nuevoEvento.fijo}`;
+            }
+
+            mensajeWsp += `%0A%0A*Consignas:* ${nuevoEvento.consignas}%0A%0A_Generado desde Plataforma de Coordinadores_`;
             
-            alert("✅ Evento registrado en bitácora.\n\nSe abrirá WhatsApp para notificar a Seguridad inmediatamente.");
+            const url = `https://wa.me/${numeroWhatsAppHugo}?text=${mensajeWsp}`;
+            
+            alert("✅ Evento registrado exitosamente.\n\nSe abrirá WhatsApp para notificar a la caseta de Seguridad.");
             this.reset();
+            toggleProveedor(false); // resetear panel
             document.getElementById('eFecha').valueAsDate = new Date();
             window.open(url, '_blank');
         });
@@ -293,7 +405,7 @@
             tbody.innerHTML = '';
             
             if(bdEventos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay eventos registrados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No has registrado eventos.</td></tr>';
                 return;
             }
 
@@ -308,12 +420,10 @@
                         <td><strong>${ev.fecha}</strong><br><span style="font-size:0.8em; color:gray;">${ev.horario}</span></td>
                         <td><strong>${ev.nombre}</strong><br><span style="color:#2980B9;">📍 ${ev.lugar}</span></td>
                         <td>${ev.invitados} pax</td>
-                        <td style="font-size:0.85em;">
-                            Fijo: ${ev.fijo} | Carts: ${ev.carts}
-                        </td>
+                        <td style="font-size:0.85em;">${ev.reqProv === 'Sí' ? `✅ ${ev.provNombre}` : '❌ No aplica'}</td>
                         <td>${badgeCalif}</td>
                         <td style="white-space: nowrap;">
-                            <button class="btn btn-pdf" onclick="prepararPDF(${ev.id})" title="Generar Orden para Guardias">📄 PDF</button>
+                            <button class="btn btn-pdf" onclick="prepararPDF(${ev.id})" title="Descargar Pase">📄 PDF</button>
                             ${!ev.evaluacion ? `<button class="btn btn-rate" onclick="abrirModalCalificar(${ev.id})">Evaluar</button>` : ''}
                         </td>
                     </tr>
@@ -327,27 +437,22 @@
             document.getElementById('califEventoNombre').innerText = eventoAcalificar.nombre;
             document.getElementById('califObs').value = '';
             calificacionTemp = '';
-            
-            // Limpiar estilos de botones
             document.querySelectorAll('.rate-btn').forEach(btn => btn.style.opacity = '1');
             document.getElementById('modalCalificar').style.display = 'flex';
         }
 
         function setCalificacion(val) {
             calificacionTemp = val;
-            // Efecto visual simple
             document.querySelectorAll('.rate-btn').forEach(btn => btn.style.opacity = '0.4');
             event.currentTarget.style.opacity = '1';
         }
 
         function guardarCalificacion() {
-            if(!calificacionTemp) { alert("Seleccione una calificación (Excelente, Bueno, Malo)."); return; }
-            
+            if(!calificacionTemp) { alert("Selecciona una calificación."); return; }
             eventoAcalificar.evaluacion = calificacionTemp;
             eventoAcalificar.observacionesEval = document.getElementById('califObs').value;
-            
-            localStorage.setItem('bd_eventos_cardones', JSON.stringify(bdEventos));
-            alert("✅ Evaluación guardada en la bitácora de auditoría.");
+            localStorage.setItem('bd_eventos_coord', JSON.stringify(bdEventos));
+            alert("✅ Evaluación enviada. ¡Gracias por ayudarnos a mejorar!");
             cerrarModal();
             renderizarTabla();
         }
@@ -357,7 +462,7 @@
             eventoAcalificar = null;
         }
 
-        // --- LÓGICA DE PDF ---
+        // --- LÓGICA DE PDF Y GENERACIÓN DE QR ---
         function prepararPDF(id) {
             const ev = bdEventos.find(e => e.id === id);
             if(!ev) return;
@@ -367,13 +472,45 @@
             document.getElementById('pdf-lugar').innerText = ev.lugar;
             document.getElementById('pdf-fecha').innerText = `${ev.fecha} / ${ev.horario}`;
             document.getElementById('pdf-invitados').innerText = `${ev.invitados} personas`;
-            document.getElementById('pdf-organizador').innerText = `${ev.orgNombre} (Tel: ${ev.orgTel})`;
+            document.getElementById('pdf-organizador').innerText = ev.orgNombre;
+            document.getElementById('firma-coordinador').innerText = ev.orgNombre;
             
-            document.getElementById('pdf-prov').innerText = ev.prov;
             document.getElementById('pdf-fijo').innerText = ev.fijo;
             document.getElementById('pdf-valet').innerText = ev.valet;
             document.getElementById('pdf-carts').innerText = ev.carts;
             document.getElementById('pdf-consignas').innerText = ev.consignas;
+
+            // Mostrar u ocultar sección de proveedores y QR en el PDF
+            const divProveedor = document.getElementById('pdf-seccion-proveedor');
+            const qrBox = document.getElementById('pdf-qr-box');
+            document.getElementById('qrcode').innerHTML = ""; // Limpiar QR anterior
+
+            if(ev.reqProv === "Sí") {
+                divProveedor.style.display = 'block';
+                qrBox.style.display = 'block';
+                document.getElementById('pdf-pNombre').innerText = ev.provNombre;
+                document.getElementById('pdf-pGiro').innerText = ev.provGiro;
+                document.getElementById('pdf-pCantidad').innerText = `${ev.provCant} personas`;
+                document.getElementById('pdf-pRetiro').innerText = ev.provFechaRetiro || 'No especificada';
+                document.getElementById('pdf-pNombres').innerText = ev.provNombres || 'No proporcionado';
+                document.getElementById('pdf-pNotas').innerText = ev.provNotas || 'Ninguna';
+
+                // Generar el código QR con los datos del proveedor
+                let datosQR = `AUTORIZACION PROVEEDOR\nFolio: ${ev.id}\nEvento: ${ev.nombre}\nLugar: ${ev.lugar}\nProveedor: ${ev.provNombre}\nPersonal Autorizado:\n${ev.provNombres}`;
+                
+                new QRCode(document.getElementById("qrcode"), {
+                    text: datosQR,
+                    width: 128,
+                    height: 128,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+
+            } else {
+                divProveedor.style.display = 'none';
+                qrBox.style.display = 'none';
+            }
 
             const container = document.getElementById('pdf-container');
             container.style.display = 'block';
