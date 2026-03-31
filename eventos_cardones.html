@@ -139,7 +139,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>¿Requiere Proveedor Externo?</label>
+                    <label>¿Requiere Proveedores Externos?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="eProv" value="Sí" required onchange="toggleProveedor(true)"> Sí</label>
                         <label><input type="radio" name="eProv" value="No" onchange="toggleProveedor(false)"> No</label>
@@ -148,33 +148,12 @@
             </div>
 
             <div id="panelProveedor">
-                <h3 class="section-title" style="color: var(--p);">📦 Detalles del Proveedor Externo</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Nombre del Proveedor (Empresa/Persona):</label>
-                        <input type="text" id="pNombre" placeholder="Ej. Decoraciones Mágicas SA">
-                    </div>
-                    <div class="form-group">
-                        <label>Actividad o Giro:</label>
-                        <input type="text" id="pGiro" placeholder="Ej. Mobiliario, Sonido, Florista...">
-                    </div>
-                    <div class="form-group">
-                        <label>Núm. de Personas del Equipo:</label>
-                        <input type="number" id="pCantidad" placeholder="Ej. 4">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de Retiro de Equipos:</label>
-                        <input type="date" id="pFechaRetiro">
-                    </div>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Nombres de los Integrantes del Equipo:</label>
-                    <textarea id="pNombres" placeholder="1. Juan Pérez&#10;2. Carlos Gómez&#10;..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Notas Especiales del Proveedor:</label>
-                    <textarea id="pNotas" placeholder="Ej. Llegarán a las 10:00 AM para descargar, traen un camión de 3 toneladas..."></textarea>
-                </div>
+                <h3 class="section-title" style="color: var(--p); display:flex; justify-content:space-between; align-items:center;">
+                    📦 Detalles de Proveedores Externos
+                    <button type="button" class="btn" style="background: var(--s); color: var(--p); padding: 5px 10px; font-size: 0.8em;" onclick="agregarProveedorUI()">➕ Añadir Proveedor</button>
+                </h3>
+                
+                <div id="listaProveedores"></div>
 
                 <div class="reglamento-box">
                     <h4>⚠️ Reglamento de Uso de Montacargas</h4>
@@ -189,7 +168,7 @@
                     </ul>
                     <label class="checkbox-confirm">
                         <input type="checkbox" id="pReglamentoConfirm" value="Confirmado">
-                        Confirmo que he compartido estas reglas con el proveedor.
+                        Confirmo que he compartido estas reglas con los proveedores.
                     </label>
                 </div>
             </div>
@@ -207,7 +186,7 @@
         <div style="overflow-x: auto;">
             <table>
                 <thead>
-                    <tr><th>Fecha</th><th>Evento / Lugar</th><th>Invitados</th><th>Proveedor Ext.</th><th>Mi Evaluación a Seguridad</th><th>Acciones</th></tr>
+                    <tr><th>Fecha</th><th>Evento / Lugar</th><th>Invitados</th><th>Proveedores</th><th>Mi Evaluación a Seguridad</th><th>Acciones</th></tr>
                 </thead>
                 <tbody id="bodyEventos"></tbody>
             </table>
@@ -266,16 +245,11 @@
             </ul>
 
             <div id="pdf-seccion-proveedor" style="display: none; margin-top: 20px;">
-                <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Datos de Proveedor Externo</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.9em;">
-                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7; width: 30%;"><strong>Proveedor/Empresa:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pNombre"></td></tr>
-                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Giro / Actividad:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pGiro"></td></tr>
-                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Total de Personal:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pCantidad"></td></tr>
-                    <tr><td style="padding: 6px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Fecha de Retiro:</strong></td><td style="padding: 6px; border: 1px solid #ddd;" id="pdf-pRetiro"></td></tr>
-                </table>
-                <p style="font-size: 0.9em; margin: 5px 0;"><strong>Personal Autorizado:</strong> <span id="pdf-pNombres"></span></p>
-                <p style="font-size: 0.9em; margin: 5px 0;"><strong>Notas del Proveedor:</strong> <span id="pdf-pNotas"></span></p>
-                <p style="font-size: 0.85em; color: #D35400; font-weight: bold; margin-top: 10px;">* El coordinador confirma haber notificado al proveedor sobre el reglamento de montacargas.</p>
+                <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Datos de Proveedores Externos</h3>
+                
+                <div id="pdf-lista-proveedores"></div>
+
+                <p style="font-size: 0.85em; color: #D35400; font-weight: bold; margin-top: 10px;">* El coordinador confirma haber notificado a los proveedores sobre el reglamento de montacargas.</p>
             </div>
 
             <h3 style="color: #0E2F44; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em; margin-top:20px;">Consignas Específicas de Seguridad</h3>
@@ -311,23 +285,63 @@
             if(tabId === 'auditoria') renderizarTabla();
         }
 
+        // Agregar formulario de proveedor dinámico
+        function agregarProveedorUI() {
+            const index = document.querySelectorAll('.proveedor-item').length + 1;
+            const div = document.createElement('div');
+            div.className = 'proveedor-item';
+            div.style.cssText = 'background: white; padding: 15px; border-radius: 5px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
+            div.innerHTML = `
+                <h4 style="margin-top:0; color:var(--p); display:flex; justify-content:space-between; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    Proveedor ${index}
+                    ${index > 1 ? `<button type="button" onclick="this.parentElement.parentElement.remove()" style="background:var(--bad); color:white; border:none; border-radius:3px; cursor:pointer; padding:3px 8px; font-weight:bold;">X Eliminar</button>` : ''}
+                </h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Proveedor (Empresa/Persona):</label>
+                        <input type="text" class="prov-nombre" placeholder="Ej. Decoraciones Mágicas SA" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Actividad o Giro:</label>
+                        <input type="text" class="prov-giro" placeholder="Ej. Mobiliario, Sonido..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Núm. de Personas del Equipo:</label>
+                        <input type="number" class="prov-cantidad" placeholder="Ej. 4">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Retiro de Equipos:</label>
+                        <input type="date" class="prov-retiro">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Nombres de los Integrantes del Equipo:</label>
+                    <textarea class="prov-nombres" placeholder="1. Juan Pérez\n2. Carlos Gómez\n..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Notas Especiales del Proveedor:</label>
+                    <textarea class="prov-notas" placeholder="Ej. Llegarán a las 10:00 AM para descargar..."></textarea>
+                </div>
+            `;
+            document.getElementById('listaProveedores').appendChild(div);
+        }
+
         // Mostrar/Ocultar Panel de Proveedores
         function toggleProveedor(mostrar) {
             const panel = document.getElementById('panelProveedor');
-            const inputs = panel.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], textarea');
             const checkbox = document.getElementById('pReglamentoConfirm');
 
             if(mostrar) {
                 panel.style.display = 'block';
-                // Hacer requeridos los campos vitales del proveedor
-                document.getElementById('pNombre').required = true;
-                document.getElementById('pGiro').required = true;
                 checkbox.required = true;
+                if(document.querySelectorAll('.proveedor-item').length === 0) {
+                    agregarProveedorUI(); // Agregar el primero por defecto
+                }
             } else {
                 panel.style.display = 'none';
-                inputs.forEach(i => { i.required = false; i.value = ''; });
                 checkbox.required = false;
                 checkbox.checked = false;
+                document.getElementById('listaProveedores').innerHTML = ''; // Limpiamos la lista
             }
         }
 
@@ -336,12 +350,27 @@
             
             const reqProveedor = document.querySelector('input[name="eProv"]:checked').value;
             if(reqProveedor === "Sí" && !document.getElementById('pReglamentoConfirm').checked) {
-                alert("Debe confirmar que ha compartido el reglamento del montacargas con el proveedor.");
+                alert("Debe confirmar que ha compartido el reglamento del montacargas con los proveedores.");
                 return;
             }
 
             const folioId = Math.floor(1000 + Math.random() * 9000); 
             
+            // Recolectar proveedores
+            let proveedoresArray = [];
+            if(reqProveedor === "Sí") {
+                document.querySelectorAll('.proveedor-item').forEach(item => {
+                    proveedoresArray.push({
+                        nombre: item.querySelector('.prov-nombre').value,
+                        giro: item.querySelector('.prov-giro').value,
+                        cant: item.querySelector('.prov-cantidad').value || '0',
+                        fechaRetiro: item.querySelector('.prov-retiro').value,
+                        nombres: item.querySelector('.prov-nombres').value,
+                        notas: item.querySelector('.prov-notas').value
+                    });
+                });
+            }
+
             // Recolectar datos básicos
             const nuevoEvento = {
                 id: folioId,
@@ -355,22 +384,11 @@
                 valet: document.querySelector('input[name="eValet"]:checked').value,
                 carts: document.getElementById('eCarritos').value,
                 reqProv: reqProveedor,
+                proveedores: proveedoresArray, 
                 consignas: document.getElementById('eConsignas').value || 'Sin consignas especiales.',
                 evaluacion: null, 
-                observacionesEval: '',
-                // Datos del proveedor
-                provNombre: '', provGiro: '', provCant: '', provFechaRetiro: '', provNombres: '', provNotas: ''
+                observacionesEval: ''
             };
-
-            // Recolectar datos del proveedor si aplica
-            if (reqProveedor === "Sí") {
-                nuevoEvento.provNombre = document.getElementById('pNombre').value;
-                nuevoEvento.provGiro = document.getElementById('pGiro').value;
-                nuevoEvento.provCant = document.getElementById('pCantidad').value;
-                nuevoEvento.provFechaRetiro = document.getElementById('pFechaRetiro').value;
-                nuevoEvento.provNombres = document.getElementById('pNombres').value;
-                nuevoEvento.provNotas = document.getElementById('pNotas').value;
-            }
 
             bdEventos.unshift(nuevoEvento);
             localStorage.setItem('bd_eventos_coord', JSON.stringify(bdEventos));
@@ -379,7 +397,11 @@
             let mensajeWsp = `*NUEVO EVENTO CLUB CARDONES*%0A%0A*Coordinador:* ${nuevoEvento.orgNombre}%0A*Evento:* ${nuevoEvento.nombre}%0A*Lugar:* ${nuevoEvento.lugar}%0A*Fecha:* ${nuevoEvento.fecha} (${nuevoEvento.horario})%0A*Invitados:* ${nuevoEvento.invitados}%0A%0A*Logística:*%0A- Valet: ${nuevoEvento.valet}%0A- Carritos: ${nuevoEvento.carts}`;
             
             if(reqProveedor === "Sí") {
-                mensajeWsp += `%0A%0A*PROVEEDOR EXTERNO:*%0A- Nombre: ${nuevoEvento.provNombre} (${nuevoEvento.provGiro})%0A- Personal: ${nuevoEvento.provCant} pax.%0A- Elemento fijo: ${nuevoEvento.fijo}`;
+                mensajeWsp += `%0A%0A*PROVEEDORES EXTERNOS:*`;
+                nuevoEvento.proveedores.forEach((p, index) => {
+                    mensajeWsp += `%0A${index+1}. ${p.nombre} (${p.giro}) - ${p.cant} pax.`;
+                });
+                mensajeWsp += `%0A%0A- Elemento fijo: ${nuevoEvento.fijo}`;
             }
 
             mensajeWsp += `%0A%0A*Consignas:* ${nuevoEvento.consignas}%0A%0A_Generado desde Plataforma de Coordinadores_`;
@@ -408,12 +430,22 @@
                 if(ev.evaluacion === 'Bueno') badgeCalif = '👍 <strong style="color:#F39C12;">Bueno</strong>';
                 if(ev.evaluacion === 'Malo') badgeCalif = '⚠️ <strong style="color:#C0392B;">Malo</strong>';
 
+                // Lógica de visualización para soportar bd vieja y bd nueva
+                let textoProv = '❌ No aplica';
+                if (ev.reqProv === 'Sí') {
+                    if (ev.proveedores && ev.proveedores.length > 0) {
+                        textoProv = `✅ ${ev.proveedores.nombre} ${ev.proveedores.length > 1 ? `<br><small>(+${ev.proveedores.length - 1} más)</small>` : ''}`;
+                    } else if (ev.provNombre) {
+                        textoProv = `✅ ${ev.provNombre}`; // Registros viejos
+                    }
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${ev.fecha}</strong><br><span style="font-size:0.8em; color:gray;">${ev.horario}</span></td>
                         <td><strong>${ev.nombre}</strong><br><span style="color:#2980B9;">📍 ${ev.lugar}</span></td>
                         <td>${ev.invitados} pax</td>
-                        <td style="font-size:0.85em;">${ev.reqProv === 'Sí' ? `✅ ${ev.provNombre}` : '❌ No aplica'}</td>
+                        <td style="font-size:0.85em;">${textoProv}</td>
                         <td>${badgeCalif}</td>
                         <td style="white-space: nowrap;">
                             <button class="btn btn-pdf" onclick="prepararPDF(${ev.id})" title="Descargar Pase">📄 PDF</button>
@@ -477,12 +509,30 @@
             const divProveedor = document.getElementById('pdf-seccion-proveedor');
             if(ev.reqProv === "Sí") {
                 divProveedor.style.display = 'block';
-                document.getElementById('pdf-pNombre').innerText = ev.provNombre;
-                document.getElementById('pdf-pGiro').innerText = ev.provGiro;
-                document.getElementById('pdf-pCantidad').innerText = `${ev.provCant} personas`;
-                document.getElementById('pdf-pRetiro').innerText = ev.provFechaRetiro || 'No especificada';
-                document.getElementById('pdf-pNombres').innerText = ev.provNombres || 'No proporcionado';
-                document.getElementById('pdf-pNotas').innerText = ev.provNotas || 'Ninguna';
+                
+                // Compatibilidad con eventos creados antes de esta actualización
+                let listaRenderizar = ev.proveedores || [{
+                    nombre: ev.provNombre, giro: ev.provGiro, cant: ev.provCant, 
+                    fechaRetiro: ev.provFechaRetiro, nombres: ev.provNombres, notas: ev.provNotas
+                }];
+
+                let htmlProv = '';
+                listaRenderizar.forEach((p, index) => {
+                    htmlProv += `
+                        <div style="margin-bottom: 15px; border-bottom: 1px dashed #ddd; padding-bottom: 10px;">
+                            <h4 style="margin: 0 0 5px 0; color: #0E2F44; font-size: 1em;">Proveedor ${index + 1}: ${p.nombre || 'N/A'}</h4>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 0.9em;">
+                                <tr><td style="padding: 4px; border: 1px solid #ddd; background: #fdfbf7; width: 30%;"><strong>Giro / Actividad:</strong></td><td style="padding: 4px; border: 1px solid #ddd;">${p.giro || 'N/A'}</td></tr>
+                                <tr><td style="padding: 4px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Total Personal:</strong></td><td style="padding: 4px; border: 1px solid #ddd;">${p.cant || 0} personas</td></tr>
+                                <tr><td style="padding: 4px; border: 1px solid #ddd; background: #fdfbf7;"><strong>Fecha de Retiro:</strong></td><td style="padding: 4px; border: 1px solid #ddd;">${p.fechaRetiro || 'No especificada'}</td></tr>
+                            </table>
+                            <p style="font-size: 0.85em; margin: 3px 0;"><strong>Personal:</strong> ${p.nombres ? p.nombres.replace(/\n/g, '<br>') : 'No proporcionado'}</p>
+                            <p style="font-size: 0.85em; margin: 3px 0;"><strong>Notas:</strong> ${p.notas ? p.notas.replace(/\n/g, '<br>') : 'Ninguna'}</p>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('pdf-lista-proveedores').innerHTML = htmlProv;
             } else {
                 divProveedor.style.display = 'none';
             }
