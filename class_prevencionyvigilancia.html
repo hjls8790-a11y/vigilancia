@@ -3,80 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Class Seguridad Residencial</title>
+    <title>Capacitación Táctica: Seguridad Residencial</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
-        header { background: #2c3e50; color: #fff; padding: 2rem; text-align: center; border-radius: 8px; margin-bottom: 20px; }
-        .module { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: #2980b9; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .quiz-container { background: #e8f6f3; padding: 20px; border-radius: 8px; border-left: 5px solid #1abc9c; }
-        .btn { background: #2980b9; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn:hover { background: #3498db; }
-        .hidden { display: none; }
-        .feedback { margin-top: 10px; font-weight: bold; }
+        :root {
+            --primary: #1a252f;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --bg: #ecf0f1;
+            --text: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
+        header p { margin: 0; font-size: 1.1rem; color: #bdc3c7; }
+        
+        .nav-buttons {
+            display: flex;
+            background: var(--secondary);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .nav-buttons button {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .nav-buttons button:hover, .nav-buttons button.active {
+            background: #34495e;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: none;
+        }
+        .section.active { display: block; }
+        
+        h2 { color: var(--secondary); border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-top: 30px; }
+        h3 { color: var(--accent); margin-top: 25px; }
+        
+        .technique-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Quiz Styles */
+        .question-block {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        .question-block p { font-weight: bold; font-size: 1.1rem; margin-top: 0; }
+        .options label {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .options label:hover { background: #f0f0f0; }
+        input[type="radio"] { margin-right: 10px; }
+        
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover { background-color: var(--primary); }
+        
+        .result-box {
+            display: none;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .result-pass { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .result-fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .feedback-item { margin-top: 10px; font-size: 0.95rem; display: none; padding: 10px; border-radius: 5px; }
+        .feedback-correct { background: #d4edda; color: #155724; }
+        .feedback-incorrect { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>🛡️ Master Class: Seguridad Táctica Residencial</h1>
-    <p>22 Hectáreas | Prevención | Excelencia Operativa</p>
-</header>
+<div class="container">
+    <header>
+        <h1>🛡️ Master Class: Seguridad Residencial Táctica</h1>
+        <p>Control de Accesos, Prevención Perimetral y Patrullaje Inteligente (22 Hectáreas)</p>
+    </header>
 
-<div id="content-module" class="module">
-    <h2>Módulo 1: Contenido de la Master Class</h2>
-    <p><strong>1. Patrullaje de Coincidencia:</strong> Estar donde ocurre la acción basándose en datos, no en el azar.</p>
-    <p><strong>2. Puntos Vulnerables:</strong> Vigilancia intensiva en zonas de malla ciclónica y futuros accesos. Inspección física manual.</p>
-    <p><strong>3. Intercepción Pasiva:</strong> Confirmar arribos de visitas mediante técnicas de <em>Posicionamiento Anticipado</em> y <em>Anclaje de Coartada</em>.</p>
-    <p><strong>4. Control de Accesos:</strong> Diferenciación técnica entre acceso automatizado (residentes) y manual/escaneado (proveedores).</p>
-    <button class="btn" onclick="showQuiz()">Ir a Evaluación de Agentes</button>
-</div>
-
-<div id="quiz-module" class="module hidden">
-    <h2>Módulo 2: Evaluación de Competencias</h2>
-    <div class="quiz-container">
-        <p><strong>Pregunta 1:</strong> ¿Qué técnica se debe usar para confirmar una visita sin molestar al residente?</p>
-        <input type="radio" name="q1" value="a"> Seguirlo de cerca con la moto.<br>
-        <input type="radio" name="q1" value="b"> Posicionamiento anticipado y observación periférica.<br>
-        <input type="radio" name="q1" value="c"> Pedirle que se detenga para revisar su identificación de nuevo.<br>
-        <button class="btn" style="margin-top:10px" onclick="checkAnswer('q1', 'b')">Verificar</button>
-        <div id="res-q1" class="feedback"></div>
+    <div class="nav-buttons">
+        <button id="btn-masterclass" class="active" onclick="showTab('masterclass')">📚 Módulo de Estudio</button>
+        <button id="btn-exam" onclick="showTab('exam')">📝 Examen de Certificación</button>
     </div>
 
-    <div class="quiz-container" style="margin-top:20px">
-        <p><strong>Pregunta 2 (Caso):</strong> Detectas un corte en la malla ciclónica. ¿Qué haces?</p>
-        <input type="radio" name="q2" value="a"> Ignorarlo si el cerco eléctrico funciona.<br>
-        <input type="radio" name="q2" value="b"> Reportar al final del turno.<br>
-        <input type="radio" name="q2" value="c"> Reporte inmediato, inspección y vigilancia fija temporal.<br>
-        <button class="btn" style="margin-top:10px" onclick="checkAnswer('q2', 'c')">Verificar</button>
-        <div id="res-q2" class="feedback"></div>
+    <div id="masterclass" class="section active">
+        <h2>Módulo 1: Introducción y Filosofía Operativa</h2>
+        <p><strong>El equilibrio táctico:</strong> Nuestro objetivo es lograr una seguridad que funcione como un filtro impenetrable desde el exterior, pero que brinde un servicio invisible, fluido y amable para el residente en el interior.</p>
+        <p><strong>La regla de la presencia:</strong> La vigilancia no invasiva se logra mediante el "patrullaje de coincidencia". Esto significa estar en el lugar correcto en el momento exacto, proyectando una imagen de control a través del porte profesional del agente y el buen estado del equipo motorizado, evitando el hostigamiento o el escrutinio excesivo.</p>
+
+        <h2>Módulo 2: Vulnerabilidades Perimetrales y Puntos Críticos</h2>
+        <p>Aseguramos un perímetro extenso de 22 hectáreas. Contamos con una barda de 4 metros equipada con cerco eléctrico, la cual es altamente disuasiva. Sin embargo, tenemos <strong>dos puntos vulnerables de malla ciclónica</strong> (destinados a futuros accesos) donde el cerco eléctrico se interrumpe. Estos son nuestros puntos críticos de atención.</p>
+        
+        <div class="technique-card">
+            <strong>Modus Operandi Común:</strong> Los intrusos suelen hacer cortes limpios en la malla durante la noche, disimulándolos con alambre delgado para regresar días después e ingresar rápidamente sin generar ruido.
+        </div>
+        
+        <h3>Estrategias de Mitigación Táctica:</h3>
+        <ul>
+            <li><strong>Rondines anti-rutina:</strong> Las motocicletas nunca deben pasar por los puntos de malla ciclónica a la misma hora. El patrón debe ser impredecible para quien nos observe desde el exterior.</li>
+            <li><strong>Inspección física obligatoria:</strong> Los agentes deben detenerse, bajar de la motocicleta y revisar manualmente la tensión de la malla durante los turnos nocturnos, buscando cortes ocultos. No basta con mirar desde la moto.</li>
+        </ul>
+
+        <h2>Módulo 3: Asimetría en el Control de Accesos</h2>
+        <p>Manejamos dos realidades distintas: el acceso principal (automatizado, para residentes) y el acceso de proveedores (manual y controlado por el factor humano).</p>
+        <ul>
+            <li><strong>En Acceso Principal:</strong> El mayor riesgo es el "Tailgating" (un vehículo se pega al parachoques del residente para entrar antes de que baje la pluma) y el uso indebido de stickers por personas no autorizadas.</li>
+            <li><strong>En Acceso Proveedores:</strong> El riesgo principal es la Ingeniería Social. Falsos repartidores con uniformes apócrifos que mienten sobre su destino o argumentan "extrema urgencia" para evadir el protocolo.</li>
+        </ul>
+        <div class="technique-card">
+            <strong>Filosofía Zero Trust (Cero Confianza):</strong> Todo proveedor, sin excepción, es un riesgo hasta que el residente autoriza su ingreso en tiempo real. Si la app de escáner falla o la identificación es dudosa, se niega el acceso. No existen excepciones por "prisa". Además, se debe monitorear el tiempo: nadie debe permanecer más de 45 minutos sin justificación.
+        </div>
+
+        <h2>Módulo 4: Protocolo de Confirmación y Patrullaje en Motocicleta</h2>
+        <p>Toda visita o proveedor debe ser confirmado en su destino. Sin embargo, <strong>la vigilancia no debe ser invasiva</strong>. Seguir a un vehículo por detrás como escolta es inaceptable. Para ello, utilizamos 4 Técnicas de Intercepción Pasiva:</p>
+
+        <div class="technique-card">
+            <strong>1. Posicionamiento Anticipado (El Atajo Táctico):</strong>
+            En cuanto la caseta autoriza el ingreso y avisa el destino por radio, el agente en moto usa vías alternas o calles secundarias para llegar a la dirección <em>antes</em> que el vehículo. Al llegar el visitante, el agente ya está estacionado, pareciendo parte del entorno, confirma el arribo visualmente y lo reporta por radio.
+        </div>
+
+        <div class="technique-card">
+            <strong>2. Anclaje de Coartada (La Pausa Justificada):</strong>
+            Si un agente debe esperar a un visitante frente a un domicilio, necesita una justificación para no parecer que está vigilando. Al llegar al punto, el agente realiza una tarea operativa simulada: revisa la tensión de una malla cercana, anota en su bitácora o inspecciona visualmente un poste de luz. Usa su visión periférica para confirmar el ingreso de la visita.
+        </div>
+
+        <div class="technique-card">
+            <strong>3. Patrullaje Transversal (El Cruce en "T"):</strong>
+            Para no seguir a un proveedor a lo largo de toda una avenida principal, las motos trazan rutas perpendiculares. Cruzan la avenida principal por delante o por detrás del vehículo en intersecciones clave, confirmando su trayectoria visualmente en fracciones de segundo sin ir detrás de él.
+        </div>
+
+        <div class="technique-card">
+            <strong>4. Efecto de Relevo (Triangulación de Zonas):</strong>
+            El residencial se divide en sectores. El guardia de la zona de acceso reporta el ingreso. El guardia del sector de destino aplica un Anclaje de Coartada y lo espera. Si el auto no llega en el tiempo estimado, se activa una alerta silenciosa de desvío y ambos inician una búsqueda perimetral.
+        </div>
     </div>
-    <br>
-    <button class="btn" onclick="showContent()">Volver a la Clase</button>
+
+    <div id="exam" class="section">
+        <h2>Evaluación de Agentes de Prevención</h2>
+        <p>Responda las siguientes situaciones tácticas basándose en los protocolos de la Master Class. Debe obtener al menos 5 de 6 respuestas correctas para aprobar.</p>
+
+        <form id="quizForm">
+            <div class="question-block">
+                <p>1. Durante su rondín nocturno de rutina, usted se acerca a una de las zonas vulnerables donde hay malla ciclónica en lugar de barda. ¿Cuál es el procedimiento correcto?</p>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="a"> Acelerar el paso para cubrir más terreno y solo iluminar la malla desde la moto.</label>
+                    <label><input type="radio" name="q1" value="b"> Detener la motocicleta, bajar, acercarse a la malla y revisar la tensión de la misma con las manos para descartar cortes ocultos.</label>
+                    <label><input type="radio" name="q1" value="c"> Revisar únicamente el perímetro exterior desde las cámaras de seguridad en caseta.</label>
+                </div>
+                <div id="fb-q1" class="feedback-item"></div>
+            </div>
+
+            <div class="question-block">
+                <p>2. Llega una camioneta de paquetería al acceso de proveedores. El chofer está muy molesto, dice que lleva prisa y que la app de escáner no le funciona. Exige pasar de inmediato a la casa 45. Aplicando la filosofía "Zero Trust", ¿qué hace usted?</p>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="a"> Le permite el acceso para evitar tráfico en la entrada, pero le pide a un motorizado que lo vigile de cerca.</label>
+                    <label><input type="radio" name="q2" value="b"> Toma nota manual de sus placas y lo deja pasar, advirtiéndole que debe salir en 10 minutos.</label>
+                    <label><input type="radio" name="q2" value="c"> Mantiene la pluma abajo. Si el código no pasa o el residente no autoriza en tiempo real vía interphone/app, se le niega el acceso sin importar su prisa.</label>
+                </div>
+                <div id="fb-q2" class="feedback-item"></div>
+            </div>
+
+            <div class="question-block">
+                <p>3. Caseta reporta el ingreso de una visita hacia la calle principal, al fondo del residencial. Usted está en motocicleta. ¿Cómo aplica la técnica de "Posicionamiento Anticipado"?</p>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="a"> Se coloca inmediatamente detrás del vehículo del visitante y lo sigue a 10 metros de distancia hasta su destino.</label>
+                    <label><input type="radio" name="q3" value="b"> Utiliza una calle paralela o vía alterna para llegar a la dirección de destino antes que la visita, se estaciona y confirma su llegada de manera discreta.</label>
+                    <label><input type="radio" name="q3" value="c"> Lo espera en la mitad del camino y lo detiene para preguntarle a dónde se dirige y confirmar nuevamente el dato.</label>
+                </div>
+                <div id="fb-q3" class="feedback-item"></div>
+            </div>
+
+            <div class="question-block">
+                <p>4. Usted llega a la casa destino antes que el visitante para confirmar su arribo, pero no quiere incomodar a la familia mirando fijamente la entrada de su casa. ¿Qué técnica debe aplicar?</p>
+                <div class="options">
+                    <label><input type="radio" name="q4" value="a"> Anclaje de Coartada: Se estaciona cerca y finge revisar su bitácora o inspeccionar una luminaria, usando su visión periférica para confirmar que la visita entre a la casa correcta.</label>
+                    <label><input type="radio" name="q4" value="b"> Patrullaje de Coincidencia: Da vueltas en círculo en la misma calle con el motor acelerado hasta que el auto se estacione.</label>
+                    <label><input type="radio" name="q4" value="c"> Efecto de Relevo: Se esconde detrás de unos arbustos o en una zona completamente oscura para no ser visto en absoluto.</label>
+                </div>
+                <div id="fb-q4" class="feedback-item"></div>
+            </div>
+
+            <div class="question-block">
+                <p>5. En el acceso principal automatizado, un vehículo sin sticker oficial aprovecha que la pluma está levantada por el residente que ingresó adelante, e intenta pasar pegado a su parachoques ("Tailgating"). ¿Cuál es la prioridad táctica?</p>
+                <div class="options">
+                    <label><input type="radio" name="q5" value="a"> Asumir que es un familiar del residente de enfrente y dejarlo pasar.</label>
+                    <label><input type="radio" name="q5" value="b"> Detener el vehículo inmediatamente mediante el sistema de barrera, abordarlo pidiendo identificación e indicarle que debe usar el carril y protocolo de visitas.</label>
+                    <label><input type="radio" name="q5" value="c"> Anotar las placas y reportarlo al final del turno para que envíen un correo al residente.</label>
+                </div>
+                <div id="fb-q5" class="feedback-item"></div>
+            </div>
+
+            <div class="question-block">
+                <p>6. Un vehículo de servicio pesado entra y debe cruzar casi todas las 22 hectáreas. Para confirmar que no se desvíe a la zona de amenidades sin ir detrás de él haciendo ruido, los motorizados utilizan:</p>
+                <div class="options">
+                    <label><input type="radio" name="q6" value="a"> El Patrullaje Transversal (Cruce en "T"), cruzando la avenida principal en intersecciones estratégicas para verlo pasar por bloques.</label>
+                    <label><input type="radio" name="q6" value="b"> La Técnica de Intercepción Agresiva, encendiendo las torretas desde la caseta principal.</label>
+                    <label><input type="radio" name="q6" value="c"> La Inspección Física Obligatoria en cada alto que realice el camión.</label>
+                </div>
+                <div id="fb-q6" class="feedback-item"></div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="evaluateQuiz()">Evaluar Respuestas</button>
+        </form>
+
+        <div id="final-result" class="result-box"></div>
+    </div>
 </div>
 
 <script>
-    function showQuiz() {
-        document.getElementById('content-module').classList.add('hidden');
-        document.getElementById('quiz-module').classList.remove('hidden');
+    // Navegación de pestañas
+    function showTab(tabId) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.nav-buttons button').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('btn-' + tabId).classList.add('active');
+        
+        // Hacer scroll arriba
+        window.scrollTo(0, 0);
     }
-    function showContent() {
-        document.getElementById('quiz-module').classList.add('hidden');
-        document.getElementById('content-module').classList.remove('hidden');
-    }
-    function checkAnswer(question, correct) {
-        const selected = document.querySelector(`input[name="${question}"]:checked`);
-        const feedback = document.getElementById(`res-${question}`);
-        if (!selected) {
-            feedback.innerHTML = "Por favor selecciona una opción.";
+
+    // Lógica del Examen
+    const correctAnswers = {
+        q1: 'b',
+        q2: 'c',
+        q3: 'b',
+        q4: 'a',
+        q5: 'b',
+        q6: 'a'
+    };
+
+    const explanations = {
+        q1: "Correcto: La inspección física manual de la malla es vital para detectar cortes camuflados.",
+        q2: "Correcto: Zero Trust significa que nadie entra sin autorización confirmada, sin importar la presión que ejerza el proveedor.",
+        q3: "Correcto: El posicionamiento anticipado te permite tener control visual sin aplicar el molesto 'efecto escolta'.",
+        q4: "Correcto: El anclaje de coartada justifica tu presencia en el lugar y evita que el residente se sienta vigilado directamente.",
+        q5: "Correcto: El 'Tailgating' es una de las mayores vulnerabilidades en accesos automatizados; debe frenarse en el acto.",
+        q6: "Correcto: El cruce transversal permite monitorear un trayecto largo visualmente sin tener que seguir al vehículo."
+    };
+
+    function evaluateQuiz() {
+        let score = 0;
+        let allAnswered = true;
+
+        for (let q in correctAnswers) {
+            const selected = document.querySelector(`input[name="${q}"]:checked`);
+            const feedbackBox = document.getElementById(`fb-${q}`);
+            feedbackBox.style.display = 'block';
+
+            if (!selected) {
+                feedbackBox.className = 'feedback-item feedback-incorrect';
+                feedbackBox.innerHTML = "⚠️ No has respondido esta pregunta.";
+                allAnswered = false;
+            } else if (selected.value === correctAnswers[q]) {
+                score++;
+                feedbackBox.className = 'feedback-item feedback-correct';
+                feedbackBox.innerHTML = "✅ " + explanations[q];
+            } else {
+                feedbackBox.className = 'feedback-item feedback-incorrect';
+                feedbackBox.innerHTML = "❌ Respuesta incorrecta. Revisa el protocolo correspondiente en la Master Class.";
+            }
+        }
+
+        if (!allAnswered) {
+            alert("Por favor, responde todas las preguntas antes de evaluar.");
             return;
         }
-        if (selected.value === correct) {
-            feedback.innerHTML = "✅ ¡Correcto! Aplicas el protocolo táctico adecuadamente.";
-            feedback.style.color = "green";
+
+        const resultBox = document.getElementById('final-result');
+        resultBox.style.display = 'block';
+
+        if (score >= 5) {
+            resultBox.className = 'result-box result-pass';
+            resultBox.innerHTML = `🏆 Aprobado. Calificación: ${score}/6.<br>Demuestra dominio de los protocolos tácticos para el complejo.`;
         } else {
-            feedback.innerHTML = "❌ Incorrecto. Revisa el Módulo de Intercepción Pasiva.";
-            feedback.style.color = "red";
+            resultBox.className = 'result-box result-fail';
+            resultBox.innerHTML = `⚠️ No Aprobado. Calificación: ${score}/6.<br>Se requiere un mínimo de 5 aciertos. Por favor, vuelva a leer el Módulo de Estudio.`;
         }
     }
 </script>
