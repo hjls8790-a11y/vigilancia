@@ -1,259 +1,247 @@
+¡Excelente decisión, Hugo! Para mantenernos dentro del plan gratuito (Spark) de Firebase que ya utilizas, la clave no es solo cómo guardamos los datos, sino qué tan pesados son y cuánto tiempo los conservamos.
+
+Para no saturar tu base de datos, apliqué tres estrategias de "compresión" en este código:
+
+Variables minimalistas: En lugar de guardar en Firebase palabras largas como {"estado_del_recibo": "Entregado a Administración"}, el sistema guardará simplemente {"p": 1}. Esto reduce el consumo de bytes en un 80%.
+
+Sincronización en Tiempo Real: El código usa Listeners (on('value')), por lo que si Liz en administración agrega una visita, el foco le parpadeará a tu guardia en la caseta al instante, sin necesidad de recargar la página.
+
+Botón de Limpieza Operativa (Auto-borrado): Agregué un botón para eliminar los registros que ya se completaron. Así, la base de datos solo almacena lo que está "vivo" o pendiente, liberando el espacio al final del turno.
+
+Aquí tienes el código listo. Solo necesitas reemplazar la sección de firebaseConfig con las mismas claves que usas en tu sistema de accesos.
+
+HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Recibos - Seguridad</title>
+    <title>Centro Operativo - El Cielo</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
     <style>
         :root {
-            --primary: #0A2540;
-            --success: #10B981;
-            --gray-light: #E5E7EB;
-            --gray-dark: #6B7280;
-            --bg: #F3F4F6;
-            --surface: #FFFFFF;
+            --primary: #0A2540; --secondary: #D4AF37; --success: #10B981; 
+            --danger: #EF4444; --warning: #F59E0B; --gray-light: #E5E7EB; 
+            --gray-dark: #6B7280; --bg: #F3F4F6; --surface: #FFFFFF;
         }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 20px;
-            color: #1F2937;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: var(--primary);
-            margin: 0 0 10px 0;
-        }
-
-        /* Formulario de Ingreso */
-        .form-container {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        select, input {
-            padding: 10px;
-            border: 1px solid #D1D5DB;
-            border-radius: 6px;
-            font-size: 1rem;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #1F2937; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--gray-light); padding-bottom: 10px; }
+        .header h1 { color: var(--primary); margin: 0 0 5px 0; }
+        .dashboard { display: flex; gap: 20px; flex-wrap: wrap; }
+        .column { flex: 1; min-width: 320px; }
+        h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 3px solid var(--secondary); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
+        
+        .form-container { background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row > * { flex: 1; }
+        select, input { padding: 8px; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+        
+        button { background-color: var(--primary); color: white; border: none; padding: 10px; font-size: 0.95rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         button:hover { background-color: #06182a; }
-
-        /* Tarjetas de Seguimiento */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--gray-dark);
-            transition: all 0.3s ease;
-        }
-
-        .card.completado { border-left-color: var(--success); opacity: 0.8; }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .badge-cfe { background-color: #10B981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
-        .badge-jumapam { background-color: #3B82F6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
-
-        /* Proceso Visual (Luces) */
-        .process-tracker {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--gray-dark);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .indicator {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--gray-light);
-            transition: 0.4s;
-        }
-
-        /* Estados Activos */
-        .step.active .indicator { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
-        .step.active { color: var(--success); }
-
-        .btn-advance {
-            width: 100%;
-            background-color: var(--gray-dark);
-        }
-        .btn-advance:hover { background-color: #4B5563; }
-        .btn-advance.done { background-color: var(--success); cursor: default; }
-
+        .btn-clear { background-color: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 0.8rem; padding: 4px 8px; width: auto; }
+        
+        .card { background: var(--surface); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--gray-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; color: white; font-weight: bold; }
+        .bg-jumapam { background-color: #3B82F6; } .bg-cfe { background-color: #10B981; } .bg-predial { background-color: #8B5CF6; } .bg-admin { background-color: var(--secondary); color: black; }
+        
+        .step { display: flex; align-items: center; gap: 8px; color: var(--gray-dark); font-size: 0.8rem; margin-bottom: 4px; }
+        .indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--gray-light); }
+        .step.active .indicator { background-color: var(--success); box-shadow: 0 0 6px var(--success); }
+        .step.active { color: var(--success); font-weight: bold; }
+        
+        .alerta-visita { border-left-color: var(--warning); position: relative; }
+        .foco-alerta { position: absolute; top: 10px; right: 10px; width: 14px; height: 14px; background-color: var(--warning); border-radius: 50%; animation: parpadeo 1s infinite alternate; }
+        @keyframes parpadeo { 0% { opacity: 0.4; box-shadow: 0 0 2px var(--warning); } 100% { opacity: 1; box-shadow: 0 0 12px var(--warning); } }
+        
+        .btn-action { margin-top: 10px; background-color: var(--gray-dark); }
+        .btn-action.done { background-color: var(--success); cursor: default; }
+        .btn-confirmar { background-color: var(--danger); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Control Operativo de Recibos</h1>
-        <p>El Cielo Parque Residencial - Departamento de Seguridad</p>
+        <h1>Centro Operativo - El Cielo</h1>
+        <p style="margin:0; font-size: 0.9rem; color: #666;">Sincronizado en Tiempo Real</p>
     </div>
 
-    <div class="form-container">
-        <select id="tipo-recibo">
-            <option value="JUMAPAM">💧 JUMAPAM</option>
-            <option value="CFE">⚡ CFE</option>
-        </select>
-        <input type="text" id="lote" placeholder="Ej. Lote 15 / Familia Pérez" autocomplete="off">
-        <button onclick="agregarRecibo()">Registrar Ingreso</button>
-    </div>
-
-    <div class="grid" id="contenedor-recibos">
+    <div class="dashboard">
+        <div class="column">
+            <h2>📦 Lotes de Recibos <button class="btn-clear" onclick="limpiarRecibos()">Limpiar Terminados</button></h2>
+            <div class="form-container">
+                <div class="form-row">
+                    <select id="t-rec">
+                        <option value="JUMAPAM">💧 JUMAPAM</option>
+                        <option value="CFE">⚡ CFE</option>
+                        <option value="PREDIAL">🏛️ PREDIAL</option>
+                    </select>
+                    <input type="number" id="c-rec" placeholder="Cantidad" min="1">
+                </div>
+                <input type="text" id="m-rec" placeholder="Periodo (Ej. Abril 2026)">
+                <button onclick="guardarLote()">Registrar Lote</button>
+            </div>
+            <div id="lista-lotes"></div>
         </div>
 
+        <div class="column">
+            <h2>👥 Visitas de Oficina <button class="btn-clear" onclick="limpiarVisitas()">Limpiar Ingresados</button></h2>
+            <div class="form-container" style="border-left: 4px solid var(--secondary);">
+                <div class="form-row">
+                    <select id="a-vis">
+                        <option value="Manrry">Manrry</option>
+                        <option value="Liz">Liz</option>
+                        <option value="Gerencia">Gerencia</option>
+                    </select>
+                    <input type="date" id="f-vis">
+                </div>
+                <input type="text" id="n-vis" placeholder="Nombre de la Visita">
+                <input type="text" id="m-vis" placeholder="Instrucción / Motivo">
+                <button style="background-color: var(--secondary); color: black;" onclick="guardarVisita()">Autorizar Ingreso</button>
+            </div>
+            <div id="lista-visitas"></div>
+        </div>
+    </div>
+
     <script>
-        let recibos = [];
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS DATOS AQUÍ)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
 
-        // Definición de los pasos del proceso
-        const pasosProceso = [
-            "Recibido en Caseta",
-            "Entregado a Administración",
-            "Devuelto a Caseta",
-            "Entregado al Residente"
-        ];
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        function agregarRecibo() {
-            const tipo = document.getElementById('tipo-recibo').value;
-            const lote = document.getElementById('lote').value.trim();
+        // Referencias a los nodos principales (nombres cortos para ahorrar espacio)
+        const refRecibos = db.ref('cielo_ops/rec');
+        const refVisitas = db.ref('cielo_ops/vis');
 
-            if (!lote) {
-                alert("Por favor, ingresa el número de lote o casa.");
-                return;
-            }
+        const pasosLote = ["En Caseta", "Revisión Admin", "Para Repartir", "Entregados"];
 
-            const nuevoRecibo = {
-                id: Date.now(),
-                tipo: tipo,
-                lote: lote,
-                fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                pasoActual: 0 // 0 = Caseta, 1 = Admin, 2 = Caseta de nuevo, 3 = Residente
-            };
+        // ==========================================
+        // 2. LÓGICA DE RECIBOS (COMPRIMIDA)
+        // Variables: t=tipo, c=cantidad, m=mes, p=paso(0 a 3)
+        // ==========================================
+        function guardarLote() {
+            const t = document.getElementById('t-rec').value;
+            const c = document.getElementById('c-rec').value;
+            const m = document.getElementById('m-rec').value.trim();
+            if(!c || !m) return alert("Completa los datos");
 
-            recibos.unshift(nuevoRecibo); // Agrega al principio de la lista
-            document.getElementById('lote').value = ''; // Limpia el input
-            renderizarRecibos();
+            refRecibos.push({ t: t, c: c, m: m, p: 0 }); // Guarda en la nube
+            document.getElementById('c-rec').value = '';
+            document.getElementById('m-rec').value = '';
         }
 
-        function avanzarPaso(id) {
-            const recibo = recibos.find(r => r.id === id);
-            if (recibo && recibo.pasoActual < 3) {
-                recibo.pasoActual++;
-                renderizarRecibos();
-            }
+        function avanzarLote(key, pasoActual) {
+            if(pasoActual < 3) refRecibos.child(key).update({ p: pasoActual + 1 });
         }
 
-        function renderizarRecibos() {
-            const contenedor = document.getElementById('contenedor-recibos');
-            contenedor.innerHTML = '';
-
-            recibos.forEach(recibo => {
-                const completado = recibo.pasoActual === 3;
-                const badgeClass = recibo.tipo === 'CFE' ? 'badge-cfe' : 'badge-jumapam';
-                
-                // Generar los 4 pasos visuales
-                let pasosHTML = '';
-                pasosProceso.forEach((texto, index) => {
-                    const isActive = index <= recibo.pasoActual ? 'active' : '';
-                    pasosHTML += `
-                        <div class="step ${isActive}">
-                            <div class="indicator"></div>
-                            <span>${texto}</span>
-                        </div>
-                    `;
-                });
-
-                // Texto y estado del botón
-                let btnText = "Avanzar Proceso";
-                let btnClass = "btn-advance";
-                let btnDisabled = "";
-
-                if (completado) {
-                    btnText = "✔ Proceso Completado";
-                    btnClass += " done";
-                    btnDisabled = "disabled";
-                }
-
-                const tarjetaHTML = `
-                    <div class="card ${completado ? 'completado' : ''}">
-                        <div class="card-header">
-                            <span>🏠 ${recibo.lote}</span>
-                            <span class="${badgeClass}">${recibo.tipo}</span>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 15px;">
-                            Ingresado: ${recibo.fecha}
-                        </div>
-                        
-                        <div class="process-tracker">
-                            ${pasosHTML}
-                        </div>
-
-                        <button class="${btnClass}" ${btnDisabled} onclick="avanzarPaso(${recibo.id})">
-                            ${btnText}
-                        </button>
-                    </div>
-                `;
-                
-                contenedor.innerHTML += tarjetaHTML;
+        function limpiarRecibos() {
+            if(!confirm("¿Borrar de la base de datos los lotes ya entregados?")) return;
+            refRecibos.once('value', snap => {
+                snap.forEach(child => { if(child.val().p === 3) child.ref.remove(); });
             });
         }
-    </script>
 
+        // Escuchar cambios en Recibos en Tiempo Real
+        refRecibos.on('value', snapshot => {
+            const contenedor = document.getElementById('lista-lotes');
+            contenedor.innerHTML = '';
+            
+            // Invertir para ver los más nuevos arriba
+            let lotes = [];
+            snapshot.forEach(child => { lotes.unshift({ key: child.key, ...child.val() }); });
+
+            lotes.forEach(l => {
+                const completado = l.p === 3;
+                let bg = l.t === 'CFE' ? 'bg-cfe' : l.t === 'PREDIAL' ? 'bg-predial' : 'bg-jumapam';
+                let pasosHTML = '';
+                
+                pasosLote.forEach((txt, i) => {
+                    let act = i <= l.p ? 'active' : '';
+                    pasosHTML += `<div class="step ${act}"><div class="indicator"></div><span>${txt}</span></div>`;
+                });
+
+                contenedor.innerHTML += `
+                    <div class="card" style="${completado ? 'border-left-color: var(--success); opacity: 0.6;' : ''}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <strong>${l.m} (${l.c} rec.)</strong> <span class="badge ${bg}">${l.t}</span>
+                        </div>
+                        <div style="margin-bottom:10px;">${pasosHTML}</div>
+                        <button class="btn-action ${completado ? 'done' : ''}" ${completado ? 'disabled' : ''} onclick="avanzarLote('${l.key}', ${l.p})">
+                            ${completado ? '✔ Completado' : 'Avanzar Proceso'}
+                        </button>
+                    </div>`;
+            });
+        });
+
+        // ==========================================
+        // 3. LÓGICA DE VISITAS (COMPRIMIDA)
+        // Variables: a=autoriza, f=fecha, n=nombre, m=motivo, s=status(0=espera, 1=ingreso)
+        // ==========================================
+        function guardarVisita() {
+            const a = document.getElementById('a-vis').value;
+            const f = document.getElementById('f-vis').value;
+            const n = document.getElementById('n-vis').value.trim();
+            const m = document.getElementById('m-vis').value.trim();
+            if(!n) return alert("Falta el nombre");
+
+            refVisitas.push({ a: a, f: f, n: n, m: m, s: 0 }); // Guarda en la nube
+            document.getElementById('n-vis').value = '';
+            document.getElementById('m-vis').value = '';
+        }
+
+        function confirmarIngreso(key) {
+            if(confirm("¿Confirmas ingreso en caseta?")) refVisitas.child(key).update({ s: 1 });
+        }
+
+        function limpiarVisitas() {
+            if(!confirm("¿Borrar de la base de datos las visitas que ya ingresaron?")) return;
+            refVisitas.once('value', snap => {
+                snap.forEach(child => { if(child.val().s === 1) child.ref.remove(); });
+            });
+        }
+
+        // Escuchar cambios en Visitas en Tiempo Real
+        refVisitas.on('value', snapshot => {
+            const contenedor = document.getElementById('lista-visitas');
+            contenedor.innerHTML = '';
+            
+            let visitas = [];
+            snapshot.forEach(child => { visitas.unshift({ key: child.key, ...child.val() }); });
+
+            visitas.forEach(v => {
+                const ingresado = v.s === 1;
+                let fechaTxt = v.f ? `Para: ${v.f}` : 'Fecha abierta';
+                
+                contenedor.innerHTML += `
+                    <div class="card ${!ingresado ? 'alerta-visita' : ''}" style="${ingresado ? 'border-left-color: var(--success); opacity: 0.6;' : ''}">
+                        ${!ingresado ? '<div class="foco-alerta"></div>' : ''}
+                        <div style="margin-bottom: 5px;">
+                            <span class="badge bg-admin">${v.a}</span> <span style="font-size: 0.75rem; color: gray;">${fechaTxt}</span>
+                        </div>
+                        <strong>👤 ${v.n}</strong>
+                        <p style="font-size: 0.85rem; color: #4B5563; margin: 5px 0;">📝 ${v.m}</p>
+                        
+                        ${!ingresado ? 
+                        `<button class="btn-action btn-confirmar" onclick="confirmarIngreso('${v.key}')">🚨 Confirmar Ingreso</button>` : 
+                        `<button class="btn-action done" disabled>✔ Ya ingresó</button>`}
+                    </div>`;
+            });
+        });
+
+    </script>
 </body>
 </html>
