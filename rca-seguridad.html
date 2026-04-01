@@ -61,10 +61,19 @@
             box-sizing: border-box;
             font-family: inherit;
             background-color: #F8FAFC;
+            resize: vertical;
+        }
+
+        textarea { min-height: 80px; }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
         }
 
         button {
-            background-color: var(--primary);
+            flex: 1;
             color: white;
             border: none;
             padding: 15px 25px;
@@ -72,140 +81,137 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
+            transition: background-color 0.3s;
         }
 
-        button:disabled { background-color: #94a3b8; }
-
-        #ai-results-container {
-            display: none;
-            margin-top: 40 (px);
-            padding: 25px;
-            background-color: #F0FDF4;
-            border-left: 5px solid #16A34A;
-            border-radius: 8px;
-        }
-
-        .loader {
-            display: none;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--secondary);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-ai { background-color: var(--primary); }
+        .btn-ai:hover { background-color: #06182a; }
         
-        .ai-content { white-space: pre-wrap; font-size: 1.05rem; }
+        .btn-pdf { background-color: #16A34A; }
+        .btn-pdf:hover { background-color: #15803d; }
+
+        .print-header { display: none; }
+
+        /* Estilos para cuando se genera el PDF */
+        @media print {
+            body { background-color: white; padding: 0; }
+            .container { 
+                box-shadow: none; 
+                border-top: none; 
+                padding: 0; 
+                max-width: 100%; 
+            }
+            .btn-container, .no-print { display: none; }
+            input, textarea { 
+                border: none; 
+                background-color: transparent; 
+                padding: 0;
+                resize: none;
+            }
+            .print-header { 
+                display: block; 
+                text-align: center; 
+                margin-bottom: 30px;
+            }
+            .print-header h2 { border: none; margin: 0; padding: 0; }
+            .print-header p { margin: 5px 0; font-weight: bold; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Análisis Causa Raíz (RCA) de Incidentes</h1>
+    <div class="print-header">
+        <h2>Reporte de Incidente y Análisis Causa Raíz (RCA)</h2>
+        <p>Departamento de Seguridad</p>
+    </div>
+
+    <h1>Análisis Causa Raíz (RCA) - Seguridad</h1>
     
     <form id="rca-form">
         <h2>Información General</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Instalación / Complejo:</label>
+                <input type="text" id="complejo" value="El Cielo Parque Residencial" required>
+            </div>
+            <div class="form-group">
+                <label>Reporta a:</label>
+                <input type="text" id="jefe" value="Guillermo Jiménez" required>
+            </div>
+        </div>
         <div class="form-row">
             <div class="form-group"><label>Fecha:</label><input type="date" id="fecha" required></div>
             <div class="form-group"><label>Hora:</label><input type="time" id="hora" required></div>
         </div>
         <div class="form-group">
-            <label>Lugar:</label>
+            <label>Lugar exacto del incidente:</label>
             <input type="text" id="lugar" required>
         </div>
         <div class="form-group">
-            <label>Descripción del incidente:</label>
+            <label>Descripción detallada del incidente:</label>
             <textarea id="descripcion" required></textarea>
         </div>
 
-        <h2>Análisis Causa Raíz</h2>
-        <div class="form-group"><label>1. ¿Qué sucedió?</label><textarea id="q1" required></textarea></div>
-        <div class="form-group"><label>2. ¿Por qué sucedió?</label><textarea id="q2" required></textarea></div>
-        <div class="form-group"><label>3. Causas inmediatas:</label><textarea id="q3" required></textarea></div>
-        <div class="form-group"><label>4. Causas subyacentes:</label><textarea id="q4" required></textarea></div>
-        <div class="form-group"><label>5. ¿Cómo prevenirlo?</label><textarea id="q5" required></textarea></div>
+        <h2>Análisis (Los 5 Porqués / Causa Raíz)</h2>
+        <div class="form-group"><label>1. ¿Qué sucedió exactamente?</label><textarea id="q1" required></textarea></div>
+        <div class="form-group"><label>2. ¿Por qué sucedió? (Falla inicial)</label><textarea id="q2" required></textarea></div>
+        <div class="form-group"><label>3. ¿Por qué no se detectó o previno? (Causas inmediatas)</label><textarea id="q3" required></textarea></div>
+        <div class="form-group"><label>4. ¿Cuál es la falla en el proceso/sistema? (Causa subyacente o raíz)</label><textarea id="q4" required></textarea></div>
+        <div class="form-group"><label>5. ¿Qué medidas de contención se tomaron inmediatamente?</label><textarea id="q5" required></textarea></div>
 
-        <button type="submit" id="btn-submit">
-            <span>Generar Seguimiento con IA</span>
-            <div class="loader" id="loader"></div>
-        </button>
+        <div class="btn-container">
+            <button type="button" class="btn-ai" onclick="generarPrompt()">
+                <span>🤖 Copiar Prompt para IA</span>
+            </button>
+            <button type="button" class="btn-pdf" onclick="window.print()">
+                <span>📄 Guardar como PDF</span>
+            </button>
+        </div>
     </form>
-
-    <div id="ai-results-container">
-        <h2>🤖 Plan Sugerido por Gemini IA</h2>
-        <div class="ai-content" id="ai-output"></div>
-    </div>
 </div>
 
 <script>
-    // CLAVE API INTEGRADA
-    const GEMINI_API_KEY = 'AIzaSyAH9TvJnH8KuA4h7Ar5Lck1RTXki_nISQ4'; 
+    function generarPrompt() {
+        const complejo = document.getElementById('complejo').value;
+        const lugar = document.getElementById('lugar').value;
+        const descripcion = document.getElementById('descripcion').value;
+        const causaRaiz = document.getElementById('q4').value;
+        const contencion = document.getElementById('q5').value;
 
-    document.getElementById('rca-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const btnSubmit = document.getElementById('btn-submit');
-        const loader = document.getElementById('loader');
-        const resultsContainer = document.getElementById('ai-results-container');
-        const aiOutput = document.getElementById('ai-output');
-
-        const prompt = `
-        Actúa como un experto en seguridad física. Analiza este incidente:
-        Lugar: ${document.getElementById('lugar').value}
-        Descripción: ${document.getElementById('descripcion').value}
-        Causas: ${document.getElementById('q4').value}
-        
-        Genera un plan de seguimiento a 7, 15 y 30 días, y 3 puntos de mejora continua. 
-        Responde en español, profesional y con puntos clave.
-        `;
-
-        btnSubmit.disabled = true;
-        loader.style.display = 'block';
-        resultsContainer.style.display = 'none';
-
-        try {
-            // USANDO VERSIÓN ESTABLE V1
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
-
-            const resultData = await response.json();
-
-            if (!response.ok) {
-                throw new Error(resultData.error?.message || 'Error en la conexión');
-            }
-
-            let text = resultData.candidates.content.parts.text;
-            
-            // Limpieza básica de formato Markdown a HTML
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            text = text.replace(/\*(.*?)\*/g, '<li>$1</li>');
-
-            aiOutput.innerHTML = text;
-            resultsContainer.style.display = 'block';
-
-        } catch (error) {
-            aiOutput.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
-            resultsContainer.style.display = 'block';
-        } finally {
-            btnSubmit.disabled = false;
-            loader.style.display = 'none';
+        // Validar que los campos principales no estén vacíos
+        if(!lugar || !descripcion || !causaRaiz) {
+            alert("Por favor, llena al menos el lugar, descripción y la causa subyacente para generar un buen análisis.");
+            return;
         }
-    });
+
+        const promptText = `Actúa como un experto en seguridad física y gestión de riesgos. Acabo de realizar un Análisis Causa Raíz (RCA) de un incidente ocurrido en nuestras instalaciones (${complejo}).
+
+Aquí tienes los detalles:
+- Lugar exacto: ${lugar}
+- Descripción del incidente: ${descripcion}
+- Causa Raíz / Subyacente identificada: ${causaRaiz}
+- Medidas de contención inmediatas tomadas: ${contencion}
+
+Por favor, ayúdame generando lo siguiente para presentarlo a mi jefatura:
+1. Una evaluación profesional breve de la causa raíz.
+2. Un plan de acción correctivo y preventivo estructurado a corto (7 días), mediano (15 días) y largo plazo (30 días).
+3. 3 puntos clave de mejora continua para nuestros protocolos de seguridad.
+
+Mantén un tono ejecutivo, formal y directo, enfocado en la prevención operativa.`;
+
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(promptText).then(() => {
+            alert("¡Prompt copiado con éxito! Ahora puedes pegarlo en el chat de tu IA para obtener las soluciones y el plan de acción.");
+        }).catch(err => {
+            console.error('Error al copiar: ', err);
+            alert("Hubo un error al copiar. Por favor, revisa los permisos del navegador.");
+        });
+    }
 </script>
 
 </body>
