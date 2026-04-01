@@ -1,16 +1,3 @@
-¡Excelente decisión, Hugo! Para mantenernos dentro del plan gratuito (Spark) de Firebase que ya utilizas, la clave no es solo cómo guardamos los datos, sino qué tan pesados son y cuánto tiempo los conservamos.
-
-Para no saturar tu base de datos, apliqué tres estrategias de "compresión" en este código:
-
-Variables minimalistas: En lugar de guardar en Firebase palabras largas como {"estado_del_recibo": "Entregado a Administración"}, el sistema guardará simplemente {"p": 1}. Esto reduce el consumo de bytes en un 80%.
-
-Sincronización en Tiempo Real: El código usa Listeners (on('value')), por lo que si Liz en administración agrega una visita, el foco le parpadeará a tu guardia en la caseta al instante, sin necesidad de recargar la página.
-
-Botón de Limpieza Operativa (Auto-borrado): Agregué un botón para eliminar los registros que ya se completaron. Así, la base de datos solo almacena lo que está "vivo" o pendiente, liberando el espacio al final del turno.
-
-Aquí tienes el código listo. Solo necesitas reemplazar la sección de firebaseConfig con las mismas claves que usas en tu sistema de accesos.
-
-HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
