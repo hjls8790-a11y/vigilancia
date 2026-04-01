@@ -3,231 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro Operativo - El Cielo</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
+    <title>Centro de Operaciones - Caseta y Administración</title>
     <style>
         :root {
-            --primary: #0A2540; --secondary: #D4AF37; --success: #10B981; 
-            --danger: #EF4444; --warning: #F59E0B; --gray-light: #E5E7EB; 
-            --gray-dark: #6B7280; --bg: #F3F4F6; --surface: #FFFFFF;
+            --primary: #0A2540;
+            --secondary: #D4AF37;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --gray-light: #E5E7EB;
+            --gray-dark: #6B7280;
+            --bg: #F3F4F6;
+            --surface: #FFFFFF;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #1F2937; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--gray-light); padding-bottom: 10px; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #1F2937;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
         .header h1 { color: var(--primary); margin: 0 0 5px 0; }
-        .dashboard { display: flex; gap: 20px; flex-wrap: wrap; }
-        .column { flex: 1; min-width: 320px; }
-        h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 3px solid var(--secondary); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
-        
-        .form-container { background: var(--surface); padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+
+        .dashboard {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 350px;
+            background: transparent;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+
+        /* Formularios */
+        .form-container {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .form-row { display: flex; gap: 10px; }
         .form-row > * { flex: 1; }
-        select, input { padding: 8px; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
-        
-        button { background-color: var(--primary); color: white; border: none; padding: 10px; font-size: 0.95rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+        }
+
         button:hover { background-color: #06182a; }
-        .btn-clear { background-color: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 0.8rem; padding: 4px 8px; width: auto; }
-        
-        .card { background: var(--surface); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid var(--gray-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; color: white; font-weight: bold; }
-        .bg-jumapam { background-color: #3B82F6; } .bg-cfe { background-color: #10B981; } .bg-predial { background-color: #8B5CF6; } .bg-admin { background-color: var(--secondary); color: black; }
-        
-        .step { display: flex; align-items: center; gap: 8px; color: var(--gray-dark); font-size: 0.8rem; margin-bottom: 4px; }
-        .indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--gray-light); }
-        .step.active .indicator { background-color: var(--success); box-shadow: 0 0 6px var(--success); }
+
+        /* Tarjetas */
+        .card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border-left: 5px solid var(--gray-dark);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: white;
+            font-weight: bold;
+        }
+        .bg-jumapam { background-color: #3B82F6; }
+        .bg-cfe { background-color: #10B981; }
+        .bg-predial { background-color: #8B5CF6; }
+        .bg-admin { background-color: var(--secondary); color: black; }
+
+        /* Proceso Recibos */
+        .step { display: flex; align-items: center; gap: 8px; color: var(--gray-dark); font-size: 0.85rem; margin-bottom: 5px; }
+        .indicator { width: 14px; height: 14px; border-radius: 50%; background-color: var(--gray-light); }
+        .step.active .indicator { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
         .step.active { color: var(--success); font-weight: bold; }
+
+        /* Alerta de Visitas (Foco parpadeante) */
+        .alerta-visita {
+            border-left-color: var(--warning);
+            position: relative;
+        }
         
-        .alerta-visita { border-left-color: var(--warning); position: relative; }
-        .foco-alerta { position: absolute; top: 10px; right: 10px; width: 14px; height: 14px; background-color: var(--warning); border-radius: 50%; animation: parpadeo 1s infinite alternate; }
-        @keyframes parpadeo { 0% { opacity: 0.4; box-shadow: 0 0 2px var(--warning); } 100% { opacity: 1; box-shadow: 0 0 12px var(--warning); } }
-        
-        .btn-action { margin-top: 10px; background-color: var(--gray-dark); }
+        .foco-alerta {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--warning);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--warning);
+            animation: parpadeo 1.5s infinite alternate;
+        }
+
+        @keyframes parpadeo {
+            0% { opacity: 0.5; box-shadow: 0 0 5px var(--warning); }
+            100% { opacity: 1; box-shadow: 0 0 20px var(--warning); }
+        }
+
+        .btn-action { margin-top: 15px; background-color: var(--gray-dark); }
         .btn-action.done { background-color: var(--success); cursor: default; }
         .btn-confirmar { background-color: var(--danger); }
+        .btn-confirmar:hover { background-color: #B91C1C; }
+
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Centro Operativo - El Cielo</h1>
-        <p style="margin:0; font-size: 0.9rem; color: #666;">Sincronizado en Tiempo Real</p>
+        <h1>Centro de Control Operativo y Accesos</h1>
+        <p>Comunicación en tiempo real: Caseta ↔ Administración</p>
     </div>
 
     <div class="dashboard">
+        
         <div class="column">
-            <h2>📦 Lotes de Recibos <button class="btn-clear" onclick="limpiarRecibos()">Limpiar Terminados</button></h2>
+            <h2>📦 Gestión de Recibos (Por Lote)</h2>
+            
             <div class="form-container">
                 <div class="form-row">
-                    <select id="t-rec">
+                    <select id="tipo-recibo">
                         <option value="JUMAPAM">💧 JUMAPAM</option>
                         <option value="CFE">⚡ CFE</option>
                         <option value="PREDIAL">🏛️ PREDIAL</option>
                     </select>
-                    <input type="number" id="c-rec" placeholder="Cantidad" min="1">
+                    <input type="number" id="cantidad" placeholder="Cantidad aprox." min="1">
                 </div>
-                <input type="text" id="m-rec" placeholder="Periodo (Ej. Abril 2026)">
-                <button onclick="guardarLote()">Registrar Lote</button>
+                <input type="text" id="mes-recibo" placeholder="Mes o Periodo (Ej. Marzo 2026)" autocomplete="off">
+                <button onclick="agregarLote()">Registrar Lote en Caseta</button>
             </div>
-            <div id="lista-lotes"></div>
+
+            <div id="contenedor-lotes"></div>
         </div>
 
         <div class="column">
-            <h2>👥 Visitas de Oficina <button class="btn-clear" onclick="limpiarVisitas()">Limpiar Ingresados</button></h2>
+            <h2>👥 Autorizaciones de Oficina</h2>
+            
             <div class="form-container" style="border-left: 4px solid var(--secondary);">
                 <div class="form-row">
-                    <select id="a-vis">
-                        <option value="Manrry">Manrry</option>
-                        <option value="Liz">Liz</option>
-                        <option value="Gerencia">Gerencia</option>
+                    <select id="autoriza">
+                        <option value="Manrry">Autoriza: Manrry</option>
+                        <option value="Liz">Autoriza: Liz</option>
+                        <option value="Gerencia">Autoriza: Gerencia</option>
                     </select>
-                    <input type="date" id="f-vis">
+                    <input type="date" id="fecha-esperada" title="Fecha esperada de llegada">
                 </div>
-                <input type="text" id="n-vis" placeholder="Nombre de la Visita">
-                <input type="text" id="m-vis" placeholder="Instrucción / Motivo">
-                <button style="background-color: var(--secondary); color: black;" onclick="guardarVisita()">Autorizar Ingreso</button>
+                <input type="text" id="nombre-visita" placeholder="Nombre de la Visita / Proveedor / Contratista">
+                <input type="text" id="motivo" placeholder="Motivo o Instrucción especial (Ej. Viene a cotizar)">
+                <button style="background-color: var(--secondary); color: black;" onclick="agregarVisita()">Enviar Autorización a Caseta</button>
             </div>
-            <div id="lista-visitas"></div>
+
+            <div id="contenedor-visitas"></div>
         </div>
+
     </div>
 
     <script>
-        // ==========================================
-        // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS DATOS AQUÍ)
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_PROYECTO.firebaseapp.com",
-            databaseURL: "https://TU_PROYECTO.firebaseio.com",
-            projectId: "TU_PROYECTO",
-            storageBucket: "TU_PROYECTO.appspot.com",
-            messagingSenderId: "TU_SENDER_ID",
-            appId: "TU_APP_ID"
-        };
+        // --- LÓGICA DE LOTES DE RECIBOS ---
+        let lotes = [];
+        const pasosLote = ["1. Lote en Caseta", "2. En Revisión Admin", "3. Listo para Repartir", "4. Entregas Finalizadas"];
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        function agregarLote() {
+            const tipo = document.getElementById('tipo-recibo').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const mes = document.getElementById('mes-recibo').value.trim();
 
-        // Referencias a los nodos principales (nombres cortos para ahorrar espacio)
-        const refRecibos = db.ref('cielo_ops/rec');
-        const refVisitas = db.ref('cielo_ops/vis');
+            if (!cantidad || !mes) return alert("Ingresa la cantidad y el periodo.");
 
-        const pasosLote = ["En Caseta", "Revisión Admin", "Para Repartir", "Entregados"];
-
-        // ==========================================
-        // 2. LÓGICA DE RECIBOS (COMPRIMIDA)
-        // Variables: t=tipo, c=cantidad, m=mes, p=paso(0 a 3)
-        // ==========================================
-        function guardarLote() {
-            const t = document.getElementById('t-rec').value;
-            const c = document.getElementById('c-rec').value;
-            const m = document.getElementById('m-rec').value.trim();
-            if(!c || !m) return alert("Completa los datos");
-
-            refRecibos.push({ t: t, c: c, m: m, p: 0 }); // Guarda en la nube
-            document.getElementById('c-rec').value = '';
-            document.getElementById('m-rec').value = '';
-        }
-
-        function avanzarLote(key, pasoActual) {
-            if(pasoActual < 3) refRecibos.child(key).update({ p: pasoActual + 1 });
-        }
-
-        function limpiarRecibos() {
-            if(!confirm("¿Borrar de la base de datos los lotes ya entregados?")) return;
-            refRecibos.once('value', snap => {
-                snap.forEach(child => { if(child.val().p === 3) child.ref.remove(); });
+            lotes.unshift({
+                id: Date.now(), tipo, cantidad, mes,
+                fecha: new Date().toLocaleDateString(),
+                pasoActual: 0 
             });
+            
+            document.getElementById('cantidad').value = '';
+            document.getElementById('mes-recibo').value = '';
+            renderizarLotes();
         }
 
-        // Escuchar cambios en Recibos en Tiempo Real
-        refRecibos.on('value', snapshot => {
-            const contenedor = document.getElementById('lista-lotes');
-            contenedor.innerHTML = '';
-            
-            // Invertir para ver los más nuevos arriba
-            let lotes = [];
-            snapshot.forEach(child => { lotes.unshift({ key: child.key, ...child.val() }); });
+        function avanzarLote(id) {
+            const lote = lotes.find(l => l.id === id);
+            if (lote && lote.pasoActual < 3) {
+                lote.pasoActual++;
+                renderizarLotes();
+            }
+        }
 
-            lotes.forEach(l => {
-                const completado = l.p === 3;
-                let bg = l.t === 'CFE' ? 'bg-cfe' : l.t === 'PREDIAL' ? 'bg-predial' : 'bg-jumapam';
-                let pasosHTML = '';
+        function renderizarLotes() {
+            const contenedor = document.getElementById('contenedor-lotes');
+            contenedor.innerHTML = '';
+
+            lotes.forEach(lote => {
+                const completado = lote.pasoActual === 3;
+                let badgeClass = lote.tipo === 'CFE' ? 'bg-cfe' : lote.tipo === 'PREDIAL' ? 'bg-predial' : 'bg-jumapam';
                 
-                pasosLote.forEach((txt, i) => {
-                    let act = i <= l.p ? 'active' : '';
-                    pasosHTML += `<div class="step ${act}"><div class="indicator"></div><span>${txt}</span></div>`;
+                let pasosHTML = '';
+                pasosLote.forEach((texto, index) => {
+                    const isActive = index <= lote.pasoActual ? 'active' : '';
+                    pasosHTML += `<div class="step ${isActive}"><div class="indicator"></div><span>${texto}</span></div>`;
                 });
 
                 contenedor.innerHTML += `
-                    <div class="card" style="${completado ? 'border-left-color: var(--success); opacity: 0.6;' : ''}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <strong>${l.m} (${l.c} rec.)</strong> <span class="badge ${bg}">${l.t}</span>
+                    <div class="card ${completado ? 'border-success' : ''}" style="${completado ? 'border-left-color: var(--success); opacity: 0.7;' : ''}">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <strong>Lote: ${lote.mes} (${lote.cantidad} recibos)</strong>
+                            <span class="badge ${badgeClass}">${lote.tipo}</span>
                         </div>
-                        <div style="margin-bottom:10px;">${pasosHTML}</div>
-                        <button class="btn-action ${completado ? 'done' : ''}" ${completado ? 'disabled' : ''} onclick="avanzarLote('${l.key}', ${l.p})">
-                            ${completado ? '✔ Completado' : 'Avanzar Proceso'}
+                        <div style="margin-bottom: 15px;">${pasosHTML}</div>
+                        <button class="btn-action ${completado ? 'done' : ''}" ${completado ? 'disabled' : ''} onclick="avanzarLote(${lote.id})">
+                            ${completado ? '✔ Lote Procesado' : 'Avanzar Proceso'}
                         </button>
-                    </div>`;
-            });
-        });
-
-        // ==========================================
-        // 3. LÓGICA DE VISITAS (COMPRIMIDA)
-        // Variables: a=autoriza, f=fecha, n=nombre, m=motivo, s=status(0=espera, 1=ingreso)
-        // ==========================================
-        function guardarVisita() {
-            const a = document.getElementById('a-vis').value;
-            const f = document.getElementById('f-vis').value;
-            const n = document.getElementById('n-vis').value.trim();
-            const m = document.getElementById('m-vis').value.trim();
-            if(!n) return alert("Falta el nombre");
-
-            refVisitas.push({ a: a, f: f, n: n, m: m, s: 0 }); // Guarda en la nube
-            document.getElementById('n-vis').value = '';
-            document.getElementById('m-vis').value = '';
-        }
-
-        function confirmarIngreso(key) {
-            if(confirm("¿Confirmas ingreso en caseta?")) refVisitas.child(key).update({ s: 1 });
-        }
-
-        function limpiarVisitas() {
-            if(!confirm("¿Borrar de la base de datos las visitas que ya ingresaron?")) return;
-            refVisitas.once('value', snap => {
-                snap.forEach(child => { if(child.val().s === 1) child.ref.remove(); });
+                    </div>
+                `;
             });
         }
 
-        // Escuchar cambios en Visitas en Tiempo Real
-        refVisitas.on('value', snapshot => {
-            const contenedor = document.getElementById('lista-visitas');
+        // --- LÓGICA DE AUTORIZACIONES DE OFICINA ---
+        let visitas = [];
+
+        function agregarVisita() {
+            const autoriza = document.getElementById('autoriza').value;
+            const fecha = document.getElementById('fecha-esperada').value;
+            const nombre = document.getElementById('nombre-visita').value.trim();
+            const motivo = document.getElementById('motivo').value.trim();
+
+            if (!nombre) return alert("Ingresa el nombre de la visita.");
+
+            visitas.unshift({
+                id: Date.now(), autoriza, fecha, nombre, motivo,
+                ingresado: false
+            });
+
+            document.getElementById('nombre-visita').value = '';
+            document.getElementById('motivo').value = '';
+            renderizarVisitas();
+        }
+
+        function confirmarIngreso(id) {
+            if(confirm("¿Confirmas que esta persona ya se encuentra en caseta ingresando?")) {
+                const visita = visitas.find(v => v.id === id);
+                if (visita) visita.ingresado = true;
+                renderizarVisitas();
+            }
+        }
+
+        function renderizarVisitas() {
+            const contenedor = document.getElementById('contenedor-visitas');
             contenedor.innerHTML = '';
-            
-            let visitas = [];
-            snapshot.forEach(child => { visitas.unshift({ key: child.key, ...child.val() }); });
 
-            visitas.forEach(v => {
-                const ingresado = v.s === 1;
-                let fechaTxt = v.f ? `Para: ${v.f}` : 'Fecha abierta';
-                
+            visitas.forEach(visita => {
+                if (visita.ingresado) return; // Solo muestra las pendientes
+
+                let fechaText = visita.fecha ? `Esperado el: ${visita.fecha}` : "Fecha abierta";
+
                 contenedor.innerHTML += `
-                    <div class="card ${!ingresado ? 'alerta-visita' : ''}" style="${ingresado ? 'border-left-color: var(--success); opacity: 0.6;' : ''}">
-                        ${!ingresado ? '<div class="foco-alerta"></div>' : ''}
-                        <div style="margin-bottom: 5px;">
-                            <span class="badge bg-admin">${v.a}</span> <span style="font-size: 0.75rem; color: gray;">${fechaTxt}</span>
+                    <div class="card alerta-visita">
+                        <div class="foco-alerta" title="Visita Pendiente de Ingreso"></div>
+                        <div style="margin-bottom: 8px;">
+                            <span class="badge bg-admin">Autoriza: ${visita.autoriza}</span>
+                            <span style="font-size: 0.8rem; color: gray; margin-left: 10px;">${fechaText}</span>
                         </div>
-                        <strong>👤 ${v.n}</strong>
-                        <p style="font-size: 0.85rem; color: #4B5563; margin: 5px 0;">📝 ${v.m}</p>
+                        <strong style="font-size: 1.1rem; display: block;">👤 ${visita.nombre}</strong>
+                        <p style="font-size: 0.9rem; color: #4B5563; margin: 5px 0;">📝 Instrucción: ${visita.motivo}</p>
                         
-                        ${!ingresado ? 
-                        `<button class="btn-action btn-confirmar" onclick="confirmarIngreso('${v.key}')">🚨 Confirmar Ingreso</button>` : 
-                        `<button class="btn-action done" disabled>✔ Ya ingresó</button>`}
-                    </div>`;
+                        <button class="btn-action btn-confirmar" onclick="confirmarIngreso(${visita.id})">
+                            🚨 Confirmar Ingreso en Caseta
+                        </button>
+                    </div>
+                `;
             });
-        });
+        }
 
     </script>
 </body>
