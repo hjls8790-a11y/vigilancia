@@ -161,7 +161,23 @@
         .badge-corr { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
         
         #btnActualizar {
-            background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-weight: bold; border: 1px solid var(--secondary);
+            background: var(--primary); color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; border: 1px solid var(--secondary);
+        }
+
+        /* Estilos nuevos para la barra de búsqueda */
+        .filtros-busqueda {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .input-busqueda {
+            background: white;
+            color: #333;
+            border: 1px solid #ccc;
+            flex: 1;
+            min-width: 180px;
         }
     </style>
 </head>
@@ -229,7 +245,13 @@
     </div>
 
     <div id="historial" class="tab-content">
-        <button id="btnActualizar" onclick="cargarHistorial()">🔄 Actualizar Tabla</button>
+        
+        <div class="filtros-busqueda">
+            <button id="btnActualizar" onclick="cargarHistorial()">🔄 Recargar Todo</button>
+            <input type="date" id="busquedaFecha" class="input-busqueda" onchange="filtrarHistorial()" title="Buscar por fecha">
+            <input type="text" id="busquedaTexto" class="input-busqueda" style="flex: 2;" placeholder="🔍 Buscar por Tipo de Trabajo u Observación..." onkeyup="filtrarHistorial()">
+        </div>
+
         <div class="table-container">
             <table>
                 <thead>
@@ -253,7 +275,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Misma configuración de tus códigos anteriores
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -265,6 +286,9 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // Variable global para almacenar los datos y poder filtrarlos sin volver a descargar
+        let datosHistorialGlobal = [];
 
         // Control visual de las pestañas
         window.cambiarPestana = (idPestana) => {
@@ -296,7 +320,6 @@
             btn.disabled = true;
 
             try {
-                // Usamos una colección nueva específica para el taller
                 await addDoc(collection(db, "mantenimiento_motos"), {
                     unidad: unidad,
                     fecha_servicio: fecha,
@@ -309,7 +332,6 @@
                 });
 
                 alert("✅ Servicio registrado correctamente en el sistema.");
-                // Limpiar campos
                 document.getElementById('tallerKm').value = '';
                 document.getElementById('tallerObs').value = '';
                 btn.innerText = "💾 Registrar Mantenimiento"; 
@@ -323,42 +345,75 @@
             }
         };
 
-        // Cargar historial para gerencia
+        // Descargar historial desde Firebase
         window.cargarHistorial = async () => {
             const tbody = document.getElementById('tablaHistorial');
             tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Descargando datos del servidor...</td></tr>";
             
+            // Limpiar los filtros al recargar
+            document.getElementById('busquedaFecha').value = "";
+            document.getElementById('busquedaTexto').value = "";
+
             try {
                 const q = query(collection(db, "mantenimiento_motos"), orderBy("timestamp", "desc"));
                 const snapshot = await getDocs(q);
                 
-                let filas = "";
+                datosHistorialGlobal = []; // Llenamos la variable global
                 snapshot.forEach(doc => {
-                    let d = doc.data();
-                    
-                    // Darle color a la etiqueta según el tipo de servicio
-                    let badgeClass = d.tipo_trabajo.includes("Preventivo") ? "badge-prev" : "badge-corr";
-
-                    filas += `<tr>
-                        <td><b>${d.fecha_servicio}</b></td>
-                        <td style="color:var(--primary); font-weight:bold;">${d.unidad}</td>
-                        <td>${d.kilometraje} km</td>
-                        <td><span class="${badgeClass}">${d.tipo_trabajo}</span></td>
-                        <td>${d.mecanico}</td>
-                        <td style="max-width: 250px;">${d.observaciones}</td>
-                    </tr>`;
+                    datosHistorialGlobal.push(doc.data());
                 });
 
-                if(filas === "") {
-                    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Aún no hay registros de mantenimiento.</td></tr>";
-                } else {
-                    tbody.innerHTML = filas;
-                }
+                renderizarTabla(datosHistorialGlobal);
 
             } catch(e) { 
                 console.error(e); 
                 tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>Error al cargar la base de datos.</td></tr>";
             }
+        };
+
+        // NUEVO: Función para pintar la tabla
+        window.renderizarTabla = (datos) => {
+            const tbody = document.getElementById('tablaHistorial');
+            let filas = "";
+
+            datos.forEach(d => {
+                let badgeClass = d.tipo_trabajo.includes("Preventivo") ? "badge-prev" : "badge-corr";
+                filas += `<tr>
+                    <td><b>${d.fecha_servicio}</b></td>
+                    <td style="color:var(--primary); font-weight:bold;">${d.unidad}</td>
+                    <td>${d.kilometraje} km</td>
+                    <td><span class="${badgeClass}">${d.tipo_trabajo}</span></td>
+                    <td>${d.mecanico}</td>
+                    <td style="max-width: 250px;">${d.observaciones}</td>
+                </tr>`;
+            });
+
+            if(filas === "") {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No se encontraron registros que coincidan con la búsqueda.</td></tr>";
+            } else {
+                tbody.innerHTML = filas;
+            }
+        };
+
+        // NUEVO: Función que filtra los datos cuando escribes
+        window.filtrarHistorial = () => {
+            const fechaBuscada = document.getElementById('busquedaFecha').value;
+            const textoBuscado = document.getElementById('busquedaTexto').value.toLowerCase();
+
+            const datosFiltrados = datosHistorialGlobal.filter(d => {
+                // Verificar si coincide la fecha (si hay una fecha seleccionada)
+                const coincideFecha = fechaBuscada === "" || d.fecha_servicio === fechaBuscada;
+                
+                // Verificar si el texto está en el Tipo de Trabajo o en las Observaciones
+                const textoEnTipo = (d.tipo_trabajo || "").toLowerCase().includes(textoBuscado);
+                const textoEnObs = (d.observaciones || "").toLowerCase().includes(textoBuscado);
+                const coincideTexto = textoBuscado === "" || textoEnTipo || textoEnObs;
+
+                // Para mostrarse, debe cumplir ambas condiciones
+                return coincideFecha && coincideTexto;
+            });
+
+            renderizarTabla(datosFiltrados);
         };
     </script>
 </body>
