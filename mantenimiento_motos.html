@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Taller - Mantenimiento de Unidades</title>
+    <style>
+        :root {
+            --primary: #1a2a3a;
+            --secondary: #f39c12;
+            --accent: #e67e22;
+            --bg-dark: #2c3e50;
+            --text-light: #ecf0f1;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121c26;
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: var(--primary);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Pestañas de Navegación */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background: var(--bg-dark);
+            padding: 10px 0 0 0;
+        }
+
+        .tab-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            margin: 0 5px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Formulario del Mecánico */
+        .card {
+            background: var(--bg-dark);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a2a3a;
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .btn-guardar {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .btn-guardar:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        /* Tabla de Historial (Gerencia) */
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--bg-dark);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f2f6;
+        }
+
+        .badge-prev { background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
+        .badge-corr { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
+        
+        #btnActualizar {
+            background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-weight: bold; border: 1px solid var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🔧 Mantenimiento de Unidades Motorizadas</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarPestana('registro')">🛠️ Registrar Servicio</button>
+        <button class="tab-btn" onclick="cambiarPestana('historial'); cargarHistorial();">📋 Historial de Gerencia</button>
+    </div>
+
+    <div id="registro" class="tab-content active">
+        <div class="card">
+            <h2 style="text-align: center; color: var(--secondary); margin-top: 0;">Ingreso a Taller</h2>
+            
+            <div class="form-group">
+                <label>🛵 Unidad Reparada / Revisada</label>
+                <select id="tallerUnidad">
+                    <option value="Suzuki V-Strom Amarilla">Suzuki V-Strom Amarilla</option>
+                    <option value="Suzuki V-Strom Naranja">Suzuki V-Strom Naranja</option>
+                    <option value="Suzuki Intruder">Suzuki Intruder</option>
+                    <option value="Cargo 150 Honda">Cargo 150 Honda</option>
+                    <option value="Honda 125 GXL">Honda 125 GXL</option>
+                    <option value="Cuatrimoto 420">Cuatrimoto 420</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>📅 Fecha del Servicio</label>
+                    <input type="date" id="tallerFecha" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>📏 Kilometraje Actual</label>
+                    <input type="number" id="tallerKm" placeholder="Ej. 16500" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>⚙️ Tipo de Trabajo Realizado</label>
+                <select id="tallerTipo">
+                    <option value="Mantenimiento Preventivo">Mantenimiento Preventivo (Afinación, aceite, ajuste)</option>
+                    <option value="Reparación Correctiva">Reparación Correctiva (Falla mecánica, eléctrico)</option>
+                    <option value="Cambio de Neumáticos">Cambio de Neumáticos / Llantas</option>
+                    <option value="Servicio Eléctrico">Servicio Eléctrico (Luces, batería, estrobos)</option>
+                    <option value="Otro">Otro Trabajo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>📝 Observaciones y Piezas Cambiadas</label>
+                <textarea id="tallerObs" rows="4" placeholder="Ej. Se cambió aceite Motul, bujías nuevas, se ajustó cadena y se cambió balata trasera..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>👨‍🔧 Nombre del Mecánico / Responsable</label>
+                <input type="text" id="tallerMecanico" placeholder="Nombre de quien realizó el trabajo" required>
+            </div>
+
+            <button class="btn-guardar" id="btnGuardarTaller" onclick="guardarServicio()">💾 Registrar Mantenimiento</button>
+        </div>
+    </div>
+
+    <div id="historial" class="tab-content">
+        <button id="btnActualizar" onclick="cargarHistorial()">🔄 Actualizar Tabla</button>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Unidad</th>
+                        <th>Km</th>
+                        <th>Tipo de Trabajo</th>
+                        <th>Mecánico</th>
+                        <th>Detalles / Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaHistorial">
+                    <tr><td colspan="6" style="text-align: center;">Cargando historial...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Misma configuración de tus códigos anteriores
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Control visual de las pestañas
+        window.cambiarPestana = (idPestana) => {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(idPestana).classList.add('active');
+            event.currentTarget.classList.add('active');
+        };
+
+        // Asignar fecha de hoy por defecto al cargar
+        document.getElementById('tallerFecha').valueAsDate = new Date();
+
+        // Guardar registro en base de datos
+        window.guardarServicio = async () => {
+            const unidad = document.getElementById('tallerUnidad').value;
+            const fecha = document.getElementById('tallerFecha').value;
+            const kilometraje = document.getElementById('tallerKm').value.trim();
+            const tipo = document.getElementById('tallerTipo').value;
+            const obs = document.getElementById('tallerObs').value.trim();
+            const mecanico = document.getElementById('tallerMecanico').value.trim();
+
+            if (!fecha || !kilometraje || !obs || !mecanico) {
+                return alert("⚠️ Faltan datos: Asegúrate de llenar kilometraje, observaciones y el nombre del mecánico.");
+            }
+
+            const btn = document.getElementById('btnGuardarTaller');
+            btn.innerText = "⏳ Guardando..."; 
+            btn.disabled = true;
+
+            try {
+                // Usamos una colección nueva específica para el taller
+                await addDoc(collection(db, "mantenimiento_motos"), {
+                    unidad: unidad,
+                    fecha_servicio: fecha,
+                    kilometraje: parseInt(kilometraje),
+                    tipo_trabajo: tipo,
+                    observaciones: obs,
+                    mecanico: mecanico,
+                    timestamp: Date.now(),
+                    fecha_registro_sistema: new Date().toLocaleString('es-MX')
+                });
+
+                alert("✅ Servicio registrado correctamente en el sistema.");
+                // Limpiar campos
+                document.getElementById('tallerKm').value = '';
+                document.getElementById('tallerObs').value = '';
+                btn.innerText = "💾 Registrar Mantenimiento"; 
+                btn.disabled = false;
+                
+            } catch (error) {
+                alert("❌ Error de conexión al guardar el registro.");
+                console.error(error);
+                btn.innerText = "💾 Registrar Mantenimiento"; 
+                btn.disabled = false;
+            }
+        };
+
+        // Cargar historial para gerencia
+        window.cargarHistorial = async () => {
+            const tbody = document.getElementById('tablaHistorial');
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Descargando datos del servidor...</td></tr>";
+            
+            try {
+                const q = query(collection(db, "mantenimiento_motos"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                
+                let filas = "";
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    
+                    // Darle color a la etiqueta según el tipo de servicio
+                    let badgeClass = d.tipo_trabajo.includes("Preventivo") ? "badge-prev" : "badge-corr";
+
+                    filas += `<tr>
+                        <td><b>${d.fecha_servicio}</b></td>
+                        <td style="color:var(--primary); font-weight:bold;">${d.unidad}</td>
+                        <td>${d.kilometraje} km</td>
+                        <td><span class="${badgeClass}">${d.tipo_trabajo}</span></td>
+                        <td>${d.mecanico}</td>
+                        <td style="max-width: 250px;">${d.observaciones}</td>
+                    </tr>`;
+                });
+
+                if(filas === "") {
+                    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Aún no hay registros de mantenimiento.</td></tr>";
+                } else {
+                    tbody.innerHTML = filas;
+                }
+
+            } catch(e) { 
+                console.error(e); 
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>Error al cargar la base de datos.</td></tr>";
+            }
+        };
+    </script>
+</body>
+</html>
