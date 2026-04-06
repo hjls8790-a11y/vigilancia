@@ -6,7 +6,7 @@
     <title>Inspección CCTV - El Cielo Parque Residencial</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --p: #1A252F; --s: #2980B9; --g: #27AE60; --r: #C0392B; --w: #FFFFFF; --t: #ECF0F1; --border: #BDC3C7; }
+        :root { --p: #1A252F; --s: #2980B9; --g: #27AE60; --r: #C0392B; --w: #FFFFFF; --t: #ECF0F1; --border: #BDC3C7; --warn: #F39C12; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--t); margin: 0; padding: 20px; color: var(--p); }
         .header { background: var(--p); color: var(--w); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
         .header h1 { margin: 0; font-size: 1.8em; }
@@ -21,36 +21,40 @@
         .tab-content.active { display: block; }
 
         /* Formularios */
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .form-group { display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: var(--p); }
         input[type="text"], input[type="date"], select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 1em; }
         textarea { resize: vertical; min-height: 80px; }
+        
+        .highlight-box { background: #EBF5FB; border: 1px solid #AED6F1; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .highlight-box h3 { margin-top: 0; color: var(--s); font-size: 1.1em; border-bottom: 2px solid #AED6F1; padding-bottom: 5px; }
 
         /* Checklist */
-        .checklist-section { margin-bottom: 25px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #F8F9F9; }
+        .checklist-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #F8F9F9; }
         .checklist-section h3 { margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 8px; color: var(--s); font-size: 1.1em; }
         .check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-        .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; cursor: pointer; }
         .check-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
 
         /* Botones */
         .btn { padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 1em; display: inline-flex; align-items: center; gap: 8px;}
         .btn-save { background: var(--g); width: 100%; justify-content: center; font-size: 1.1em; margin-top: 10px;}
         .btn-save:hover { background: #219A52; }
-        .btn-pdf { background: var(--r); padding: 6px 12px; font-size: 0.85em; }
+        .btn-pdf { background: var(--r); padding: 6px 10px; font-size: 0.85em; }
         .btn-pdf:hover { background: #A93226; }
-        .btn-del { background: #7F8C8D; padding: 6px 12px; font-size: 0.85em; }
+        .btn-del { background: #7F8C8D; padding: 6px 10px; font-size: 0.85em; }
 
         /* Tabla Bitácora */
-        .search-bar { display: flex; gap: 15px; margin-bottom: 20px; background: #F8F9F9; padding: 15px; border-radius: 8px; align-items: center;}
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .search-bar { display: flex; gap: 15px; margin-bottom: 20px; background: #F8F9F9; padding: 15px; border-radius: 8px; align-items: flex-end; flex-wrap: wrap;}
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: var(--p); color: var(--w); }
         tr:hover { background: #F2F4F4; }
-        .badge-status { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
-        .status-ok { background: #D5F5E3; color: #1E8449; }
-        .status-fail { background: #FADBD8; color: #922B21; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; text-align: center; display: inline-block;}
+        .b-ok { background: #D5F5E3; color: #1E8449; }
+        .b-fail { background: #FADBD8; color: #922B21; }
+        .b-warn { background: #FCF3CF; color: #B9770E; }
 
         /* Contenedor oculto para el PDF */
         #pdf-template { display: none; }
@@ -60,7 +64,7 @@
 
     <div class="header">
         <h1>📹 Plataforma de Inspección CCTV</h1>
-        <p>El Cielo Parque Residencial - Reportes Técnicos para iVMS-4200</p>
+        <p>El Cielo Parque Residencial - Reportes Técnicos para Sistemas (iVMS-4200)</p>
     </div>
 
     <div class="tabs">
@@ -70,22 +74,49 @@
 
     <div id="nueva" class="tab-content active">
         <form id="formInspeccion">
+            
             <div class="form-grid">
                 <div class="form-group">
                     <label>Fecha de Inspección:</label>
                     <input type="date" id="iFecha" required>
                 </div>
                 <div class="form-group">
-                    <label>ID / Número de Cámara (1 al 64):</label>
-                    <input type="text" id="iNumero" placeholder="Ej. CAM-12" required>
+                    <label>ID de Cámara (1 al 70):</label>
+                    <select id="iNumero" required>
+                        <option value="">Selecciona Cámara...</option>
+                        </select>
                 </div>
-                <div class="form-group">
-                    <label>Ubicación (Calle, Parque, Caseta):</label>
-                    <input type="text" id="iUbicacion" placeholder="Ej. Parque Central, Poste 4" required>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Domicilio o Ubicación Específica:</label>
+                    <input type="text" id="iUbicacion" placeholder="Ej. Parque Central, Poste 4, Frente a Casa 15..." required>
                 </div>
-                <div class="form-group">
-                    <label>Dirección IP (Opcional):</label>
-                    <input type="text" id="iIP" placeholder="Ej. 192.168.1.55">
+            </div>
+
+            <div class="highlight-box">
+                <h3>🌐 Parámetros de Red y Conectividad (Sistemas)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>IDF al que pertenece:</label>
+                        <input type="text" id="iIDF" placeholder="Ej. IDF-02, Caseta, SITE Principal..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Cámara Físicamente Activa?</label>
+                        <select id="iActiva" required>
+                            <option value="SÍ">SÍ (Energizada / Conectada)</option>
+                            <option value="NO">NO (Apagada / Sin energía)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Visible en iVMS-4200?</label>
+                        <select id="iVisible" required>
+                            <option value="SÍ">SÍ (Da video en el sistema)</option>
+                            <option value="NO">NO (Pérdida de video / Offline)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección IP (Si se conoce):</label>
+                        <input type="text" id="iIP" placeholder="Ej. 192.168.1.55">
+                    </div>
                 </div>
             </div>
 
@@ -110,16 +141,6 @@
                 </div>
             </div>
 
-            <div class="checklist-section">
-                <h3>💻 Conectividad y Sistema (iVMS-4200)</h3>
-                <div class="check-grid">
-                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Pérdida total de video (No link)"> Pérdida de video (No Link)</label>
-                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Conexión intermitente / Saltos de imagen"> Conexión intermitente</label>
-                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Desfase de Hora/Fecha en OSD"> Hora/Fecha desfasada (OSD)</label>
-                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Falla en grabación (Sin Playback disponible)"> Sin grabación (Playback fallido)</label>
-                </div>
-            </div>
-
             <div class="form-group">
                 <label>Observaciones Adicionales / Diagnóstico Preliminar:</label>
                 <textarea id="iNotas" placeholder="Describe cualquier otro detalle importante para el área de sistemas..."></textarea>
@@ -131,15 +152,15 @@
 
     <div id="bitacora" class="tab-content">
         <div class="search-bar">
-            <div class="form-group" style="flex: 1;">
-                <label>Buscar por Cámara o Ubicación:</label>
-                <input type="text" id="buscTexto" placeholder="Ej. CAM-12, Parque..." onkeyup="filtrarBitacora()">
+            <div class="form-group" style="flex: 2; min-width: 200px;">
+                <label>Buscar (Cámara, Ubicación, IDF):</label>
+                <input type="text" id="buscTexto" placeholder="Ej. CAM-12, Parque, IDF-02..." onkeyup="filtrarBitacora()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex: 1; min-width: 150px;">
                 <label>Filtrar por Fecha:</label>
                 <input type="date" id="buscFecha" onchange="filtrarBitacora()">
             </div>
-            <button class="btn btn-del" style="margin-top: 20px;" onclick="document.getElementById('buscFecha').value=''; filtrarBitacora();">Limpiar Fecha</button>
+            <button class="btn btn-del" onclick="document.getElementById('buscFecha').value=''; filtrarBitacora();">Limpiar Fecha</button>
         </div>
 
         <div style="overflow-x: auto;">
@@ -148,9 +169,10 @@
                     <tr>
                         <th>Fecha</th>
                         <th>Cámara</th>
+                        <th>IDF</th>
                         <th>Ubicación</th>
-                        <th>Estatus</th>
-                        <th>Fallas Detectadas</th>
+                        <th>VMS-4200</th>
+                        <th>Estatus Gral</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -161,11 +183,12 @@
     </div>
 
     <div id="pdf-container" style="display: none;">
-        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333;">
+        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333; background: #fff;">
+            
             <div style="border-bottom: 3px solid #1A252F; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
                 <div>
-                    <h2 style="margin: 0; color: #1A252F;">REPORTE TÉCNICO DE INSPECCIÓN CCTV</h2>
-                    <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial</h4>
+                    <h2 style="margin: 0; color: #1A252F;">REPORTE TÉCNICO DE INCIDENCIA CCTV</h2>
+                    <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial - Dpto. de Sistemas</h4>
                 </div>
                 <div style="text-align: right;">
                     <strong style="font-size: 1.2em; color: #C0392B;" id="pdf-folio"></strong><br>
@@ -173,42 +196,63 @@
                 </div>
             </div>
 
-            <div style="background: #F2F3F4; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                <h3 style="margin-top:0; color: #2980B9; font-size: 1.1em;">Datos del Equipo</h3>
-                <table style="width: 100%; font-size: 0.95em;">
+            <div style="background: #EBF5FB; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #AED6F1;">
+                <h3 style="margin-top:0; color: #2980B9; font-size: 1.1em;">1. Datos del Equipo y Conectividad</h3>
+                <table style="width: 100%; font-size: 0.95em; border-spacing: 0;">
                     <tr>
-                        <td style="padding: 5px; width: 50%;"><strong>Identificador:</strong> <span id="pdf-camara"></span></td>
-                        <td style="padding: 5px; width: 50%;"><strong>Dirección IP:</strong> <span id="pdf-ip"></span></td>
+                        <td style="padding: 8px; width: 33%;"><strong>Cámara:</strong> <span id="pdf-camara" style="font-size: 1.1em; color: #C0392B; font-weight: bold;"></span></td>
+                        <td style="padding: 8px; width: 33%;"><strong>Pertenece a:</strong> <span id="pdf-idf"></span></td>
+                        <td style="padding: 8px; width: 33%;"><strong>IP:</strong> <span id="pdf-ip"></span></td>
                     </tr>
                     <tr>
-                        <td colspan="2" style="padding: 5px;"><strong>Ubicación Física:</strong> <span id="pdf-ubicacion"></span></td>
+                        <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
+                            <strong>Domicilio / Ubicación:</strong> <span id="pdf-ubicacion"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
+                            <div style="display: flex; gap: 40px;">
+                                <div><strong>Energizada Físicamente:</strong> <span id="pdf-activa"></span></div>
+                                <div><strong>Visible en iVMS-4200:</strong> <span id="pdf-visible"></span></div>
+                            </div>
+                        </td>
                     </tr>
                 </table>
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Estatus de la Inspección</h3>
+                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">2. Diagnóstico Físico / Visual</h3>
                 <p id="pdf-estatus-txt" style="font-size: 1.1em; font-weight: bold; margin: 10px 0;"></p>
                 <div id="pdf-fallas-container">
-                    <p style="margin-bottom: 5px;"><strong>Anomalías Reportadas:</strong></p>
+                    <p style="margin-bottom: 5px;"><strong>Anomalías Físicas Reportadas por Guardias:</strong></p>
                     <ul id="pdf-fallas-lista" style="margin-top: 5px; color: #C0392B;"></ul>
                 </div>
             </div>
 
             <div style="margin-bottom: 30px;">
-                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">Observaciones del Supervisor</h3>
+                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">3. Observaciones del Supervisor</h3>
                 <p id="pdf-notas" style="background: #FDEDEC; padding: 15px; border-radius: 5px; border-left: 5px solid #C0392B; white-space: pre-wrap; font-size: 0.95em;"></p>
             </div>
 
             <div style="margin-top: 50px; text-align: center;">
                 <p style="margin: 0;">_________________________________________</p>
                 <p style="margin: 5px 0 0 0; font-weight: bold;">Firma del Supervisor de Seguridad</p>
-                <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Documento generado desde Plataforma de Mando CCTV</p>
+                <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Plataforma de Mando CCTV - Reporte generado automáticamente</p>
             </div>
         </div>
     </div>
 
     <script>
+        // Llenar selector de 70 cámaras dinámicamente
+        const selectCamaras = document.getElementById('iNumero');
+        for(let i = 1; i <= 70; i++) {
+            let num = i < 10 ? '0'+i : i;
+            let option = document.createElement('option');
+            option.value = `CAM-${num}`;
+            option.text = `Cámara ${num} (CAM-${num})`;
+            selectCamaras.appendChild(option);
+        }
+
         // Establecer fecha de hoy por defecto
         document.getElementById('iFecha').valueAsDate = new Date();
 
@@ -222,31 +266,39 @@
         }
 
         // Base de datos local
-        let bdInspecciones = JSON.parse(localStorage.getItem('bd_cctv_inspecciones')) || [];
+        let bdInspecciones = JSON.parse(localStorage.getItem('bd_cctv_v2')) || [];
 
         // Guardar Inspección
         document.getElementById('formInspeccion').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Recopilar fallas
             let fallas = [];
-            document.querySelectorAll('.chk-falla:checked').forEach(chk => {
-                fallas.push(chk.value);
-            });
+            document.querySelectorAll('.chk-falla:checked').forEach(chk => fallas.push(chk.value));
+
+            const visibleVMS = document.getElementById('iVisible').value;
+            const activaFis = document.getElementById('iActiva').value;
+
+            // Determinar estatus general para la tabla
+            let estatus = 'ÓPTIMO';
+            if (visibleVMS === 'NO' || activaFis === 'NO') estatus = 'CRÍTICO (SISTEMAS)';
+            else if (fallas.length > 0) estatus = 'CON FALLAS FÍSICAS';
 
             const nuevaInsp = {
-                id: Date.now(), // ID único para el registro
+                id: Date.now(),
                 fecha: document.getElementById('iFecha').value,
-                camara: document.getElementById('iNumero').value.toUpperCase(),
+                camara: document.getElementById('iNumero').value,
                 ubicacion: document.getElementById('iUbicacion').value,
-                ip: document.getElementById('iIP').value || 'N/A',
+                idf: document.getElementById('iIDF').value.toUpperCase(),
+                ip: document.getElementById('iIP').value || 'No asignada',
+                activa: activaFis,
+                visible: visibleVMS,
                 fallas: fallas,
                 notas: document.getElementById('iNotas').value,
-                estatus: fallas.length === 0 ? 'ÓPTIMO' : 'CON FALLAS'
+                estatus: estatus
             };
 
-            bdInspecciones.unshift(nuevaInsp); // Agregar al inicio
-            localStorage.setItem('bd_cctv_inspecciones', JSON.stringify(bdInspecciones));
+            bdInspecciones.unshift(nuevaInsp);
+            localStorage.setItem('bd_cctv_v2', JSON.stringify(bdInspecciones));
             
             alert('✅ Inspección guardada correctamente.');
             this.reset();
@@ -254,12 +306,12 @@
             switchTab('bitacora');
         });
 
-        // Cargar y Renderizar Bitácora
+        // Cargar Bitácora
         function cargarBitacora() {
-            filtrarBitacora(); // Llama al filtro para pintar la tabla
+            filtrarBitacora();
         }
 
-        // Buscador y Filtros
+        // Filtros
         function filtrarBitacora() {
             const texto = document.getElementById('buscTexto').value.toLowerCase();
             const fecha = document.getElementById('buscFecha').value;
@@ -267,30 +319,38 @@
             tbody.innerHTML = '';
 
             const filtrados = bdInspecciones.filter(insp => {
-                const matchTexto = insp.camara.toLowerCase().includes(texto) || insp.ubicacion.toLowerCase().includes(texto);
+                const matchTexto = insp.camara.toLowerCase().includes(texto) || 
+                                   insp.ubicacion.toLowerCase().includes(texto) ||
+                                   insp.idf.toLowerCase().includes(texto);
                 const matchFecha = fecha === '' || insp.fecha === fecha;
                 return matchTexto && matchFecha;
             });
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
                 return;
             }
 
             filtrados.forEach(insp => {
-                const badgeClass = insp.estatus === 'ÓPTIMO' ? 'status-ok' : 'status-fail';
-                const fallasTxt = insp.fallas.length > 0 ? `${insp.fallas.length} problema(s)` : 'Ninguno';
-                
+                // Colores para Estatus General
+                let badgeEst = 'b-ok';
+                if(insp.estatus.includes('CRÍTICO')) badgeEst = 'b-fail';
+                else if(insp.estatus.includes('FALLAS')) badgeEst = 'b-warn';
+
+                // Colores para VMS
+                let badgeVMS = insp.visible === 'SÍ' ? 'b-ok' : 'b-fail';
+
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${insp.fecha}</strong></td>
-                        <td>${insp.camara}</td>
+                        <td style="font-weight:bold; color:var(--s);">${insp.camara}</td>
+                        <td>${insp.idf}</td>
                         <td>${insp.ubicacion}</td>
-                        <td><span class="badge-status ${badgeClass}">${insp.estatus}</span></td>
-                        <td style="font-size:0.85em;">${fallasTxt}</td>
+                        <td><span class="badge ${badgeVMS}">${insp.visible}</span></td>
+                        <td><span class="badge ${badgeEst}">${insp.estatus}</span></td>
                         <td style="white-space: nowrap;">
-                            <button class="btn btn-pdf" onclick="prepararPDF(${insp.id})" title="Generar PDF Formal para Sistemas">📄 Exportar PDF</button>
-                            <button class="btn btn-del" onclick="eliminarRegistro(${insp.id})" title="Eliminar Registro">🗑️</button>
+                            <button class="btn btn-pdf" onclick="prepararPDF(${insp.id})" title="Generar Reporte a Sistemas">📄 PDF</button>
+                            <button class="btn btn-del" onclick="eliminarRegistro(${insp.id})" title="Eliminar">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -298,72 +358,84 @@
         }
 
         function eliminarRegistro(id) {
-            if(confirm('⚠️ ¿Estás seguro de eliminar este registro de la bitácora?')) {
+            if(confirm('⚠️ ¿Seguro que deseas eliminar este registro?')) {
                 bdInspecciones = bdInspecciones.filter(insp => insp.id !== id);
-                localStorage.setItem('bd_cctv_inspecciones', JSON.stringify(bdInspecciones));
+                localStorage.setItem('bd_cctv_v2', JSON.stringify(bdInspecciones));
                 cargarBitacora();
             }
         }
 
-        // --- LÓGICA PARA GENERAR PDF FORMAL ---
+        // --- EXPORTAR PDF PARA SISTEMAS ---
         function prepararPDF(id) {
-            // Buscar el registro exacto
             const insp = bdInspecciones.find(i => i.id === id);
             if(!insp) return;
 
-            // Llenar la plantilla invisible
+            // Datos Cabecera
             document.getElementById('pdf-folio').innerText = `TICKET #${insp.id.toString().slice(-6)}`;
-            document.getElementById('pdf-fecha').innerHTML = `<strong>Fecha de Inspección:</strong> ${insp.fecha}`;
+            document.getElementById('pdf-fecha').innerHTML = `<strong>Fecha:</strong> ${insp.fecha}`;
+            
+            // Datos Red
             document.getElementById('pdf-camara').innerText = insp.camara;
+            document.getElementById('pdf-idf').innerText = insp.idf;
             document.getElementById('pdf-ip').innerText = insp.ip;
             document.getElementById('pdf-ubicacion').innerText = insp.ubicacion;
             
+            // Badges visuales en PDF para Activa y Visible
+            const spanActiva = document.getElementById('pdf-activa');
+            spanActiva.innerText = insp.activa;
+            spanActiva.style.color = insp.activa === 'SÍ' ? '#27AE60' : '#C0392B';
+            spanActiva.style.fontWeight = 'bold';
+
+            const spanVisible = document.getElementById('pdf-visible');
+            spanVisible.innerText = insp.visible;
+            spanVisible.style.color = insp.visible === 'SÍ' ? '#27AE60' : '#C0392B';
+            spanVisible.style.fontWeight = 'bold';
+            
+            // Estatus de checklist físico
             const estatusEl = document.getElementById('pdf-estatus-txt');
-            if(insp.estatus === 'ÓPTIMO') {
-                estatusEl.innerText = '✅ EQUIPO OPERANDO CON NORMALIDAD';
+            const contFallas = document.getElementById('pdf-fallas-container');
+            
+            if(insp.fallas.length === 0) {
+                estatusEl.innerText = '✅ SIN DAÑOS FÍSICOS REPORTADOS EN HARDWARE';
                 estatusEl.style.color = '#27AE60';
-                document.getElementById('pdf-fallas-container').style.display = 'none';
+                contFallas.style.display = 'none';
             } else {
-                estatusEl.innerText = '⚠️ EQUIPO REQUIERE MANTENIMIENTO TÉCNICO';
+                estatusEl.innerText = '⚠️ DAÑOS FÍSICOS / VISUALES DETECTADOS';
                 estatusEl.style.color = '#C0392B';
-                document.getElementById('pdf-fallas-container').style.display = 'block';
+                contFallas.style.display = 'block';
                 
                 const ulFallas = document.getElementById('pdf-fallas-lista');
                 ulFallas.innerHTML = '';
-                insp.fallas.forEach(f => {
-                    ulFallas.innerHTML += `<li>${f}</li>`;
-                });
+                insp.fallas.forEach(f => { ulFallas.innerHTML += `<li>${f}</li>`; });
             }
 
+            // Notas
             const notasEl = document.getElementById('pdf-notas');
             if(insp.notas.trim() === '') {
-                notasEl.innerText = 'Sin observaciones adicionales.';
+                notasEl.innerText = 'Sin observaciones adicionales registradas.';
                 notasEl.style.background = '#F2F3F4';
                 notasEl.style.borderLeftColor = '#BDC3C7';
             } else {
                 notasEl.innerText = insp.notas;
-                notasEl.style.background = insp.estatus === 'ÓPTIMO' ? '#E8F8F5' : '#FDEDEC';
-                notasEl.style.borderLeftColor = insp.estatus === 'ÓPTIMO' ? '#1E8449' : '#C0392B';
+                notasEl.style.background = '#FDEDEC';
+                notasEl.style.borderLeftColor = '#C0392B';
             }
 
-            // Invocar html2pdf
+            // Generar PDF
             const elemento = document.getElementById('pdf-content');
-            
-            // Mostrar temporalmente el contenedor para que la librería lo lea bien
             const container = document.getElementById('pdf-container');
-            container.style.display = 'block';
+            container.style.display = 'block'; // Mostrar temporalmente
 
             const opt = {
                 margin:       10,
-                filename:     `Reporte_CCTV_${insp.camara}_${insp.fecha}.pdf`,
+                filename:     `Reporte_Sistemas_${insp.camara}_${insp.fecha}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Generar y luego volver a ocultar
             html2pdf().set(opt).from(elemento).save().then(() => {
-                container.style.display = 'none';
+                container.style.display = 'none'; // Volver a ocultar
             });
         }
     </script>
