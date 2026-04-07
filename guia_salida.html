@@ -141,6 +141,8 @@
             background: white;
             color: black;
             font-family: Arial, sans-serif;
+            width: 800px; /* Ajuste para evitar que el PDF salga incompleto */
+            box-sizing: border-box; /* Respeta el padding dentro del ancho */
         }
 
         .pdf-header {
@@ -191,6 +193,11 @@
         }
 
         .pdf-tabla th { background-color: #0f172a; color: white; }
+
+        /* Regla para evitar que se partan los renglones y firmas a la mitad */
+        .pdf-tabla tr, .pdf-firmas {
+            page-break-inside: avoid;
+        }
 
         .pdf-firmas {
             display: grid;
@@ -418,12 +425,14 @@
         const elementoPDF = document.getElementById('pdf-template');
         elementoPDF.style.display = 'block';
 
+        // Opciones actualizadas con scrollY y pagebreak
         const opt = {
             margin:       0.5,
             filename:     `Guia_Salida_${folioCompleto}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            html2canvas:  { scale: 2, scrollY: 0 }, 
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         // 6. Ejecutar html2pdf y ocultar la plantilla al terminar
