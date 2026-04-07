@@ -41,9 +41,10 @@
         .btn { padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 1em; display: inline-flex; align-items: center; gap: 8px;}
         .btn-save { background: var(--g); width: 100%; justify-content: center; font-size: 1.1em; margin-top: 10px;}
         .btn-save:hover { background: #219A52; }
-        .btn-pdf { background: var(--r); padding: 6px 10px; font-size: 0.85em; }
+        .btn-pdf { background: var(--r); padding: 8px 15px; font-size: 0.9em; }
         .btn-pdf:hover { background: #A93226; }
         .btn-del { background: #7F8C8D; padding: 6px 10px; font-size: 0.85em; }
+        .btn-multi { background: var(--p); padding: 10px 20px; margin-left: auto; }
 
         /* Tabla Bitácora */
         .search-bar { display: flex; gap: 15px; margin-bottom: 20px; background: #F8F9F9; padding: 15px; border-radius: 8px; align-items: flex-end; flex-wrap: wrap;}
@@ -56,8 +57,13 @@
         .b-fail { background: #FADBD8; color: #922B21; }
         .b-warn { background: #FCF3CF; color: #B9770E; }
 
-        /* Contenedor oculto para el PDF */
-        #pdf-template { display: none; }
+        /* Contenedor oculto para el PDF adaptado para móviles */
+        .pdf-wrapper { position: absolute; left: -9999px; top: 0; }
+        #pdf-container { width: 800px; background: white; text-align: left; }
+        .pdf-page { padding: 40px; font-family: Arial, sans-serif; color: #333; page-break-after: always; }
+        .pdf-page:last-child { page-break-after: auto; }
+        
+        .chk-row, #chkAll { width: 18px; height: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -84,7 +90,7 @@
                     <label>ID de Cámara (1 al 70):</label>
                     <select id="iNumero" required>
                         <option value="">Selecciona Cámara...</option>
-                        </select>
+                    </select>
                 </div>
                 <div class="form-group" style="grid-column: span 2;">
                     <label>Domicilio o Ubicación Específica:</label>
@@ -121,7 +127,19 @@
             </div>
 
             <div class="checklist-section">
-                <h3>🛠️ Estado Físico y Hardware</h3>
+                <h3>🔌 Infraestructura (Gabinete, No Break, Switch)</h3>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Gabinete dañado, abierto o sucio"> Gabinete dañado/abierto</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Filtración de agua en gabinete"> Filtración en gabinete</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="No Break (UPS) apagado o en alerta (pitido)"> No Break apagado/pitando</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Batería de No Break dañada"> Batería de No Break dañada</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Switch sin energía o bloqueado"> Switch sin energía/bloqueado</label>
+                    <label class="check-item"><input type="checkbox" class="chk-falla" value="Puertos de red del switch dañados"> Puertos de switch dañados</label>
+                </div>
+            </div>
+
+            <div class="checklist-section">
+                <h3>🛠️ Estado Físico y Hardware de Cámara</h3>
                 <div class="check-grid">
                     <label class="check-item"><input type="checkbox" class="chk-falla" value="Lente sucio u obstruido (telarañas, polvo)"> Lente sucio u obstruido</label>
                     <label class="check-item"><input type="checkbox" class="chk-falla" value="Carcasa dañada, abierta o vandalizada"> Carcasa dañada/vandalizada</label>
@@ -146,7 +164,7 @@
                 <textarea id="iNotas" placeholder="Describe cualquier otro detalle importante para el área de sistemas..."></textarea>
             </div>
 
-            <button type="submit" class="btn btn-save">💾 Guardar Inspección</button>
+            <button type="submit" class="btn btn-save">💾 Guardar Inspección Local</button>
         </form>
     </div>
 
@@ -160,13 +178,15 @@
                 <label>Filtrar por Fecha:</label>
                 <input type="date" id="buscFecha" onchange="filtrarBitacora()">
             </div>
-            <button class="btn btn-del" onclick="document.getElementById('buscFecha').value=''; filtrarBitacora();">Limpiar Fecha</button>
+            <button class="btn btn-del" onclick="document.getElementById('buscFecha').value=''; filtrarBitacora();" style="margin-bottom: 5px;">Limpiar Fecha</button>
+            <button class="btn btn-multi" onclick="generarPDFMultiple()" style="margin-bottom: 5px;">📑 Generar PDF de Seleccionados</button>
         </div>
 
         <div style="overflow-x: auto;">
             <table id="tablaBitacora">
                 <thead>
                     <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="chkAll" onclick="seleccionarTodo(this)"></th>
                         <th>Fecha</th>
                         <th>Cámara</th>
                         <th>IDF</th>
@@ -182,68 +202,12 @@
         </div>
     </div>
 
-    <div id="pdf-container" style="display: none;">
-        <div id="pdf-content" style="padding: 40px; font-family: Arial, sans-serif; color: #333; background: #fff;">
-            
-            <div style="border-bottom: 3px solid #1A252F; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
-                <div>
-                    <h2 style="margin: 0; color: #1A252F;">REPORTE TÉCNICO DE INCIDENCIA CCTV</h2>
-                    <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial - Dpto. de Sistemas</h4>
-                </div>
-                <div style="text-align: right;">
-                    <strong style="font-size: 1.2em; color: #C0392B;" id="pdf-folio"></strong><br>
-                    <span id="pdf-fecha"></span>
-                </div>
-            </div>
-
-            <div style="background: #EBF5FB; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #AED6F1;">
-                <h3 style="margin-top:0; color: #2980B9; font-size: 1.1em;">1. Datos del Equipo y Conectividad</h3>
-                <table style="width: 100%; font-size: 0.95em; border-spacing: 0;">
-                    <tr>
-                        <td style="padding: 8px; width: 33%;"><strong>Cámara:</strong> <span id="pdf-camara" style="font-size: 1.1em; color: #C0392B; font-weight: bold;"></span></td>
-                        <td style="padding: 8px; width: 33%;"><strong>Pertenece a:</strong> <span id="pdf-idf"></span></td>
-                        <td style="padding: 8px; width: 33%;"><strong>IP:</strong> <span id="pdf-ip"></span></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
-                            <strong>Domicilio / Ubicación:</strong> <span id="pdf-ubicacion"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
-                            <div style="display: flex; gap: 40px;">
-                                <div><strong>Energizada Físicamente:</strong> <span id="pdf-activa"></span></div>
-                                <div><strong>Visible en iVMS-4200:</strong> <span id="pdf-visible"></span></div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">2. Diagnóstico Físico / Visual</h3>
-                <p id="pdf-estatus-txt" style="font-size: 1.1em; font-weight: bold; margin: 10px 0;"></p>
-                <div id="pdf-fallas-container">
-                    <p style="margin-bottom: 5px;"><strong>Anomalías Físicas Reportadas por Guardias:</strong></p>
-                    <ul id="pdf-fallas-lista" style="margin-top: 5px; color: #C0392B;"></ul>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 30px;">
-                <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">3. Observaciones del Supervisor</h3>
-                <p id="pdf-notas" style="background: #FDEDEC; padding: 15px; border-radius: 5px; border-left: 5px solid #C0392B; white-space: pre-wrap; font-size: 0.95em;"></p>
-            </div>
-
-            <div style="margin-top: 50px; text-align: center;">
-                <p style="margin: 0;">_________________________________________</p>
-                <p style="margin: 5px 0 0 0; font-weight: bold;">Firma del Supervisor de Seguridad</p>
-                <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Plataforma de Mando CCTV - Reporte generado automáticamente</p>
-            </div>
-        </div>
+    <div class="pdf-wrapper">
+        <div id="pdf-container"></div>
     </div>
 
     <script>
-        // Llenar selector de 70 cámaras dinámicamente
+        // Llenar selector de 70 cámaras
         const selectCamaras = document.getElementById('iNumero');
         for(let i = 1; i <= 70; i++) {
             let num = i < 10 ? '0'+i : i;
@@ -253,10 +217,8 @@
             selectCamaras.appendChild(option);
         }
 
-        // Establecer fecha de hoy por defecto
         document.getElementById('iFecha').valueAsDate = new Date();
 
-        // Lógica de Pestañas
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
@@ -265,10 +227,9 @@
             if(tabId === 'bitacora') cargarBitacora();
         }
 
-        // Base de datos local
         let bdInspecciones = JSON.parse(localStorage.getItem('bd_cctv_v2')) || [];
 
-        // Guardar Inspección
+        // GUARDAR INSPECCIÓN
         document.getElementById('formInspeccion').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -278,7 +239,6 @@
             const visibleVMS = document.getElementById('iVisible').value;
             const activaFis = document.getElementById('iActiva').value;
 
-            // Determinar estatus general para la tabla
             let estatus = 'ÓPTIMO';
             if (visibleVMS === 'NO' || activaFis === 'NO') estatus = 'CRÍTICO (SISTEMAS)';
             else if (fallas.length > 0) estatus = 'CON FALLAS FÍSICAS';
@@ -300,18 +260,20 @@
             bdInspecciones.unshift(nuevaInsp);
             localStorage.setItem('bd_cctv_v2', JSON.stringify(bdInspecciones));
             
-            alert('✅ Inspección guardada correctamente.');
-            this.reset();
-            document.getElementById('iFecha').valueAsDate = new Date();
-            switchTab('bitacora');
+            alert('✅ Inspección guardada localmente. Puedes seguir añadiendo más cámaras o ir a la Bitácora para generar el PDF en lote.');
+            
+            // Resetea checkboxes y notas, pero mantiene la fecha
+            document.querySelectorAll('.chk-falla').forEach(chk => chk.checked = false);
+            document.getElementById('iNotas').value = '';
+            document.getElementById('iNumero').value = '';
+            document.getElementById('iUbicacion').value = '';
+            document.getElementById('iActiva').value = 'SÍ';
+            document.getElementById('iVisible').value = 'SÍ';
         });
 
-        // Cargar Bitácora
-        function cargarBitacora() {
-            filtrarBitacora();
-        }
+        // CARGAR BITÁCORA
+        function cargarBitacora() { filtrarBitacora(); }
 
-        // Filtros
         function filtrarBitacora() {
             const texto = document.getElementById('buscTexto').value.toLowerCase();
             const fecha = document.getElementById('buscFecha').value;
@@ -327,21 +289,20 @@
             });
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#7F8C8D;">No se encontraron registros.</td></tr>';
                 return;
             }
 
             filtrados.forEach(insp => {
-                // Colores para Estatus General
                 let badgeEst = 'b-ok';
                 if(insp.estatus.includes('CRÍTICO')) badgeEst = 'b-fail';
                 else if(insp.estatus.includes('FALLAS')) badgeEst = 'b-warn';
 
-                // Colores para VMS
                 let badgeVMS = insp.visible === 'SÍ' ? 'b-ok' : 'b-fail';
 
                 tbody.innerHTML += `
                     <tr>
+                        <td><input type="checkbox" class="chk-row" value="${insp.id}"></td>
                         <td><strong>${insp.fecha}</strong></td>
                         <td style="font-weight:bold; color:var(--s);">${insp.camara}</td>
                         <td>${insp.idf}</td>
@@ -349,12 +310,18 @@
                         <td><span class="badge ${badgeVMS}">${insp.visible}</span></td>
                         <td><span class="badge ${badgeEst}">${insp.estatus}</span></td>
                         <td style="white-space: nowrap;">
-                            <button class="btn btn-pdf" onclick="prepararPDF(${insp.id})" title="Generar Reporte a Sistemas">📄 PDF</button>
+                            <button class="btn btn-pdf" onclick="generarUnicoPDF(${insp.id})" title="Generar Solo Esta">📄 1</button>
                             <button class="btn btn-del" onclick="eliminarRegistro(${insp.id})" title="Eliminar">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
+            document.getElementById('chkAll').checked = false;
+        }
+
+        function seleccionarTodo(source) {
+            const checkboxes = document.querySelectorAll('.chk-row');
+            checkboxes.forEach(chk => chk.checked = source.checked);
         }
 
         function eliminarRegistro(id) {
@@ -365,78 +332,125 @@
             }
         }
 
-        // --- EXPORTAR PDF PARA SISTEMAS ---
-        function prepararPDF(id) {
-            const insp = bdInspecciones.find(i => i.id === id);
-            if(!insp) return;
+        // ===============================================
+        // GENERADOR DE PDF MÚLTIPLE Y CORRECCIÓN MÓVIL
+        // ===============================================
+        function generarUnicoPDF(id) {
+            construirPDFHtml([bdInspecciones.find(i => i.id === id)]);
+        }
 
-            // Datos Cabecera
-            document.getElementById('pdf-folio').innerText = `TICKET #${insp.id.toString().slice(-6)}`;
-            document.getElementById('pdf-fecha').innerHTML = `<strong>Fecha:</strong> ${insp.fecha}`;
-            
-            // Datos Red
-            document.getElementById('pdf-camara').innerText = insp.camara;
-            document.getElementById('pdf-idf').innerText = insp.idf;
-            document.getElementById('pdf-ip').innerText = insp.ip;
-            document.getElementById('pdf-ubicacion').innerText = insp.ubicacion;
-            
-            // Badges visuales en PDF para Activa y Visible
-            const spanActiva = document.getElementById('pdf-activa');
-            spanActiva.innerText = insp.activa;
-            spanActiva.style.color = insp.activa === 'SÍ' ? '#27AE60' : '#C0392B';
-            spanActiva.style.fontWeight = 'bold';
-
-            const spanVisible = document.getElementById('pdf-visible');
-            spanVisible.innerText = insp.visible;
-            spanVisible.style.color = insp.visible === 'SÍ' ? '#27AE60' : '#C0392B';
-            spanVisible.style.fontWeight = 'bold';
-            
-            // Estatus de checklist físico
-            const estatusEl = document.getElementById('pdf-estatus-txt');
-            const contFallas = document.getElementById('pdf-fallas-container');
-            
-            if(insp.fallas.length === 0) {
-                estatusEl.innerText = '✅ SIN DAÑOS FÍSICOS REPORTADOS EN HARDWARE';
-                estatusEl.style.color = '#27AE60';
-                contFallas.style.display = 'none';
-            } else {
-                estatusEl.innerText = '⚠️ DAÑOS FÍSICOS / VISUALES DETECTADOS';
-                estatusEl.style.color = '#C0392B';
-                contFallas.style.display = 'block';
-                
-                const ulFallas = document.getElementById('pdf-fallas-lista');
-                ulFallas.innerHTML = '';
-                insp.fallas.forEach(f => { ulFallas.innerHTML += `<li>${f}</li>`; });
+        function generarPDFMultiple() {
+            const checkboxes = document.querySelectorAll('.chk-row:checked');
+            if(checkboxes.length === 0) {
+                alert('Selecciona al menos una cámara en la tabla (casillas de la izquierda) para generar el PDF múltiple.');
+                return;
             }
+            const idsSeleccionados = Array.from(checkboxes).map(chk => parseInt(chk.value));
+            const registrosAImprimir = bdInspecciones.filter(insp => idsSeleccionados.includes(insp.id));
+            
+            construirPDFHtml(registrosAImprimir);
+        }
 
-            // Notas
-            const notasEl = document.getElementById('pdf-notas');
-            if(insp.notas.trim() === '') {
-                notasEl.innerText = 'Sin observaciones adicionales registradas.';
-                notasEl.style.background = '#F2F3F4';
-                notasEl.style.borderLeftColor = '#BDC3C7';
-            } else {
-                notasEl.innerText = insp.notas;
-                notasEl.style.background = '#FDEDEC';
-                notasEl.style.borderLeftColor = '#C0392B';
-            }
-
-            // Generar PDF
-            const elemento = document.getElementById('pdf-content');
+        function construirPDFHtml(registros) {
             const container = document.getElementById('pdf-container');
-            container.style.display = 'block'; // Mostrar temporalmente
+            container.innerHTML = ''; // Limpiar previo
+
+            registros.forEach((insp) => {
+                let colorActiva = insp.activa === 'SÍ' ? '#27AE60' : '#C0392B';
+                let colorVisible = insp.visible === 'SÍ' ? '#27AE60' : '#C0392B';
+                let colorEstatus = insp.fallas.length === 0 ? '#27AE60' : '#C0392B';
+                let txtEstatus = insp.fallas.length === 0 ? '✅ SIN DAÑOS FÍSICOS REPORTADOS' : '⚠️ DAÑOS EN INFRAESTRUCTURA O HARDWARE';
+                
+                let htmlFallas = '';
+                if(insp.fallas.length > 0) {
+                    let listaFallas = insp.fallas.map(f => `<li>${f}</li>`).join('');
+                    htmlFallas = `
+                        <p style="margin-bottom: 5px;"><strong>Anomalías Reportadas (Cámara, Gabinete, Switch, UPS):</strong></p>
+                        <ul style="margin-top: 5px; color: #C0392B;">${listaFallas}</ul>
+                    `;
+                }
+
+                let htmlNotas = insp.notas.trim() === '' 
+                    ? `<p style="background: #F2F3F4; padding: 15px; border-radius: 5px; border-left: 5px solid #BDC3C7; font-size: 0.95em;">Sin observaciones adicionales registradas.</p>`
+                    : `<p style="background: #FDEDEC; padding: 15px; border-radius: 5px; border-left: 5px solid #C0392B; white-space: pre-wrap; font-size: 0.95em;">${insp.notas}</p>`;
+
+                let htmlPagina = `
+                <div class="pdf-page">
+                    <div style="border-bottom: 3px solid #1A252F; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2 style="margin: 0; color: #1A252F;">REPORTE DE INCIDENCIA CCTV</h2>
+                            <h4 style="margin: 5px 0 0 0; color: #7F8C8D;">El Cielo Parque Residencial - Dpto. de Sistemas</h4>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong style="font-size: 1.2em; color: #C0392B;">TICKET #${insp.id.toString().slice(-6)}</strong><br>
+                            <strong>Fecha:</strong> ${insp.fecha}
+                        </div>
+                    </div>
+
+                    <div style="background: #EBF5FB; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #AED6F1;">
+                        <h3 style="margin-top:0; color: #2980B9; font-size: 1.1em;">1. Datos del Equipo y Red</h3>
+                        <table style="width: 100%; font-size: 0.95em; border-spacing: 0;">
+                            <tr>
+                                <td style="padding: 8px; width: 33%;"><strong>Cámara:</strong> <span style="font-size: 1.1em; color: #C0392B; font-weight: bold;">${insp.camara}</span></td>
+                                <td style="padding: 8px; width: 33%;"><strong>Pertenece a:</strong> <span>${insp.idf}</span></td>
+                                <td style="padding: 8px; width: 33%;"><strong>IP:</strong> <span>${insp.ip}</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
+                                    <strong>Domicilio / Ubicación:</strong> <span>${insp.ubicacion}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 8px; border-top: 1px solid #AED6F1;">
+                                    <div style="display: flex; gap: 40px;">
+                                        <div><strong>Energizada Físicamente:</strong> <span style="color: ${colorActiva}; font-weight:bold;">${insp.activa}</span></div>
+                                        <div><strong>Visible en iVMS-4200:</strong> <span style="color: ${colorVisible}; font-weight:bold;">${insp.visible}</span></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">2. Diagnóstico Físico / Infraestructura</h3>
+                        <p style="font-size: 1.1em; font-weight: bold; margin: 10px 0; color: ${colorEstatus};">${txtEstatus}</p>
+                        ${htmlFallas}
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #2980B9; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px; font-size: 1.1em;">3. Observaciones del Supervisor</h3>
+                        ${htmlNotas}
+                    </div>
+
+                    <div style="margin-top: 50px; text-align: center;">
+                        <p style="margin: 0;">_________________________________________</p>
+                        <p style="margin: 5px 0 0 0; font-weight: bold;">Firma del Supervisor de Seguridad</p>
+                        <p style="margin: 0; font-size: 0.8em; color: #7F8C8D;">Plataforma de Mando CCTV - Reporte generado automáticamente</p>
+                    </div>
+                </div>`;
+                container.innerHTML += htmlPagina;
+            });
+
+            let nombreArchivo = registros.length > 1 
+                ? `Reporte_Lote_CCTV_${registros.length}_Camaras.pdf` 
+                : `Reporte_CCTV_${registros.camara}.pdf`;
 
             const opt = {
-                margin:       10,
-                filename:     `Reporte_Sistemas_${insp.camara}_${insp.fecha}.pdf`,
+                margin:      , // Margen manejado por CSS
+                filename:     nombreArchivo,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(elemento).save().then(() => {
-                container.style.display = 'none'; // Volver a ocultar
-            });
+            // Un ligero retardo permite que el navegador (especialmente Safari/Chrome en celular)
+            // dibuje el contenido oculto en la memoria antes de que html2pdf lo capture.
+            setTimeout(() => {
+                html2pdf().set(opt).from(container).save().then(() => {
+                    alert(`✅ Reporte descargado exitosamente: ${nombreArchivo}`);
+                });
+            }, 500);
         }
     </script>
 </body>
