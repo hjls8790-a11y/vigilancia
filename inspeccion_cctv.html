@@ -57,8 +57,16 @@
         .b-fail { background: #FADBD8; color: #922B21; }
         .b-warn { background: #FCF3CF; color: #B9770E; }
 
-        /* Contenedor oculto para el PDF adaptado para móviles */
-        .pdf-wrapper { position: absolute; left: -9999px; top: 0; }
+        /* NUEVO: Contenedor oculto para el PDF (Estabilizado para no cortar contenido) */
+        .pdf-wrapper { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: -9999; 
+            opacity: 0.01; /* Mantiene la visibilidad técnica para el renderizado, sin que estorbe al ojo humano */
+            pointer-events: none;
+            display: none; /* Se activa con JS solo al momento de descargar */
+        }
         #pdf-container { width: 800px; background: white; text-align: left; }
         .pdf-page { padding: 40px; font-family: Arial, sans-serif; color: #333; page-break-after: always; }
         .pdf-page:last-child { page-break-after: auto; }
@@ -202,7 +210,7 @@
         </div>
     </div>
 
-    <div class="pdf-wrapper">
+    <div class="pdf-wrapper" id="print-zone">
         <div id="pdf-container"></div>
     </div>
 
@@ -262,7 +270,6 @@
             
             alert('✅ Inspección guardada localmente. Puedes seguir añadiendo más cámaras o ir a la Bitácora para generar el PDF en lote.');
             
-            // Resetea checkboxes y notas, pero mantiene la fecha
             document.querySelectorAll('.chk-falla').forEach(chk => chk.checked = false);
             document.getElementById('iNotas').value = '';
             document.getElementById('iNumero').value = '';
@@ -333,7 +340,7 @@
         }
 
         // ===============================================
-        // GENERADOR DE PDF MÚLTIPLE Y CORRECCIÓN MÓVIL
+        // GENERADOR DE PDF MÚLTIPLE ESTABILIZADO
         // ===============================================
         function generarUnicoPDF(id) {
             construirPDFHtml([bdInspecciones.find(i => i.id === id)]);
@@ -352,6 +359,7 @@
         }
 
         function construirPDFHtml(registros) {
+            const wrapper = document.getElementById('print-zone');
             const container = document.getElementById('pdf-container');
             container.innerHTML = ''; // Limpiar previo
 
@@ -433,24 +441,36 @@
 
             let nombreArchivo = registros.length > 1 
                 ? `Reporte_Lote_CCTV_${registros.length}_Camaras.pdf` 
-                : `Reporte_CCTV_${registros.camara}.pdf`; // Aquí corregí la selección del nombre
+                : `Reporte_CCTV_${registros.camara}.pdf`;
 
+            // NUEVA CONFIGURACIÓN DE RENDERING
             const opt = {
-                margin:       0, // ¡Este era el error! Faltaba el 0
+                margin:       [0.5, 0], // Añade 0.5 pulgadas arriba y abajo para que no pegue a los bordes
                 filename:     nombreArchivo,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    windowWidth: 800,
+                    scrollY: 0 // <--- CRUCIAL: Resetea el scroll interno para que no corte imágenes si bajas la página
+                },
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'] }
+                pagebreak:    { mode: 'css', avoid: 'tr' } // Refuerza la lectura de los saltos de página del CSS
             };
 
-            // Un ligero retardo permite que el navegador (especialmente Safari/Chrome en celular)
-            // dibuje el contenido oculto en la memoria antes de que html2pdf lo capture.
+            // Hacemos que el contenedor se "despliegue" temporalmente para que html2canvas pueda medir y capturar toda su altura
+            wrapper.style.display = 'block';
+
             setTimeout(() => {
                 html2pdf().set(opt).from(container).save().then(() => {
+                    // Lo volvemos a ocultar una vez generado para mantener la pantalla limpia
+                    wrapper.style.display = 'none';
                     alert(`✅ Reporte descargado exitosamente: ${nombreArchivo}`);
+                }).catch(err => {
+                    console.error("Error al generar PDF:", err);
+                    wrapper.style.display = 'none';
                 });
-            }, 500);
+            }, 300); // 300ms permite que el navegador dibuje el DOM oculto antes de la foto
         }
     </script>
 </body>
