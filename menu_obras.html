@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Seguridad - El Cielo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1A252F;
+            --secondary: #2C3E50;
+            --accent: #3498DB;
+            --github: #24292e;
+            --bg: #F4F7F6;
+            --white: #FFFFFF;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            color: var(--text);
+        }
+
+        /* Navegación */
+        nav {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Contenedor Principal */
+        .dashboard {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-msg h1 { color: var(--primary); margin-bottom: 10px; }
+        .welcome-msg p { color: #666; font-size: 1.1rem; }
+
+        /* Grid de Tarjetas */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid var(--accent);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            padding: 25px;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin: 10px 0;
+            color: var(--secondary);
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            color: #777;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Botones */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .btn-app {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-app:hover { background: #2980B9; }
+
+        .btn-git {
+            background: var(--github);
+            color: white;
+        }
+
+        .btn-git:hover { background: #444; }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .menu-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">
+        <i class="fas fa-shield-halved"></i> 
+        <span>SISTEMA DE CONTROL EL CIELO</span>
+    </div>
+    <div class="user-info">
+        <i class="fas fa-user-circle"></i> Hugo Lizárraga
+    </div>
+</nav>
+
+<div class="dashboard">
+    <div class="welcome-msg">
+        <h1>Panel Administrativo de Seguridad</h1>
+        <p>Seleccione un módulo para operar o acceder al código fuente.</p>
+    </div>
+
+    <div class="menu-grid">
+        <div class="card">
+            <div class="card-body">
+                <i class="fas fa-hard-hat card-icon"></i>
+                <h3>Permisos de Obra</h3>
+                <p>Gestión de extensiones de horario, trabajos con tapial y maniobras especiales dentro del residencial.</p>
+            </div>
+            <div class="btn-group">
+                <a href="permisos_obra.html" class="btn btn-app"><i class="fas fa-external-link-alt"></i> Abrir App</a>
+                <a href="https://github.com/tu-usuario/permisos-obra" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color: #27AE60;">
+            <div class="card-body">
+                <i class="fas fa-truck-loading card-icon" style="color: #27AE60;"></i>
+                <h3>Guía de Salida</h3>
+                <p>Control y autorización de salida de materiales, herramientas y maquinaria pesada de los lotes.</p>
+            </div>
+            <div class="btn-group">
+                <a href="guia_salida.html" class="btn btn-app" style="background: #27AE60;"><i class="fas fa-external-link-alt"></i> Abrir App</a>
+                <a href="https://github.com/tu-usuario/guia-salida" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color: #E67E22;">
+            <div class="card-body">
+                <i class="fas fa-helicopter card-icon" style="color: #E67E22;"></i>
+                <h3>Registro de Drones</h3>
+                <p>Bitácora de vuelos autorizados para topografía, inspección de seguridad o avance de obra.</p>
+            </div>
+            <div class="btn-group">
+                <a href="control_drones.html" class="btn btn-app" style="background: #E67E22;"><i class="fas fa-external-link-alt"></i> Abrir App</a>
+                <a href="https://github.com/tu-usuario/registro-drones" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 El Cielo Parque Residencial | Seguridad e Infraestructura</p>
+</footer>
+
+</body>
+</html>
