@@ -10,7 +10,6 @@
             --primary: #1A252F;
             --secondary: #2C3E50;
             --accent: #3498DB;
-            --github: #24292e;
             --bg: #F4F7F6;
             --white: #FFFFFF;
             --text: #333;
@@ -107,7 +106,7 @@
         /* Botones */
         .btn-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr; /* Ajustado para 1 solo botón */
             border-top: 1px solid #eee;
         }
 
@@ -115,7 +114,7 @@
             padding: 15px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 1rem; /* Texto ligeramente más grande */
             text-align: center;
             transition: background 0.2s;
         }
@@ -126,13 +125,6 @@
         }
 
         .btn-app:hover { background: #2980B9; }
-
-        .btn-git {
-            background: var(--github);
-            color: white;
-        }
-
-        .btn-git:hover { background: #444; }
 
         footer {
             text-align: center;
@@ -162,7 +154,7 @@
 <div class="dashboard">
     <div class="welcome-msg">
         <h1>Panel Administrativo de Seguridad</h1>
-        <p>Seleccione un módulo para operar o acceder al código fuente.</p>
+        <p>Seleccione un módulo para operar.</p>
     </div>
 
     <div class="menu-grid">
@@ -174,7 +166,6 @@
             </div>
             <div class="btn-group">
                 <a href="permisos_obra.html" class="btn btn-app"><i class="fas fa-external-link-alt"></i> Abrir App</a>
-                <a href="https://github.com/tu-usuario/permisos-obra" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
             </div>
         </div>
 
@@ -186,7 +177,6 @@
             </div>
             <div class="btn-group">
                 <a href="guia_salida.html" class="btn btn-app" style="background: #27AE60;"><i class="fas fa-external-link-alt"></i> Abrir App</a>
-                <a href="https://github.com/tu-usuario/guia-salida" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
             </div>
         </div>
 
@@ -197,8 +187,7 @@
                 <p>Bitácora de vuelos autorizados para topografía, inspección de seguridad o avance de obra.</p>
             </div>
             <div class="btn-group">
-                <a href="control_drones.html" class="btn btn-app" style="background: #E67E22;"><i class="fas fa-external-link-alt"></i> Abrir App</a>
-                <a href="https://github.com/tu-usuario/registro-drones" target="_blank" class="btn btn-git"><i class="fab fa-github"></i> Código</a>
+                <a href="registro_drones.html" class="btn btn-app" style="background: #E67E22;"><i class="fas fa-external-link-alt"></i> Abrir App</a>
             </div>
         </div>
     </div>
