@@ -3,249 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guía de Salida de Materiales - El Cielo Parque Residencial</title>
+    <title>Módulo de Salidas - Filtro Operativo El Cielo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root {
-            --primary: #0f172a;
-            --secondary: #0ea5e9;
-            --danger: #ef4444;
-            --success: #10b981;
-            --bg: #f8fafc;
-            --text: #334155;
-            --card-bg: #ffffff;
-            --border: #cbd5e1;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--primary);
-        }
-
+        :root { --primary: #0f172a; --secondary: #0ea5e9; --danger: #ef4444; --bg: #f8fafc; --text: #334155; --card-bg: #ffffff; --border: #cbd5e1; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--primary); }
         .header h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
         .header p { margin: 5px 0 0 0; color: #64748b; font-weight: bold; }
-
         .form-group { margin-bottom: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 0.95rem;
-        }
-
-        input[type="text"], input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        /* Tabla de materiales dinámica */
-        .items-section {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary); font-size: 0.95rem; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .items-section { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 20px; }
         .items-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .items-header h3 { margin: 0; color: var(--primary); }
-
-        .btn-add {
-            background: var(--secondary); color: white; border: none; padding: 8px 15px;
-            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-        }
-
+        .btn-add { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .item-row { display: grid; grid-template-columns: 80px 1fr 1fr auto; gap: 10px; margin-bottom: 10px; align-items: center; }
-
         .btn-remove { background: var(--danger); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-nuevo { background: var(--border); color: var(--text); padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.3s; }
-        .btn-generar { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.3s; }
+        .action-buttons { display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-top: 30px; }
+        .btn-nuevo { background: var(--border); color: var(--text); padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .btn-generar { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
         
-        .btn-generar:hover, .btn-nuevo:hover { opacity: 0.9; }
-
-        /* =========================================
-           BITÁCORA / AUDITORÍA
-           ========================================= */
-        .bitacora-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .bitacora-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .buscador { padding: 10px; width: 300px; border: 1px solid var(--border); border-radius: 6px; }
-
-        .tabla-bitacora { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .tabla-bitacora th, .tabla-bitacora td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
-        .tabla-bitacora th { background-color: var(--primary); color: white; }
-        .tabla-bitacora tr:hover { background-color: #f1f5f9; }
-
-        .btn-editar { background: var(--success); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-        /* =========================================
-           FORMATO OCULTO PARA EL PDF OFICIAL
-           ========================================= */
-        #pdf-template {
-            display: none; padding: 40px; background: white; color: black;
-            font-family: Arial, sans-serif; width: 800px; box-sizing: border-box;
-        }
-
+        /* PDF OCULTO */
+        #pdf-template { display: none; padding: 40px; background: white; color: black; font-family: Arial, sans-serif; width: 800px; box-sizing: border-box; }
         .pdf-header { text-align: center; border-bottom: 3px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
         .pdf-header h2 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        .pdf-header p { margin: 5px 0 0 0; font-size: 14px; }
-        
         .pdf-folio { text-align: right; color: #dc2626; font-weight: bold; font-size: 18px; margin-bottom: 20px; }
-
         .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 14px; }
         .pdf-dato { background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; }
-        .pdf-dato strong { display: inline-block; width: 120px; }
-
         .pdf-tabla { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px; }
         .pdf-tabla th, .pdf-tabla td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
         .pdf-tabla th { background-color: #0f172a; color: white; }
-        .pdf-tabla tr, .pdf-firmas { page-break-inside: avoid; }
-
         .pdf-firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center; }
         .linea-firma { border-top: 1px solid black; padding-top: 10px; font-size: 14px; font-weight: bold; }
-
-        .pdf-footer { margin-top: 30px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-
-        @media (max-width: 600px) {
-            .form-row, .action-buttons { grid-template-columns: 1fr; }
-            .item-row { grid-template-columns: 60px 1fr 1fr 40px; }
-            .bitacora-header { flex-direction: column; align-items: stretch; gap: 10px; }
-            .buscador { width: 100%; box-sizing: border-box; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Autorización de Salida de Materiales</h1>
-        <p>El Cielo Parque Residencial</p>
+        <h1>Control de Salida de Materiales</h1>
+        <p>Módulo de Caseta - El Cielo Parque Residencial</p>
     </div>
 
     <div id="formulario-salida">
         <div class="form-row">
-            <div class="form-group">
-                <label>Lote / Obra de Origen:</label>
-                <input type="text" id="origen" placeholder="Ej. Lote 45" required>
-            </div>
-            <div class="form-group">
-                <label>Contratista / Residente Responsable:</label>
-                <input type="text" id="responsable" placeholder="Nombre de quien autoriza" required>
-            </div>
+            <div class="form-group"><label>Lote / Obra de Origen:</label><input type="text" id="origen" placeholder="Ej. Lote 45" required></div>
+            <div class="form-group"><label>Contratista / Residente Responsable:</label><input type="text" id="responsable" placeholder="Nombre de quien autoriza" required></div>
         </div>
-
         <div class="form-row">
-            <div class="form-group">
-                <label>Nombre de quien retira (Transportista/Trabajador):</label>
-                <input type="text" id="portador" placeholder="Nombre completo" required>
-            </div>
-            <div class="form-group">
-                <label>Vehículo (Placas y Modelo):</label>
-                <input type="text" id="vehiculo" placeholder="Ej. Nissan NP300 - ABC-1234">
-            </div>
+            <div class="form-group"><label>Quien retira (Trabajador):</label><input type="text" id="portador" placeholder="Nombre completo" required></div>
+            <div class="form-group"><label>Vehículo (Placas y Modelo):</label><input type="text" id="vehiculo" placeholder="Ej. NP300 - ABC-1234"></div>
         </div>
-
-        <div class="form-group">
-            <label>Motivo de la salida:</label>
-            <input type="text" id="motivo" placeholder="Ej. Devolución de herramienta, fin de obra, reparación..." required>
-        </div>
+        <div class="form-group"><label>Motivo de la salida:</label><input type="text" id="motivo" placeholder="Ej. Fin de obra, reparación..." required></div>
 
         <div class="items-section">
             <div class="items-header">
-                <h3>Lista de Materiales / Herramientas</h3>
-                <button class="btn-add" onclick="agregarFila()">+ Agregar Fila</button>
+                <h3>Artículos / Herramientas</h3>
+                <button class="btn-add" onclick="window.agregarFila()">+ Agregar Fila</button>
             </div>
-            <div id="contenedor-items">
-                <div class="item-row">
-                    <input type="text" class="item-cant" placeholder="Cant." required>
-                    <input type="text" class="item-desc" placeholder="Descripción del artículo" required>
-                    <input type="text" class="item-obs" placeholder="Marca / Serie / Notas">
-                    <button class="btn-remove" onclick="eliminarFila(this)">X</button>
-                </div>
-            </div>
+            <div id="contenedor-items"></div>
         </div>
 
         <div class="action-buttons">
-            <button class="btn-nuevo" onclick="prepararNuevoPase()">Limpiar / Nuevo Pase</button>
-            <button class="btn-generar" onclick="generarPDF()">Generar Guía Oficial (PDF)</button>
+            <button class="btn-nuevo" onclick="window.prepararNuevoPase()">Limpiar Formulario</button>
+            <button class="btn-generar" onclick="window.generarYGuardar()">Generar Guía Oficial y Registrar</button>
         </div>
-    </div>
-</div>
-
-<div class="bitacora-container">
-    <div class="bitacora-header">
-        <h2>Bitácora de Salidas Generadas</h2>
-        <input type="text" id="buscador" class="buscador" placeholder="Buscar por Lote, Nombre, Folio..." onkeyup="filtrarBitacora()">
-    </div>
-    
-    <div style="overflow-x: auto;">
-        <table class="tabla-bitacora" id="tablaBitacora">
-            <thead>
-                <tr>
-                    <th>Folio</th>
-                    <th>Fecha</th>
-                    <th>Lote</th>
-                    <th>Responsable</th>
-                    <th>Portador</th>
-                    <th>Artículos</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="body-bitacora">
-                </tbody>
-        </table>
     </div>
 </div>
 
 <div id="pdf-template">
     <div class="pdf-header">
         <h2>GUÍA DE SALIDA DE MATERIAL / EQUIPO</h2>
-        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong> - DEPARTAMENTO DE SEGURIDAD</p>
+        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong> - SEGURIDAD Y VIGILANCIA</p>
     </div>
-
     <div class="pdf-folio">FOLIO: <span id="pdf-folio"></span></div>
-
     <div class="pdf-grid">
         <div class="pdf-dato"><strong>Fecha:</strong> <span id="pdf-fecha"></span></div>
         <div class="pdf-dato"><strong>Lote/Origen:</strong> <span id="pdf-origen"></span></div>
@@ -254,262 +88,124 @@
         <div class="pdf-dato"><strong>Vehículo:</strong> <span id="pdf-vehiculo"></span></div>
         <div class="pdf-dato"><strong>Motivo:</strong> <span id="pdf-motivo"></span></div>
     </div>
-
     <table class="pdf-tabla">
-        <thead>
-            <tr>
-                <th style="width: 10%;">CANT.</th>
-                <th style="width: 50%;">DESCRIPCIÓN DEL ARTÍCULO / HERRAMIENTA</th>
-                <th style="width: 40%;">OBSERVACIONES / SERIE</th>
-            </tr>
-        </thead>
+        <thead><tr><th style="width: 10%;">CANT.</th><th style="width: 50%;">DESCRIPCIÓN</th><th style="width: 40%;">OBSERVACIONES / SERIE</th></tr></thead>
         <tbody id="pdf-tabla-body"></tbody>
     </table>
-
     <div class="pdf-firmas">
-        <div>
-            <br><br><br>
-            <div class="linea-firma">
-                FIRMA DE AUTORIZACIÓN<br>
-                <span id="pdf-firma-responsable" style="font-weight: normal; font-size: 12px;"></span><br>
-                <span style="font-weight: normal; font-size: 11px;">(Residente de Obra / Contratista)</span>
-            </div>
-        </div>
-        <div>
-            <br><br><br>
-            <div class="linea-firma">
-                VERIFICACIÓN EN CASETA<br>
-                <span style="font-weight: normal; font-size: 12px;">Nombre y Firma del Guardia en Turno</span><br>
-                <span style="font-weight: normal; font-size: 11px;">(Seguridad Privada)</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="pdf-footer">
-        * Este documento es estrictamente para control interno de seguridad. El guardia en turno tiene la facultad de cotejar físicamente los artículos descritos en este pase con los que se encuentran en el vehículo. Cualquier discrepancia invalidará esta guía.
+        <div><br><br><br><div class="linea-firma">FIRMA DE AUTORIZACIÓN<br><span id="pdf-firma-responsable"></span></div></div>
+        <div><br><br><br><div class="linea-firma">VERIFICACIÓN EN CASETA<br><span style="font-weight: normal; font-size: 12px;">Guardia en Turno</span></div></div>
     </div>
 </div>
 
-<script>
-    // ==========================================
-    // VARIABLES GLOBALES Y SISTEMA DE ALMACENAMIENTO
-    // ==========================================
-    let folioActualContexto = null; 
-    let bitacoraDatos = JSON.parse(localStorage.getItem('bitacoraSalidasElCielo')) || [];
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Cargar bitácora al iniciar la página
-    document.addEventListener('DOMContentLoaded', renderizarBitacora);
+    // INSERTA AQUÍ TUS DATOS DE FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.firebaseapp.com",
+        messagingSenderId: "714792023462",
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb7"
+    };
 
-    // ==========================================
-    // LÓGICA DE FILAS
-    // ==========================================
-    function agregarFila(cant = '', desc = '', obs = '') {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.agregarFila = function() {
         const contenedor = document.getElementById('contenedor-items');
         const nuevaFila = document.createElement('div');
         nuevaFila.className = 'item-row';
         nuevaFila.innerHTML = `
-            <input type="text" class="item-cant" placeholder="Cant." value="${cant}" required>
-            <input type="text" class="item-desc" placeholder="Descripción del artículo" value="${desc}" required>
-            <input type="text" class="item-obs" placeholder="Marca / Serie / Notas" value="${obs}">
-            <button class="btn-remove" onclick="eliminarFila(this)">X</button>
+            <input type="text" class="item-cant" placeholder="Cant." required>
+            <input type="text" class="item-desc" placeholder="Descripción" required>
+            <input type="text" class="item-obs" placeholder="Marca/Serie">
+            <button class="btn-remove" onclick="this.parentElement.remove()">X</button>
         `;
         contenedor.appendChild(nuevaFila);
-    }
+    };
 
-    function eliminarFila(boton) {
-        const fila = boton.parentElement;
-        if (document.querySelectorAll('.item-row').length > 1) {
-            fila.remove();
-        } else {
-            alert("Debe incluir al menos un artículo.");
-        }
-    }
+    window.prepararNuevoPase = function() {
+        document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+        document.getElementById('contenedor-items').innerHTML = '';
+        window.agregarFila();
+    };
 
-    // ==========================================
-    // GENERACIÓN Y ACTUALIZACIÓN DE PDF
-    // ==========================================
-    function generarPDF() {
+    // Inicializar con una fila vacía
+    window.onload = () => window.agregarFila();
+
+    window.generarYGuardar = async function() {
+        const btn = document.querySelector('.btn-generar');
         const origen = document.getElementById('origen').value.trim();
         const responsable = document.getElementById('responsable').value.trim();
         const portador = document.getElementById('portador').value.trim();
-        const vehiculo = document.getElementById('vehiculo').value.trim();
-        const motivo = document.getElementById('motivo').value.trim();
         
-        if(!origen || !responsable || !portador) {
-            alert("Por favor, llene los campos principales (Lote, Responsable y Portador) para emitir la guía.");
-            return;
-        }
+        if(!origen || !responsable || !portador) return alert("Faltan datos principales obligatorios.");
+
+        btn.innerText = "Registrando..."; btn.disabled = true;
 
         const hoy = new Date();
-        
-        // Si no hay un folio en edición, creamos uno nuevo. Si ya hay uno, lo respetamos.
-        if (!folioActualContexto) {
-            const dia = String(hoy.getDate()).padStart(2, '0');
-            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-            const anio = hoy.getFullYear();
-            const sufijoAleatorio = String(Math.floor(Math.random() * 900) + 100); 
-            folioActualContexto = `SAL-${dia}${mes}${anio}-${sufijoAleatorio}`;
-        }
+        const sufijo = String(Math.floor(Math.random() * 900) + 100); 
+        const folio = `SAL-${String(hoy.getDate()).padStart(2, '0')}${String(hoy.getMonth()+1).padStart(2, '0')}${hoy.getFullYear()}-${sufijo}`;
 
-        // Llenar plantilla
-        document.getElementById('pdf-folio').innerText = folioActualContexto;
-        document.getElementById('pdf-fecha').innerText = hoy.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
-        document.getElementById('pdf-origen').innerText = origen;
-        document.getElementById('pdf-responsable').innerText = responsable;
-        document.getElementById('pdf-firma-responsable').innerText = responsable;
-        document.getElementById('pdf-portador').innerText = portador;
-        document.getElementById('pdf-vehiculo').innerText = vehiculo || 'No especificado / Peatonal';
-        document.getElementById('pdf-motivo').innerText = motivo;
-
-        // Extraer tabla dinámica
-        const filas = document.querySelectorAll('.item-row');
+        let itemsGuardar = [];
         const tbodyPDF = document.getElementById('pdf-tabla-body');
         tbodyPDF.innerHTML = ''; 
-        let itemsGuardar = [];
 
-        filas.forEach(fila => {
+        document.querySelectorAll('.item-row').forEach(fila => {
             const cant = fila.querySelector('.item-cant').value.trim();
             const desc = fila.querySelector('.item-desc').value.trim();
             const obs = fila.querySelector('.item-obs').value.trim();
-
             if(cant && desc) {
-                // Agregar a PDF
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="text-align: center;"><strong>${cant}</strong></td>
-                    <td>${desc}</td>
-                    <td>${obs || '-'}</td>
-                `;
-                tbodyPDF.appendChild(tr);
-                
-                // Guardar para Bitácora
+                tbodyPDF.innerHTML += `<tr><td style="text-align:center"><strong>${cant}</strong></td><td>${desc}</td><td>${obs||'-'}</td></tr>`;
                 itemsGuardar.push({ cant, desc, obs });
             }
         });
 
-        if(itemsGuardar.length === 0) {
-            alert("Debe agregar al menos un artículo con cantidad y descripción.");
-            return;
-        }
+        if(itemsGuardar.length === 0) { btn.innerText = "Generar Guía"; btn.disabled = false; return alert("Agregue artículos."); }
 
-        // --- GUARDAR EN BITÁCORA ---
+        // Llenar PDF
+        document.getElementById('pdf-folio').innerText = folio;
+        document.getElementById('pdf-fecha').innerText = hoy.toLocaleDateString('es-MX');
+        document.getElementById('pdf-origen').innerText = origen;
+        document.getElementById('pdf-responsable').innerText = responsable;
+        document.getElementById('pdf-firma-responsable').innerText = responsable;
+        document.getElementById('pdf-portador').innerText = portador;
+        document.getElementById('pdf-vehiculo').innerText = document.getElementById('vehiculo').value.trim() || 'Peatonal';
+        document.getElementById('pdf-motivo').innerText = document.getElementById('motivo').value.trim();
+
         const registroData = {
-            folio: folioActualContexto,
+            folio: folio,
             fecha: hoy.toLocaleDateString('es-MX') + ' ' + hoy.toLocaleTimeString('es-MX'),
-            origen, responsable, portador, vehiculo, motivo, 
-            totalArticulos: itemsGuardar.length,
-            items: itemsGuardar
+            timestamp: hoy.getTime(),
+            origen, responsable, portador, vehiculo: document.getElementById('vehiculo').value.trim(),
+            motivo: document.getElementById('motivo').value.trim(),
+            totalArticulos: itemsGuardar.length, items: itemsGuardar
         };
 
-        const indexExistente = bitacoraDatos.findIndex(b => b.folio === folioActualContexto);
-        if (indexExistente >= 0) {
-            bitacoraDatos[indexExistente] = registroData; // Actualiza el existente
-        } else {
-            bitacoraDatos.unshift(registroData); // Agrega al principio si es nuevo
+        try {
+            await setDoc(doc(db, "guias_salida", folio), registroData);
+            
+            const elementoPDF = document.getElementById('pdf-template');
+            elementoPDF.style.display = 'block';
+            html2pdf().set({
+                margin: 0.5, filename: `${folio}.pdf`, image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            }).from(elementoPDF).save().then(() => {
+                elementoPDF.style.display = 'none';
+                alert("Registro exitoso. PDF descargado.");
+                window.prepararNuevoPase();
+                btn.innerText = "Generar Guía Oficial y Registrar"; btn.disabled = false;
+            });
+        } catch (error) {
+            console.error(error);
+            alert("Error al conectar con el servidor.");
+            btn.innerText = "Generar Guía Oficial y Registrar"; btn.disabled = false;
         }
-        localStorage.setItem('bitacoraSalidasElCielo', JSON.stringify(bitacoraDatos));
-        renderizarBitacora();
-
-        // --- EXPORTAR PDF ---
-        const elementoPDF = document.getElementById('pdf-template');
-        elementoPDF.style.display = 'block';
-
-        const opt = {
-            margin:       0.5,
-            filename:     `Guia_Salida_${folioActualContexto}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, scrollY: 0 }, 
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-
-        html2pdf().set(opt).from(elementoPDF).save().then(() => {
-            elementoPDF.style.display = 'none';
-            alert(`La guía ${folioActualContexto} ha sido guardada. El folio se mantiene activo por si necesitas agregar algo más y volver a descargar.`);
-        });
-    }
-
-    // ==========================================
-    // FUNCIONES DE BITÁCORA Y CONTROL
-    // ==========================================
-    function prepararNuevoPase() {
-        if(confirm("¿Estás seguro de limpiar el formulario? Se creará un nuevo folio en la próxima generación.")){
-            folioActualContexto = null;
-            document.getElementById('origen').value = '';
-            document.getElementById('responsable').value = '';
-            document.getElementById('portador').value = '';
-            document.getElementById('vehiculo').value = '';
-            document.getElementById('motivo').value = '';
-            document.getElementById('contenedor-items').innerHTML = '';
-            agregarFila(); // Deja una fila en blanco
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    function cargarPaseParaEdicion(folioBusqueda) {
-        const registro = bitacoraDatos.find(b => b.folio === folioBusqueda);
-        if(!registro) return;
-
-        folioActualContexto = registro.folio; // Fija el folio actual al seleccionado
-        
-        document.getElementById('origen').value = registro.origen;
-        document.getElementById('responsable').value = registro.responsable;
-        document.getElementById('portador').value = registro.portador;
-        document.getElementById('vehiculo').value = registro.vehiculo;
-        document.getElementById('motivo').value = registro.motivo;
-        
-        const contenedor = document.getElementById('contenedor-items');
-        contenedor.innerHTML = ''; // Limpiar filas actuales
-        
-        registro.items.forEach(it => {
-            agregarFila(it.cant, it.desc, it.obs);
-        });
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        alert(`Se cargó el folio ${registro.folio}. Puedes agregar herramientas y hacer clic en 'Generar PDF' para actualizarlo.`);
-    }
-
-    function renderizarBitacora() {
-        const tbody = document.getElementById('body-bitacora');
-        tbody.innerHTML = '';
-
-        bitacoraDatos.forEach(reg => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${reg.folio}</strong></td>
-                <td>${reg.fecha}</td>
-                <td>${reg.origen}</td>
-                <td>${reg.responsable}</td>
-                <td>${reg.portador}</td>
-                <td>${reg.totalArticulos} items</td>
-                <td>
-                    <button class="btn-editar" onclick="cargarPaseParaEdicion('${reg.folio}')">Ver / Editar</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function filtrarBitacora() {
-        const input = document.getElementById("buscador").value.toLowerCase();
-        const tabla = document.getElementById("tablaBitacora");
-        const trs = tabla.getElementsByTagName("tr");
-
-        for (let i = 1; i < trs.length; i++) { // i=1 para saltar el thead
-            let tds = trs[i].getElementsByTagName("td");
-            let coincide = false;
-            for (let j = 0; j < tds.length - 1; j++) { // Ignorar la última columna (botones)
-                if (tds[j]) {
-                    if (tds[j].innerHTML.toLowerCase().indexOf(input) > -1) {
-                        coincide = true;
-                        break;
-                    }
-                }
-            }
-            trs[i].style.display = coincide ? "" : "none";
-        }
-    }
+    };
 </script>
-
 </body>
 </html>
