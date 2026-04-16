@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Salidas - C2 El Cielo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --primary: #0f172a; --secondary: #0ea5e9; --success: #10b981; --bg: #f8fafc; --text: #334155; --card-bg: #ffffff; --border: #cbd5e1; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .bitacora-container { max-width: 1200px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        .buscador { padding: 12px; width: 350px; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem; }
+        .tabla-bitacora { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        .tabla-bitacora th, .tabla-bitacora td { padding: 15px; border-bottom: 1px solid var(--border); text-align: left; }
+        .tabla-bitacora th { background-color: var(--primary); color: white; }
+        .tabla-bitacora tr:hover { background-color: #f1f5f9; }
+        .btn-descargar { background: var(--success); color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* PDF OCULTO (Para regenerar copias) */
+        #pdf-template { display: none; padding: 40px; background: white; color: black; font-family: Arial, sans-serif; width: 800px; box-sizing: border-box; }
+        .pdf-header { text-align: center; border-bottom: 3px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
+        .pdf-header h2 { margin: 0; font-size: 24px; }
+        .pdf-folio { text-align: right; color: #dc2626; font-weight: bold; font-size: 18px; margin-bottom: 20px; }
+        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 14px; }
+        .pdf-dato { background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; }
+        .pdf-tabla { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px; }
+        .pdf-tabla th, .pdf-tabla td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+        .pdf-tabla th { background-color: #0f172a; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="bitacora-container">
+    <div class="header">
+        <h1>Centro de Mando: Auditoría de Salidas</h1>
+        <input type="text" id="buscador" class="buscador" placeholder="Buscar Lote, Folio, Contratista..." onkeyup="window.filtrarBitacora()">
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="tabla-bitacora" id="tablaBitacora">
+            <thead>
+                <tr>
+                    <th>Folio</th><th>Fecha y Hora</th><th>Lote Origen</th>
+                    <th>Responsable</th><th>Portador / Vehículo</th><th>Items</th><th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="body-bitacora">
+                <tr><td colspan="7" style="text-align: center;">Conectando con la base de datos segura...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="pdf-template">
+    <div class="pdf-header">
+        <h2>COPIA DE AUDITORÍA - GUÍA DE SALIDA</h2>
+        <p><strong>EL CIELO PARQUE RESIDENCIAL</strong></p>
+    </div>
+    <div class="pdf-folio">FOLIO: <span id="pdf-folio"></span></div>
+    <div class="pdf-grid">
+        <div class="pdf-dato"><strong>Fecha:</strong> <span id="pdf-fecha"></span></div>
+        <div class="pdf-dato"><strong>Lote/Origen:</strong> <span id="pdf-origen"></span></div>
+        <div class="pdf-dato"><strong>Autoriza:</strong> <span id="pdf-responsable"></span></div>
+        <div class="pdf-dato"><strong>Retira:</strong> <span id="pdf-portador"></span></div>
+        <div class="pdf-dato"><strong>Vehículo:</strong> <span id="pdf-vehiculo"></span></div>
+        <div class="pdf-dato"><strong>Motivo:</strong> <span id="pdf-motivo"></span></div>
+    </div>
+    <table class="pdf-tabla">
+        <thead><tr><th style="width: 10%;">CANT.</th><th style="width: 50%;">DESCRIPCIÓN</th><th style="width: 40%;">OBSERVACIONES / SERIE</th></tr></thead>
+        <tbody id="pdf-tabla-body"></tbody>
+    </table>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // INSERTA AQUÍ TUS DATOS DE FIREBASE
+    const firebaseConfig = {
+       apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.firebaseapp.com",
+        messagingSenderId: "714792023462",
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.bitacoraDatos = [];
+
+    // Escuchar la base de datos en tiempo real
+    onSnapshot(collection(db, "guias_salida"), (snapshot) => {
+        window.bitacoraDatos = [];
+        snapshot.forEach((doc) => { window.bitacoraDatos.push(doc.data()); });
+        window.bitacoraDatos.sort((a, b) => b.timestamp - a.timestamp); // Más recientes primero
+        renderizarBitacora();
+    });
+
+    function renderizarBitacora() {
+        const tbody = document.getElementById('body-bitacora');
+        tbody.innerHTML = '';
+        if(window.bitacoraDatos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay registros históricos.</td></tr>';
+            return;
+        }
+
+        window.bitacoraDatos.forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${reg.folio}</strong></td>
+                <td>${reg.fecha}</td>
+                <td>${reg.origen}</td>
+                <td>${reg.responsable}</td>
+                <td>${reg.portador} <br><small style="color:gray">${reg.vehiculo}</small></td>
+                <td>${reg.totalArticulos} items</td>
+                <td><button class="btn-descargar" onclick="window.descargarCopia('${reg.folio}')">Descargar PDF</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.filtrarBitacora = function() {
+        const input = document.getElementById("buscador").value.toLowerCase();
+        const trs = document.getElementById("tablaBitacora").getElementsByTagName("tr");
+        for (let i = 1; i < trs.length; i++) { 
+            let textoFila = trs[i].innerText.toLowerCase();
+            trs[i].style.display = textoFila.includes(input) ? "" : "none";
+        }
+    };
+
+    window.descargarCopia = function(folio) {
+        const registro = window.bitacoraDatos.find(b => b.folio === folio);
+        if(!registro) return;
+
+        document.getElementById('pdf-folio').innerText = registro.folio;
+        document.getElementById('pdf-fecha').innerText = registro.fecha;
+        document.getElementById('pdf-origen').innerText = registro.origen;
+        document.getElementById('pdf-responsable').innerText = registro.responsable;
+        document.getElementById('pdf-portador').innerText = registro.portador;
+        document.getElementById('pdf-vehiculo').innerText = registro.vehiculo;
+        document.getElementById('pdf-motivo').innerText = registro.motivo;
+
+        const tbodyPDF = document.getElementById('pdf-tabla-body');
+        tbodyPDF.innerHTML = ''; 
+        registro.items.forEach(it => {
+            tbodyPDF.innerHTML += `<tr><td style="text-align:center"><strong>${it.cant}</strong></td><td>${it.desc}</td><td>${it.obs||'-'}</td></tr>`;
+        });
+
+        const elementoPDF = document.getElementById('pdf-template');
+        elementoPDF.style.display = 'block';
+        html2pdf().set({
+            margin: 0.5, filename: `Copia_Auditoria_${registro.folio}.pdf`, image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        }).from(elementoPDF).save().then(() => {
+            elementoPDF.style.display = 'none';
+        });
+    };
+</script>
+</body>
+</html>
