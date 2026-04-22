@@ -3,63 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Seguridad | El Cielo Parque Residencial</title>
+    <title>Sistema de Vigilancia - El Cielo Residencial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --primary: #0f172a; --secondary: #1e293b; --accent: #3b82f6; --text: #f8fafc; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; color: #333; }
-        header { background-color: var(--primary); color: var(--text); padding: 20px; text-align: center; border-bottom: 4px solid var(--accent); }
-        header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
-        header p { margin: 5px 0 0 0; font-size: 14px; font-style: italic; opacity: 0.8; }
-        .container { max-width: 1000px; margin: 30px auto; display: grid; grid-template-columns: 2.5fr 1fr; gap: 20px; padding: 0 20px; }
-        .feed { display: flex; flex-direction: column; gap: 15px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid var(--secondary); }
-        .card h3 { margin-top: 0; color: var(--primary); }
-        .date { font-size: 12px; color: #64748b; margin-bottom: 10px; display: inline-block; }
-        .badge { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 10px; }
-        .badge.info { background: #e0f2fe; color: #075985; }
-        .profile-card { background: var(--secondary); color: white; padding: 20px; border-radius: 8px; text-align: center; height: fit-content; }
-        .profile-card h3 { margin: 0 0 5px 0; font-size: 18px; }
-        .profile-card p.title { color: var(--accent); font-weight: bold; margin: 0 0 20px 0; font-size: 14px; }
-        .contact-info { text-align: left; font-size: 14px; line-height: 1.8; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; }
-        .contact-info strong { color: var(--accent); }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --bg: #f3f4f6;
+            --text: #1f2937;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { color: var(--primary); border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background-color: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-size: 16px; margin-right: 10px; }
+        button:hover { background-color: var(--secondary); }
+        .search-section { margin-top: 40px; padding-top: 20px; border-top: 2px dashed #ccc; }
+        .record-card { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 5px; background-color: #f9fafb; }
+        
+        /* Estilos específicos para el PDF (Ocultos en la web) */
+        #pdf-template { display: none; }
+        .pdf-visible { display: block !important; padding: 40px; font-family: Arial, sans-serif; color: black; background: white; }
+        .pdf-header { text-align: center; border-bottom: 2px solid black; margin-bottom: 20px; padding-bottom: 10px; }
+        .pdf-body { text-align: justify; white-space: pre-wrap; line-height: 1.6; }
+        .pdf-footer { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 20px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>EL CIELO PARQUE RESIDENCIAL</h1>
-        <p>Firmeza, no prepotencia</p>
-    </header>
-
-    <div class="container">
-        <div class="feed">
-            <div class="card">
-                <h3>Actualización de Protocolo de Acceso <span class="badge info">Informativo</span></h3>
-                <span class="date">22 de Abril, 2026 - 08:00 hrs</span>
-                <p>Se instruye a todo el personal de turno a solicitar identificación oficial a todos los proveedores sin excepción. El registro en el sistema QR es de carácter obligatorio.</p>
-            </div>
-            
-            <div class="card" style="border-left-color: #991b1b;">
-                <h3>Novedad en Perímetro Norte <span class="badge">Alerta</span></h3>
-                <span class="date">21 de Abril, 2026 - 23:45 hrs</span>
-                <p>Durante el rondín nocturno se detectó manipulación en la luminaria del sector 4. El equipo de mantenimiento ya fue notificado. Mantener vigilancia estricta mediante el sistema IVMS-4200.</p>
-            </div>
+<div class="container">
+    <h1>El Cielo Residencial - Sistema de Partes</h1>
+    
+    <div id="form-section">
+        <h2>Crear Nuevo Parte Informativo</h2>
+        <div class="form-group">
+            <label for="destinatario">Dirigido a:</label>
+            <select id="destinatario">
+                <option value="Residentes">Residentes</option>
+                <option value="Constructores">Constructores</option>
+                <option value="Jefe Inmediato">Jefe Inmediato</option>
+            </select>
         </div>
-
-        <div class="profile-card">
-            <h3>Hugo Lizárraga</h3>
-            <p class="title">Jefe de Vigilancia</p>
-            
-            <div class="contact-info">
-                <strong>Email Oficial:</strong><br>
-                <a href="mailto:seguridad@elcieloresidencial.com" style="color:white; text-decoration:none;">seguridad@elcieloresidencial.com</a><br><br>
-                
-                <strong>Teléfono Directo:</strong><br>
-                <a href="tel:+526695931812" style="color:white; text-decoration:none;">+52 669 593 1812</a>
-            </div>
+        <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" required>
         </div>
+        <div class="form-group">
+            <label for="asunto">Nombre o Evento (Asunto):</label>
+            <input type="text" id="asunto" placeholder="Ej. Acceso no autorizado, Reporte de daños..." required>
+        </div>
+        <div class="form-group">
+            <label for="contenido">Contenido del Parte:</label>
+            <textarea id="contenido" rows="8" placeholder="Redacta los hechos aquí..." required></textarea>
+        </div>
+        <button id="btnGenerar">Generar PDF y Guardar</button>
+        <span id="status-msg" style="color: green; font-weight: bold; margin-left: 10px;"></span>
     </div>
+
+    <div class="search-section">
+        <h2>Buscar Partes Anteriores</h2>
+        <div class="form-group">
+            <label>Buscar por Nombre/Evento o Fecha:</label>
+            <input type="text" id="searchInput" placeholder="Escribe para buscar...">
+        </div>
+        <div id="resultados"></div>
+    </div>
+</div>
+
+<div id="pdf-template">
+    <div class="pdf-header">
+        <h1 style="margin: 0; color: #1e3a8a;">EL CIELO RESIDENCIAL</h1>
+        <h3 style="margin: 5px 0 0 0;">Departamento de Seguridad y Vigilancia</h3>
+    </div>
+    <p><strong>Fecha:</strong> <span id="pdf-fecha"></span></p>
+    <p><strong>Atención a:</strong> <span id="pdf-destinatario"></span></p>
+    <p><strong>Asunto:</strong> <span id="pdf-asunto"></span></p>
+    <hr>
+    <div class="pdf-body" id="pdf-contenido"></div>
+    <div class="pdf-footer">
+        <p>Atentamente,</p>
+        <p><strong>Jefe de Vigilancia</strong><br>
+        Teléfono: +52 669 593 1812<br>
+        Correo: seguridad@elcieloresidencial</p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    // Tu configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+        messagingSenderId: "714792023462", 
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Setear fecha de hoy por defecto
+    document.getElementById('fecha').valueAsDate = new Date();
+
+    let registrosCargados = [];
+
+    // Función para generar PDF y guardar en Firebase
+    document.getElementById('btnGenerar').addEventListener('click', async () => {
+        const destinatario = document.getElementById('destinatario').value;
+        const fecha = document.getElementById('fecha').value;
+        const asunto = document.getElementById('asunto').value;
+        const contenido = document.getElementById('contenido').value;
+
+        if(!asunto || !contenido) {
+            alert("Por favor llena el asunto y el contenido.");
+            return;
+        }
+
+        document.getElementById('btnGenerar').disabled = true;
+        document.getElementById('status-msg').innerText = "Procesando...";
+
+        // 1. Preparar la plantilla PDF
+        document.getElementById('pdf-destinatario').innerText = destinatario;
+        document.getElementById('pdf-fecha').innerText = fecha;
+        document.getElementById('pdf-asunto').innerText = asunto;
+        document.getElementById('pdf-contenido').innerText = contenido;
+
+        const elementoParaPDF = document.getElementById('pdf-template');
+        elementoParaPDF.classList.add('pdf-visible'); // Hacerlo visible para la foto
+
+        // 2. Generar y descargar el PDF
+        const opcionesOpt = {
+            margin:       10,
+            filename:     `Parte_${fecha}_${asunto.substring(0,10)}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opcionesOpt).from(elementoParaPDF).save().then(async () => {
+            elementoParaPDF.classList.remove('pdf-visible'); // Volver a ocultar
+
+            // 3. Guardar en Firebase Firestore
+            try {
+                await addDoc(collection(db, "partes_informativos"), {
+                    destinatario: destinatario,
+                    fecha: fecha,
+                    asunto: asunto,
+                    contenido: contenido,
+                    timestamp: new Date()
+                });
+                document.getElementById('status-msg').innerText = "¡PDF Generado y Guardado Exitosamente!";
+                document.getElementById('asunto').value = '';
+                document.getElementById('contenido').value = '';
+                cargarRegistros(); // Recargar la lista
+            } catch (e) {
+                console.error("Error al guardar: ", e);
+                document.getElementById('status-msg').innerText = "Error al guardar en base de datos.";
+            }
+            setTimeout(() => { document.getElementById('status-msg').innerText = ""; document.getElementById('btnGenerar').disabled = false; }, 3000);
+        });
+    });
+
+    // Función para cargar los registros de Firebase
+    async function cargarRegistros() {
+        const q = query(collection(db, "partes_informativos"), orderBy("fecha", "desc"));
+        const querySnapshot = await getDocs(q);
+        registrosCargados = [];
+        querySnapshot.forEach((doc) => {
+            registrosCargados.push(doc.data());
+        });
+        mostrarRegistros(registrosCargados);
+    }
+
+    // Función para mostrar registros en el HTML
+    function mostrarRegistros(registros) {
+        const contenedor = document.getElementById('resultados');
+        contenedor.innerHTML = '';
+        if(registros.length === 0) {
+            contenedor.innerHTML = '<p>No hay registros que coincidan.</p>';
+            return;
+        }
+        registros.forEach(reg => {
+            const div = document.createElement('div');
+            div.className = 'record-card';
+            div.innerHTML = `
+                <strong>Fecha:</strong> ${reg.fecha} | <strong>Destinatario:</strong> ${reg.destinatario}<br>
+                <strong>Asunto/Evento:</strong> ${reg.asunto}<br>
+                <p style="font-size: 14px; color: #4b5563;">${reg.contenido.substring(0, 100)}...</p>
+            `;
+            contenedor.appendChild(div);
+        });
+    }
+
+    // Buscador en tiempo real
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const termino = e.target.value.toLowerCase();
+        const filtrados = registrosCargados.filter(reg => 
+            reg.asunto.toLowerCase().includes(termino) || 
+            reg.fecha.includes(termino) ||
+            reg.destinatario.toLowerCase().includes(termino)
+        );
+        mostrarRegistros(filtrados);
+    });
+
+    // Cargar historial al iniciar
+    cargarRegistros();
+</script>
 
 </body>
 </html>
