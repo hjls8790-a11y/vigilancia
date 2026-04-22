@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Seguridad | El Cielo Parque Residencial</title>
+    <style>
+        :root { --primary: #0f172a; --secondary: #1e293b; --accent: #3b82f6; --text: #f8fafc; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; color: #333; }
+        header { background-color: var(--primary); color: var(--text); padding: 20px; text-align: center; border-bottom: 4px solid var(--accent); }
+        header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
+        header p { margin: 5px 0 0 0; font-size: 14px; font-style: italic; opacity: 0.8; }
+        .container { max-width: 1000px; margin: 30px auto; display: grid; grid-template-columns: 2.5fr 1fr; gap: 20px; padding: 0 20px; }
+        .feed { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid var(--secondary); }
+        .card h3 { margin-top: 0; color: var(--primary); }
+        .date { font-size: 12px; color: #64748b; margin-bottom: 10px; display: inline-block; }
+        .badge { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 10px; }
+        .badge.info { background: #e0f2fe; color: #075985; }
+        .profile-card { background: var(--secondary); color: white; padding: 20px; border-radius: 8px; text-align: center; height: fit-content; }
+        .profile-card h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .profile-card p.title { color: var(--accent); font-weight: bold; margin: 0 0 20px 0; font-size: 14px; }
+        .contact-info { text-align: left; font-size: 14px; line-height: 1.8; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; }
+        .contact-info strong { color: var(--accent); }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>EL CIELO PARQUE RESIDENCIAL</h1>
+        <p>Firmeza, no prepotencia</p>
+    </header>
+
+    <div class="container">
+        <div class="feed">
+            <div class="card">
+                <h3>Actualización de Protocolo de Acceso <span class="badge info">Informativo</span></h3>
+                <span class="date">22 de Abril, 2026 - 08:00 hrs</span>
+                <p>Se instruye a todo el personal de turno a solicitar identificación oficial a todos los proveedores sin excepción. El registro en el sistema QR es de carácter obligatorio.</p>
+            </div>
+            
+            <div class="card" style="border-left-color: #991b1b;">
+                <h3>Novedad en Perímetro Norte <span class="badge">Alerta</span></h3>
+                <span class="date">21 de Abril, 2026 - 23:45 hrs</span>
+                <p>Durante el rondín nocturno se detectó manipulación en la luminaria del sector 4. El equipo de mantenimiento ya fue notificado. Mantener vigilancia estricta mediante el sistema IVMS-4200.</p>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h3>Hugo Lizárraga</h3>
+            <p class="title">Jefe de Vigilancia</p>
+            
+            <div class="contact-info">
+                <strong>Email Oficial:</strong><br>
+                <a href="mailto:seguridad@elcieloresidencial.com" style="color:white; text-decoration:none;">seguridad@elcieloresidencial.com</a><br><br>
+                
+                <strong>Teléfono Directo:</strong><br>
+                <a href="tel:+526695931812" style="color:white; text-decoration:none;">+52 669 593 1812</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
