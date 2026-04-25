@@ -5,65 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor El Cielo - Tiempo Real</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; margin: 0;}
+        .header { margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
+        .header h2 { margin: 0; color: white; }
         .grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-        .card { background: #1e293b; padding: 15px; border-radius: 8px; border-top: 5px solid #3b82f6; position: relative; animation: flash 2s; }
+        .card { background: #1e293b; padding: 15px; border-radius: 8px; border-top: 5px solid #3b82f6; position: relative; }
+        .flash-anim { animation: flash 2s; }
         @keyframes flash { from { box-shadow: 0 0 20px #3b82f6; } to { box-shadow: none; } }
-        .card h3 { margin: 0; color: #38bdf8; font-size: 1.1rem; }
-        .info { font-size: 0.9rem; margin-top: 8px; color: #cbd5e1; }
-        .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-top: 10px; color: black; }
-        .btn-revisar { width: 100%; margin-top: 15px; padding: 10px; border: none; border-radius: 4px; background: #ef4444; color: white; cursor: pointer; font-weight: bold; }
-        .revisado { background: #10b981 !important; }
+        .card h3 { margin: 0; color: #38bdf8; font-size: 1.1rem; text-transform: uppercase;}
+        .info { font-size: 0.95rem; margin-top: 8px; color: #cbd5e1; line-height: 1.4;}
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; margin-top: 10px; color: black; }
+        .btn-revisar { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 4px; background: #ef4444; color: white; cursor: pointer; font-weight: bold; font-size: 1rem;}
+        .revisado { background: #10b981 !important; cursor: default;}
     </style>
 </head>
 <body>
-    <h2 style="border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">Monitor de Arribos - Seguridad por Coincidencia</h2>
+    <div class="header">
+        <h2>Monitor de Arribos - Seguridad por Coincidencia</h2>
+        <p style="margin: 5px 0 0 0; color: #94a3b8; font-size: 0.9rem;">El Cielo Parque Residencial</p>
+    </div>
+    
     <div class="grid" id="container"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com",
             projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            storageBucket: "sistema-vigilancia-6851e.appspot.com",
             messagingSenderId: "714792023462",
             appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        db.ref('arribos_coincidencia').limitToLast(20).on('child_added', (snap) => {
-            const d = snap.val();
-            const id = snap.key;
-            const time = new Date(d.timestamp).toLocaleTimeString();
-            
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.id = id;
-            card.innerHTML = `
-                <h3>${d.calle} #${d.numero}</h3>
-                <div class="info"><b>Hora:</b> ${time}<br><b>Visita:</b> ${d.tipo_visita}<br><b>Vehículo:</b> ${d.marca} ${d.color} [${d.placas}]</div>
-                <span class="tag" style="background:${getCol(d.distintivo)}">DISTINTIVO ${d.distintivo}</span>
-                <button id="b-${id}" class="btn-revisar ${d.estado === 'Revisado' ? 'revisado' : ''}" onclick="check('${id}')">
-                    ${d.estado === 'Revisado' ? 'AUDITADO ✓' : 'MARCAR REVISADO'}
-                </button>
-            `;
-            document.getElementById('container').insertBefore(card, document.getElementById('container').firstChild);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Consulta: Traer los últimos 25 registros, ordenados por el más reciente
+        const q = query(collection(db, "arribos_coincidencia"), orderBy("timestamp", "desc"), limit(25));
+
+        onSnapshot(q, (snapshot) => {
+            const container = document.getElementById('container');
+            container.innerHTML = ''; // Limpiar y repintar para mantener orden exacto
+
+            snapshot.forEach((docSnap) => {
+                const d = docSnap.data();
+                const id = docSnap.id;
+                
+                // Formatear hora
+                const fecha = new Date(d.timestamp);
+                const hora = fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // Efecto visual de destello solo si el registro tiene menos de 15 segundos
+                if((new Date().getTime() - d.timestamp) < 15000) {
+                    card.classList.add('flash-anim');
+                }
+
+                card.innerHTML = `
+                    <h3>${d.calle} #${d.numero}</h3>
+                    <div class="info">
+                        <b>Hora:</b> ${hora}<br>
+                        <b>Visita:</b> ${d.tipo_visita}<br>
+                        <b>Vehículo:</b> ${d.marca} ${d.color} [${d.placas}]
+                    </div>
+                    <span class="tag" style="background:${getCol(d.distintivo)}">DISTINTIVO ${d.distintivo.toUpperCase()}</span>
+                    <button id="btn-${id}" class="btn-revisar ${d.estado === 'Revisado' ? 'revisado' : ''}" onclick="window.auditar('${id}')" ${d.estado === 'Revisado' ? 'disabled' : ''}>
+                        ${d.estado === 'Revisado' ? 'AUDITADO ✓' : 'MARCAR REVISADO'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
         });
 
         function getCol(d) {
             return d === 'Amarillo' ? '#facc15' : d === 'Naranja' ? '#fb923c' : d === 'Verde' ? '#4ade80' : '#94a3b8';
         }
 
-        window.check = function(id) {
-            db.ref('arribos_coincidencia/' + id).update({ estado: "Revisado" }).then(() => {
-                document.getElementById('b-' + id).classList.add('revisado');
-                document.getElementById('b-' + id).innerText = "AUDITADO ✓";
-            });
-        }
+        window.auditar = async function(id) {
+            const btn = document.getElementById('btn-' + id);
+            btn.innerText = "Auditando...";
+            try {
+                // Actualiza el documento en Firestore
+                await updateDoc(doc(db, "arribos_coincidencia", id), { estado: "Revisado" });
+            } catch(error) {
+                alert("Error al actualizar: " + error.message);
+                btn.innerText = "MARCAR REVISADO";
+            }
+        };
     </script>
 </body>
 </html>
