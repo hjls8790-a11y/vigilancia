@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Arribos - Seguridad por Coincidencia</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .header { background-color: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #3b82f6; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 22px; color: #f8fafc; }
+        .header .subtitle { color: #94a3b8; font-size: 14px; margin-top: 5px; }
+        
+        .dashboard-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+        
+        .tarjeta-arribo { background: #1e293b; border-radius: 8px; padding: 15px; border-top: 4px solid #475569; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.3s; }
+        .tarjeta-arribo:hover { transform: translateY(-2px); }
+        
+        .tarjeta-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .destino { font-size: 18px; font-weight: bold; color: #38bdf8; }
+        .hora { font-size: 12px; color: #94a3b8; background: #0f172a; padding: 4px 8px; border-radius: 4px; }
+        
+        .dato-row { margin-bottom: 8px; font-size: 14px; }
+        .dato-label { color: #94a3b8; display: inline-block; width: 80px; }
+        .dato-valor { color: #e2e8f0; font-weight: 500; }
+        
+        .distintivo-tag { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 10px; color: #000; }
+        .dist-Amarillo { background-color: #fef08a; }
+        .dist-Naranja { background-color: #fdba74; }
+        .dist-Verde { background-color: #86efac; }
+        .dist-Gris { background-color: #cbd5e1; }
+
+        .estado-btn { width: 100%; margin-top: 15px; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-pendiente { background-color: #ef4444; color: white; }
+        .btn-revisado { background-color: #10b981; color: white; }
+        
+        .alerta-nuevo { animation: parpadeo 2s 3; }
+        @keyframes parpadeo { 0% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); } 50% { box-shadow: 0 0 0 transparent; } 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>Monitor de Patrullaje | Arribos en Tiempo Real</h1>
+            <div class="subtitle">Protocolo de Seguridad por Coincidencia</div>
+        </div>
+        <div>
+            <span style="background: #3b82f6; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">Conectado y Escuchando 🟢</span>
+        </div>
+    </div>
+
+    <div class="dashboard-grid" id="contenedor-arribos">
+        </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // CONFIGURACIÓN DE FIREBASE (Usa la misma configuración aquí)
+        const firebaseConfig = {
+           apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const contenedor = document.getElementById('contenedor-arribos');
+
+        // Escuchar nuevos arribos en tiempo real
+        db.ref('arribos_coincidencia').orderByChild('timestamp').limitToLast(50).on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            const key = snapshot.key;
+            
+            // Formatear hora
+            const fechaObj = new Date(data.timestamp);
+            const horaFormateada = fechaObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+            const esPendiente = data.estado_auditoria === "Pendiente";
+            const btnClase = esPendiente ? "btn-pendiente" : "btn-revisado";
+            const btnTexto = esPendiente ? "Auditar / Marcar Revisado" : "✓ Arribo Verificado";
+
+            // Crear la tarjeta HTML
+            const tarjeta = document.createElement('div');
+            tarjeta.className = `tarjeta-arribo alerta-nuevo`;
+            tarjeta.id = `tarjeta-${key}`;
+            
+            // Asignar color de borde superior según el distintivo
+            const coloresBorde = { 'Amarillo': '#facc15', 'Naranja': '#f97316', 'Verde': '#4ade80', 'Gris': '#94a3b8' };
+            tarjeta.style.borderTopColor = coloresBorde[data.distintivo] || '#475569';
+
+            tarjeta.innerHTML = `
+                <div class="tarjeta-header">
+                    <div class="destino">${data.calle} #${data.numero}</div>
+                    <div class="hora">⏰ ${horaFormateada}</div>
+                </div>
+                
+                <div class="dato-row"><span class="dato-label">Motivo:</span> <span class="dato-valor">${data.tipo_visita}</span></div>
+                <div class="dato-row"><span class="dato-label">Vehículo:</span> <span class="dato-valor">${data.marca} - ${data.color}</span></div>
+                <div class="dato-row"><span class="dato-label">Placas:</span> <span class="dato-valor" style="text-transform: uppercase;">${data.placas}</span></div>
+                
+                <div class="distintivo-tag dist-${data.distintivo}">Distintivo ${data.distintivo}</div>
+
+                <button class="estado-btn ${btnClase}" id="btn-${key}" onclick="auditarArribo('${key}')">${btnTexto}</button>
+            `;
+
+            // Insertar al principio para ver lo más nuevo arriba
+            contenedor.insertBefore(tarjeta, contenedor.firstChild);
+        });
+
+        // Función para cambiar el estado a "Revisado"
+        window.auditarArribo = function(key) {
+            db.ref(`arribos_coincidencia/${key}`).update({
+                estado_auditoria: "Revisado",
+                fecha_auditoria: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                const btn = document.getElementById(`btn-${key}`);
+                btn.className = "estado-btn btn-revisado";
+                btn.innerText = "✓ Arribo Verificado";
+                btn.disabled = true; // Desactivar el botón una vez revisado
+            }).catch((error) => {
+                console.error("Error al actualizar:", error);
+                alert("Hubo un problema al auditar el registro.");
+            });
+        };
+    </script>
+</body>
+</html>
