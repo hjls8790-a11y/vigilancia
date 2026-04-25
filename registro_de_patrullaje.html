@@ -5,205 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Patrullaje - El Cielo</title>
     <style>
-        :root {
-            --primary: #1A252C; 
-            --success: #28B463; 
-            --text: #333;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: var(--text); }
-        .header { background-color: var(--primary); color: white; text-align: center; padding: 20px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
-        .header h2 { margin: 5px 0 0 0; font-size: 0.9rem; font-weight: 300; color: #AAB7B8; }
+        :root { --primary: #1A252C; --success: #28B463; --text: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: var(--text); }
+        .header { background-color: var(--primary); color: white; text-align: center; padding: 20px 10px; border-bottom: 4px solid #F1C40F; }
+        .header h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; }
         .header p { margin: 5px 0 0 0; font-size: 0.8rem; font-style: italic; color: #F1C40F; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
-        select, input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background-color: white; }
-        select:focus, input:focus { border-color: var(--primary); outline: none; }
-        
-        /* Sección de Vehículo */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
+        select, input { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
         .vehiculo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .vehiculo-placas { grid-column: span 2; }
-
-        /* Distintivos */
         .distintivos-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .distintivo-btn { padding: 15px; border: 2px solid transparent; border-radius: 8px; font-weight: bold; text-align: center; color: #333; cursor: pointer; transition: 0.2s; }
+        .distintivo-btn { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: 3px solid transparent; }
         .distintivo-btn input { display: none; }
         .btn-amarillo { background-color: #F1C40F; }
         .btn-naranja { background-color: #E67E22; color: white; }
         .btn-verde { background-color: #2ECC71; color: white; }
         .btn-gris { background-color: #95A5A6; color: white; }
-        .distintivo-btn.selected { border: 3px solid var(--primary); transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
-        
-        .submit-btn { width: 100%; background-color: var(--success); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-top: 10px; transition: 0.3s; }
-        .submit-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        .back-btn { display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
+        .selected { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+        .submit-btn { width: 100%; background-color: var(--success); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>El Cielo Parque Residencial</h1>
-        <h2>Jefatura de Vigilancia | Hugo Lizárraga</h2>
         <p>"FIRMEZA NO PREPOTENCIA"</p>
     </div>
-
     <div class="container">
         <form id="formArribo">
-            
             <div class="form-group">
-                <label for="calle">Calle de Destino:</label>
-                <select id="calle" name="Calle" required>
-                    <option value="" disabled selected>Selecciona la calle...</option>
+                <label>Calle de Destino:</label>
+                <select id="calle" required>
+                    <option value="" disabled selected>Selecciona calle...</option>
                     <option value="Zona Común">Zona Común</option>
-                    <option value="Aurora">Aurora</option>
-                    <option value="Cirrus">Cirrus</option>
-                    <option value="Estela">Estela</option>
-                    <option value="Luna">Luna</option>
-                    <option value="Nimbus">Nimbus</option>
-                    <option value="Paseo de las Nubes">Paseo de las Nubes</option>
-                    <option value="Venus">Venus</option>
-                    <option value="Andromeda">Andromeda</option>
-                    <option value="Celeste">Celeste</option>
-                    <option value="Eos">Eos</option>
-                    <option value="Eros">Eros</option>
-                    <option value="Hera">Hera</option>
-                    <option value="Hermes">Hermes</option>
-                    <option value="Orion">Orion</option>
-                    <option value="Paloma">Paloma</option>
-                    <option value="Pegasus">Pegasus</option>
-                    <option value="Selene">Selene</option>
-                    <option value="Helios">Helios</option>
+                    <option value="Aurora">Aurora</option><option value="Cirrus">Cirrus</option>
+                    <option value="Estela">Estela</option><option value="Luna">Luna</option>
+                    <option value="Nimbus">Nimbus</option><option value="Paseo de las Nubes">Paseo de las Nubes</option>
+                    <option value="Venus">Venus</option><option value="Andromeda">Andromeda</option>
+                    <option value="Celeste">Celeste</option><option value="Eos">Eos</option>
+                    <option value="Eros">Eros</option><option value="Hera">Hera</option>
+                    <option value="Hermes">Hermes</option><option value="Orion">Orion</option>
+                    <option value="Paloma">Paloma</option><option value="Pegasus">Pegasus</option>
+                    <option value="Selene">Selene</option><option value="Helios">Helios</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label for="numero">Número de Domicilio:</label>
-                <input type="number" id="numero" name="Numero" placeholder="Ej. 124" required>
+                <label>Número:</label>
+                <input type="number" id="numero" placeholder="Ej. 124" required>
             </div>
-
             <div class="form-group">
-                <label for="tipo_visita">Tipo de Acceso / Visita:</label>
-                <select id="tipo_visita" name="Tipo_Visita" required>
-                    <option value="" disabled selected>Selecciona el tipo...</option>
+                <label>Tipo de Visita:</label>
+                <select id="tipo_visita" required>
                     <option value="Proveedor de obra">Proveedor de obra</option>
                     <option value="Proveedor de gas">Proveedor de gas</option>
-                    <option value="CFE">CFE</option>
-                    <option value="JUMAPAM">JUMAPAM</option>
-                    <option value="Aseo urbano">Aseo urbano</option>
+                    <option value="CFE">CFE</option><option value="JUMAPAM">JUMAPAM</option>
                     <option value="Visita particular">Visita particular</option>
-                    <option value="Entrega de paqueterías">Servicio de entrega de paqueterías</option>
-                    <option value="Entrega de comida">Servicio de entrega de comida</option>
+                    <option value="Paquetería">Paquetería</option>
+                    <option value="Comida">Entrega de comida</option>
                 </select>
             </div>
-
             <div class="form-group vehiculo-grid">
-                <div class="vehiculo-placas">
-                    <label for="placas">Placas del Vehículo:</label>
-                    <input type="text" id="placas" name="Placas" placeholder="Ej. VHG-123-A (Opcional)">
-                </div>
-                <div>
-                    <label for="marca">Marca:</label>
-                    <input type="text" id="marca" name="Marca" placeholder="Ej. Nissan">
-                </div>
-                <div>
-                    <label for="color">Color:</label>
-                    <input type="text" id="color" name="Color" placeholder="Ej. Blanco">
-                </div>
+                <input type="text" id="placas" placeholder="Placas" style="grid-column: span 2;">
+                <input type="text" id="marca" placeholder="Marca">
+                <input type="text" id="color" placeholder="Color">
             </div>
-
             <div class="form-group">
-                <label>Distintivo de Identificación:</label>
+                <label>Distintivo:</label>
                 <div class="distintivos-container">
-                    <label class="distintivo-btn btn-amarillo" id="lbl-amarillo">
-                        <input type="radio" name="Distintivo" value="Amarillo" required onclick="seleccionarDistintivo('lbl-amarillo')"> Amarillo
+                    <label class="distintivo-btn btn-amarillo" id="l-am">
+                        <input type="radio" name="Distintivo" value="Amarillo" required onclick="sel('l-am')"> Amarillo
                     </label>
-                    <label class="distintivo-btn btn-naranja" id="lbl-naranja">
-                        <input type="radio" name="Distintivo" value="Naranja" onclick="seleccionarDistintivo('lbl-naranja')"> Naranja
+                    <label class="distintivo-btn btn-naranja" id="l-na">
+                        <input type="radio" name="Distintivo" value="Naranja" onclick="sel('l-na')"> Naranja
                     </label>
-                    <label class="distintivo-btn btn-verde" id="lbl-verde">
-                        <input type="radio" name="Distintivo" value="Verde" onclick="seleccionarDistintivo('lbl-verde')"> Verde
+                    <label class="distintivo-btn btn-verde" id="l-ve">
+                        <input type="radio" name="Distintivo" value="Verde" onclick="sel('l-ve')"> Verde
                     </label>
-                    <label class="distintivo-btn btn-gris" id="lbl-gris">
-                        <input type="radio" name="Distintivo" value="Gris" onclick="seleccionarDistintivo('lbl-gris')"> Gris
+                    <label class="distintivo-btn btn-gris" id="l-gr">
+                        <input type="radio" name="Distintivo" value="Gris" onclick="sel('l-gr')"> Gris
                     </label>
                 </div>
             </div>
-
-            <button type="submit" id="btnSubmit" class="submit-btn">📍 Registrar Arribo</button>
-            <a href="#" class="back-btn">⬅️ Volver al Panel Principal</a>
+            <button type="submit" id="btnS" class="submit-btn">📍 REGISTRAR ARRIBO</button>
         </form>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <script>
-        // CONFIGURACIÓN DE FIREBASE (Debes pegar tus datos aquí)
         const firebaseConfig = {
-           apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com",
             projectId: "sistema-vigilancia-6851e",
             storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
             messagingSenderId: "714792023462",
             appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function seleccionarDistintivo(idLabel) {
-            let etiquetas = document.getElementsByClassName('distintivo-btn');
-            for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
-            document.getElementById(idLabel).classList.add('selected');
+        function sel(id) {
+            document.querySelectorAll('.distintivo-btn').forEach(el => el.classList.remove('selected'));
+            document.getElementById(id).classList.add('selected');
         }
 
         document.getElementById('formArribo').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            const btn = document.getElementById('btnSubmit');
-            btn.disabled = true;
-            btn.innerText = "Registrando...";
-
-            // Recolectar datos
-            let calle = document.getElementById('calle').value;
-            let numero = document.getElementById('numero').value;
-            let tipo = document.getElementById('tipo_visita').value;
-            let distintivo = document.querySelector('input[name="Distintivo"]:checked').value;
-            let placas = document.getElementById('placas').value || "N/A";
-            let marca = document.getElementById('marca').value || "N/A";
-            let color = document.getElementById('color').value || "N/A";
+            e.preventDefault();
+            document.getElementById('btnS').disabled = true;
             
-            // Construir objeto de datos
-            const datosArribo = {
-                calle: calle,
-                numero: numero,
-                tipo_visita: tipo,
-                placas: placas,
-                marca: marca,
-                color: color,
-                distintivo: distintivo,
-                timestamp: firebase.database.ServerValue.TIMESTAMP, // Hora exacta del servidor
-                estado_auditoria: "Pendiente" // Para que la caseta lo revise
+            const data = {
+                calle: document.getElementById('calle').value,
+                numero: document.getElementById('numero').value,
+                tipo_visita: document.getElementById('tipo_visita').value,
+                placas: document.getElementById('placas').value || "N/A",
+                marca: document.getElementById('marca').value || "N/A",
+                color: document.getElementById('color').value || "N/A",
+                distintivo: document.querySelector('input[name="Distintivo"]:checked').value,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                estado: "Pendiente"
             };
 
-            // Enviar a la base de datos
-            db.ref('arribos_coincidencia').push(datosArribo)
-            .then(() => {
-                alert("Arribo registrado en la plataforma exitosamente.");
-                // Limpiar formulario
-                document.getElementById('formArribo').reset();
-                let etiquetas = document.getElementsByClassName('distintivo-btn');
-                for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
-            })
-            .catch((error) => {
-                console.error("Error al registrar:", error);
-                alert("Error de conexión. Intente de nuevo.");
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerText = "📍 Registrar Arribo";
+            db.ref('arribos_coincidencia').push(data).then(() => {
+                alert("Registrado correctamente");
+                location.reload();
             });
         });
     </script>
