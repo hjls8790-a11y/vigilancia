@@ -35,7 +35,8 @@
         .btn-gris { background-color: #95A5A6; color: white; }
         .distintivo-btn.selected { border: 3px solid var(--primary); transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
         
-        .submit-btn { width: 100%; background-color: var(--success); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-top: 10px; }
+        .submit-btn { width: 100%; background-color: var(--success); color: white; border: none; padding: 18px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-top: 10px; transition: 0.3s; }
+        .submit-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }
         .back-btn { display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
@@ -43,12 +44,12 @@
 
     <div class="header">
         <h1>El Cielo Parque Residencial</h1>
-        <h2>Ingeniero Hugo Lizarraga Seguridad integral</h2>
+        <h2>Jefatura de Vigilancia | Hugo Lizárraga</h2>
         <p>"FIRMEZA NO PREPOTENCIA"</p>
     </div>
 
     <div class="container">
-        <form id="formArribo" name="submit-to-google-sheet">
+        <form id="formArribo">
             
             <div class="form-group">
                 <label for="calle">Calle de Destino:</label>
@@ -129,14 +130,30 @@
                 </div>
             </div>
 
-            <input type="hidden" id="hora_registro" name="Hora_Arribo">
-
-            <button type="submit" class="submit-btn">📍 Enviar Arribo a Caseta</button>
-            <a href="index.html" class="back-btn">⬅️ Volver al Panel Principal</a>
+            <button type="submit" id="btnSubmit" class="submit-btn">📍 Registrar Arribo</button>
+            <a href="#" class="back-btn">⬅️ Volver al Panel Principal</a>
         </form>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
+        // CONFIGURACIÓN DE FIREBASE (Debes pegar tus datos aquí)
+        const firebaseConfig = {
+           apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
         function seleccionarDistintivo(idLabel) {
             let etiquetas = document.getElementsByClassName('distintivo-btn');
             for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
@@ -145,49 +162,49 @@
 
         document.getElementById('formArribo').addEventListener('submit', function(e) {
             e.preventDefault(); 
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = "Registrando...";
 
             // Recolectar datos
             let calle = document.getElementById('calle').value;
             let numero = document.getElementById('numero').value;
             let tipo = document.getElementById('tipo_visita').value;
             let distintivo = document.querySelector('input[name="Distintivo"]:checked').value;
-            
-            // Datos del vehículo
             let placas = document.getElementById('placas').value || "N/A";
             let marca = document.getElementById('marca').value || "N/A";
             let color = document.getElementById('color').value || "N/A";
             
-            let fecha = new Date();
-            let horaExacta = fecha.getHours() + ":" + (fecha.getMinutes() < 10 ? '0' : '') + fecha.getMinutes();
-            
-            // Guardar hora en el campo oculto para Google Sheets
-            document.getElementById('hora_registro').value = horaExacta;
+            // Construir objeto de datos
+            const datosArribo = {
+                calle: calle,
+                numero: numero,
+                tipo_visita: tipo,
+                placas: placas,
+                marca: marca,
+                color: color,
+                distintivo: distintivo,
+                timestamp: firebase.database.ServerValue.TIMESTAMP, // Hora exacta del servidor
+                estado_auditoria: "Pendiente" // Para que la caseta lo revise
+            };
 
-            // 1. CREAR EL MENSAJE PARA WHATSAPP
-            let mensajeWA = `🚨 *ARRIBO CONFIRMADO* 🚨\n\n` +
-                            `📍 *Destino:* ${calle} #${numero}\n` +
-                            `👤 *Motivo:* ${tipo}\n` +
-                            `🚗 *Vehículo:* ${marca} ${color} / Placas: ${placas}\n` +
-                            `🏷️ *Distintivo:* ${distintivo}\n` +
-                            `⏰ *Hora de llegada:* ${horaExacta}\n\n` +
-                            `_Reporte generado por Agente en Patrullaje._`;
-
-            // Número de caseta (ya configurado)
-            let numeroCaseta = "526692486726";
-            
-            // Codificar el texto para que la URL no se rompa
-            let urlWhatsapp = `https://api.whatsapp.com/send?phone=${numeroCaseta}&text=${encodeURIComponent(mensajeWA)}`;
-
-            // 2. ABRIR WHATSAPP AUTOMÁTICAMENTE
-            window.open(urlWhatsapp, '_blank');
-
-            // 3. LIMPIAR EL FORMULARIO
-            document.getElementById('formArribo').reset();
-            let etiquetas = document.getElementsByClassName('distintivo-btn');
-            for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
-            
-            // NOTA: La conexión a Google Sheets se programa en el siguiente paso.
-            alert("Redirigiendo a WhatsApp. Se enviará el reporte a Caseta.");
+            // Enviar a la base de datos
+            db.ref('arribos_coincidencia').push(datosArribo)
+            .then(() => {
+                alert("Arribo registrado en la plataforma exitosamente.");
+                // Limpiar formulario
+                document.getElementById('formArribo').reset();
+                let etiquetas = document.getElementsByClassName('distintivo-btn');
+                for(let i = 0; i < etiquetas.length; i++) { etiquetas[i].classList.remove('selected'); }
+            })
+            .catch((error) => {
+                console.error("Error al registrar:", error);
+                alert("Error de conexión. Intente de nuevo.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = "📍 Registrar Arribo";
+            });
         });
     </script>
 </body>
