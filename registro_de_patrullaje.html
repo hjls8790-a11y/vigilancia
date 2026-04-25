@@ -15,9 +15,13 @@
         label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
         select, input { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
         .vehiculo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .distintivos-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .distintivo-btn { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: 3px solid transparent; }
-        .distintivo-btn input { display: none; }
+        .distintivos-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; }
+        
+        .distintivo-btn { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: 3px solid transparent; display: block; }
+        
+        /* CORRECCIÓN: No usar display:none. Los ocultamos sin que el navegador pierda la capacidad de validarlos */
+        .distintivo-btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        
         .btn-amarillo { background-color: #F1C40F; }
         .btn-naranja { background-color: #E67E22; color: white; }
         .btn-verde { background-color: #2ECC71; color: white; }
@@ -56,6 +60,7 @@
             <div class="form-group">
                 <label>Tipo de Visita:</label>
                 <select id="tipo_visita" required>
+                    <option value="" disabled selected>Selecciona visita...</option>
                     <option value="Proveedor de obra">Proveedor de obra</option>
                     <option value="Proveedor de gas">Proveedor de gas</option>
                     <option value="CFE">CFE</option><option value="JUMAPAM">JUMAPAM</option>
@@ -76,13 +81,13 @@
                         <input type="radio" name="Distintivo" value="Amarillo" required onclick="sel('l-am')"> Amarillo
                     </label>
                     <label class="distintivo-btn btn-naranja" id="l-na">
-                        <input type="radio" name="Distintivo" value="Naranja" onclick="sel('l-na')"> Naranja
+                        <input type="radio" name="Distintivo" value="Naranja" required onclick="sel('l-na')"> Naranja
                     </label>
                     <label class="distintivo-btn btn-verde" id="l-ve">
-                        <input type="radio" name="Distintivo" value="Verde" onclick="sel('l-ve')"> Verde
+                        <input type="radio" name="Distintivo" value="Verde" required onclick="sel('l-ve')"> Verde
                     </label>
                     <label class="distintivo-btn btn-gris" id="l-gr">
-                        <input type="radio" name="Distintivo" value="Gris" onclick="sel('l-gr')"> Gris
+                        <input type="radio" name="Distintivo" value="Gris" required onclick="sel('l-gr')"> Gris
                     </label>
                 </div>
             </div>
@@ -112,7 +117,10 @@
 
         document.getElementById('formArribo').addEventListener('submit', function(e) {
             e.preventDefault();
-            document.getElementById('btnS').disabled = true;
+            
+            const btn = document.getElementById('btnS');
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
             
             const data = {
                 calle: document.getElementById('calle').value,
@@ -127,8 +135,13 @@
             };
 
             db.ref('arribos_coincidencia').push(data).then(() => {
-                alert("Registrado correctamente");
+                alert("Registrado correctamente en Caseta");
                 location.reload();
+            }).catch((error) => {
+                // Si Firebase rechaza la conexión, te lo dirá aquí.
+                alert("Hubo un error de conexión con la base de datos: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "📍 REGISTRAR ARRIBO";
             });
         });
     </script>
