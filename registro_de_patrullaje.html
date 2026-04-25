@@ -13,15 +13,11 @@
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
-        select, input { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        select, input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
         .vehiculo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .distintivos-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; }
-        
         .distintivo-btn { padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; border: 3px solid transparent; display: block; }
-        
-        /* CORRECCIÓN: No usar display:none. Los ocultamos sin que el navegador pierda la capacidad de validarlos */
         .distintivo-btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-        
         .btn-amarillo { background-color: #F1C40F; }
         .btn-naranja { background-color: #E67E22; color: white; }
         .btn-verde { background-color: #2ECC71; color: white; }
@@ -33,7 +29,7 @@
 <body>
     <div class="header">
         <h1>El Cielo Parque Residencial</h1>
-        <p>"FIRMEZA NO PREPOTENCIA"</p>
+        <p>"FIRMEZA, NO PREPOTENCIA"</p>
     </div>
     <div class="container">
         <form id="formArribo">
@@ -78,16 +74,16 @@
                 <label>Distintivo:</label>
                 <div class="distintivos-container">
                     <label class="distintivo-btn btn-amarillo" id="l-am">
-                        <input type="radio" name="Distintivo" value="Amarillo" required onclick="sel('l-am')"> Amarillo
+                        <input type="radio" name="Distintivo" value="Amarillo" required onclick="window.sel('l-am')"> Amarillo
                     </label>
                     <label class="distintivo-btn btn-naranja" id="l-na">
-                        <input type="radio" name="Distintivo" value="Naranja" required onclick="sel('l-na')"> Naranja
+                        <input type="radio" name="Distintivo" value="Naranja" required onclick="window.sel('l-na')"> Naranja
                     </label>
                     <label class="distintivo-btn btn-verde" id="l-ve">
-                        <input type="radio" name="Distintivo" value="Verde" required onclick="sel('l-ve')"> Verde
+                        <input type="radio" name="Distintivo" value="Verde" required onclick="window.sel('l-ve')"> Verde
                     </label>
                     <label class="distintivo-btn btn-gris" id="l-gr">
-                        <input type="radio" name="Distintivo" value="Gris" required onclick="sel('l-gr')"> Gris
+                        <input type="radio" name="Distintivo" value="Gris" required onclick="window.sel('l-gr')"> Gris
                     </label>
                 </div>
             </div>
@@ -95,54 +91,55 @@
         </form>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com",
             projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            storageBucket: "sistema-vigilancia-6851e.appspot.com",
             messagingSenderId: "714792023462",
             appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        function sel(id) {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.sel = function(id) {
             document.querySelectorAll('.distintivo-btn').forEach(el => el.classList.remove('selected'));
             document.getElementById(id).classList.add('selected');
         }
 
-        document.getElementById('formArribo').addEventListener('submit', function(e) {
+        document.getElementById('formArribo').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
             const btn = document.getElementById('btnS');
             btn.disabled = true;
-            btn.innerText = "Enviando...";
+            btn.innerText = "Registrando...";
             
-            const data = {
-                calle: document.getElementById('calle').value,
-                numero: document.getElementById('numero').value,
-                tipo_visita: document.getElementById('tipo_visita').value,
-                placas: document.getElementById('placas').value || "N/A",
-                marca: document.getElementById('marca').value || "N/A",
-                color: document.getElementById('color').value || "N/A",
-                distintivo: document.querySelector('input[name="Distintivo"]:checked').value,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                estado: "Pendiente"
-            };
+            try {
+                const data = {
+                    calle: document.getElementById('calle').value,
+                    numero: document.getElementById('numero').value,
+                    tipo_visita: document.getElementById('tipo_visita').value,
+                    placas: document.getElementById('placas').value || "N/A",
+                    marca: document.getElementById('marca').value || "N/A",
+                    color: document.getElementById('color').value || "N/A",
+                    distintivo: document.querySelector('input[name="Distintivo"]:checked').value,
+                    timestamp: new Date().getTime(),
+                    estado: "Pendiente"
+                };
 
-            db.ref('arribos_coincidencia').push(data).then(() => {
+                await addDoc(collection(db, "arribos_coincidencia"), data);
                 alert("Registrado correctamente en Caseta");
                 location.reload();
-            }).catch((error) => {
-                // Si Firebase rechaza la conexión, te lo dirá aquí.
-                alert("Hubo un error de conexión con la base de datos: " + error.message);
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un error al registrar: " + error.message);
                 btn.disabled = false;
                 btn.innerText = "📍 REGISTRAR ARRIBO";
-            });
+            }
         });
     </script>
 </body>
