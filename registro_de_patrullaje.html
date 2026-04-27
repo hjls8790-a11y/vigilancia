@@ -118,6 +118,8 @@
             btn.disabled = true;
             btn.innerText = "Registrando...";
             
+            const hoy = new Date();
+            
             try {
                 const data = {
                     calle: document.getElementById('calle').value,
@@ -127,7 +129,9 @@
                     marca: document.getElementById('marca').value || "N/A",
                     color: document.getElementById('color').value || "N/A",
                     distintivo: document.querySelector('input[name="Distintivo"]:checked').value,
-                    timestamp: new Date().getTime(),
+                    fecha: hoy.toLocaleDateString('es-MX'), // Guarda la fecha explícita
+                    hora: hoy.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }), // Guarda la hora
+                    timestamp: hoy.getTime(),
                     estado: "Pendiente"
                 };
 
