@@ -6,23 +6,35 @@
     <title>Monitor El Cielo - Tiempo Real</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: white; padding: 20px; margin: 0;}
-        .header { margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
+        .header { margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; }
         .header h2 { margin: 0; color: white; }
+        
+        /* Estilos del Buscador */
+        .search-container { margin-top: 15px; }
+        .search-input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #3b82f6; background-color: #1e293b; color: white; font-size: 1rem; box-sizing: border-box; outline: none; }
+        .search-input::placeholder { color: #94a3b8; }
+        .search-input:focus { border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+
         .grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
         .card { background: #1e293b; padding: 15px; border-radius: 8px; border-top: 5px solid #3b82f6; position: relative; }
         .flash-anim { animation: flash 2s; }
         @keyframes flash { from { box-shadow: 0 0 20px #3b82f6; } to { box-shadow: none; } }
         .card h3 { margin: 0; color: #38bdf8; font-size: 1.1rem; text-transform: uppercase;}
-        .info { font-size: 0.95rem; margin-top: 8px; color: #cbd5e1; line-height: 1.4;}
+        .info { font-size: 0.95rem; margin-top: 8px; color: #cbd5e1; line-height: 1.5;}
         .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; margin-top: 10px; color: black; }
-        .btn-revisar { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 4px; background: #ef4444; color: white; cursor: pointer; font-weight: bold; font-size: 1rem;}
-        .revisado { background: #10b981 !important; cursor: default;}
+        
+        .btn-revisar { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 4px; background: #ef4444; color: white; cursor: pointer; font-weight: bold; font-size: 1rem; transition: background 0.3s;}
+        .revisado { background: #10b981 !important; cursor: default; } /* Verde para revisado */
     </style>
 </head>
 <body>
     <div class="header">
         <h2>Monitor de Arribos - Seguridad por Coincidencia</h2>
         <p style="margin: 5px 0 0 0; color: #94a3b8; font-size: 0.9rem;">El Cielo Parque Residencial</p>
+        
+        <div class="search-container">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar por fecha (ej. 27/04/2026), marca, color, o distintivo..." onkeyup="window.filtrarTarjetas()">
+        </div>
     </div>
     
     <div class="grid" id="container"></div>
@@ -43,25 +55,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Consulta: Traer los últimos 25 registros, ordenados por el más reciente
-        const q = query(collection(db, "arribos_coincidencia"), orderBy("timestamp", "desc"), limit(25));
+        // Cargamos los últimos 100 registros para que el buscador tenga margen de maniobra en el turno
+        const q = query(collection(db, "arribos_coincidencia"), orderBy("timestamp", "desc"), limit(100));
 
         onSnapshot(q, (snapshot) => {
             const container = document.getElementById('container');
-            container.innerHTML = ''; // Limpiar y repintar para mantener orden exacto
+            container.innerHTML = ''; 
 
             snapshot.forEach((docSnap) => {
                 const d = docSnap.data();
                 const id = docSnap.id;
                 
-                // Formatear hora
-                const fecha = new Date(d.timestamp);
-                const hora = fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                // Usamos la fecha y hora que mandó el agente, o calculamos si no existen (retrocompatibilidad)
+                const fechaMostrar = d.fecha || new Date(d.timestamp).toLocaleDateString('es-MX');
+                const horaMostrar = d.hora || new Date(d.timestamp).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
                 const card = document.createElement('div');
-                card.className = 'card';
+                card.className = 'card tarjeta-arribo'; // Agregamos clase para el buscador
                 
-                // Efecto visual de destello solo si el registro tiene menos de 15 segundos
                 if((new Date().getTime() - d.timestamp) < 15000) {
                     card.classList.add('flash-anim');
                 }
@@ -69,17 +80,20 @@
                 card.innerHTML = `
                     <h3>${d.calle} #${d.numero}</h3>
                     <div class="info">
-                        <b>Hora:</b> ${hora}<br>
+                        <b>Fecha:</b> ${fechaMostrar} a las ${horaMostrar}<br>
                         <b>Visita:</b> ${d.tipo_visita}<br>
                         <b>Vehículo:</b> ${d.marca} ${d.color} [${d.placas}]
                     </div>
                     <span class="tag" style="background:${getCol(d.distintivo)}">DISTINTIVO ${d.distintivo.toUpperCase()}</span>
                     <button id="btn-${id}" class="btn-revisar ${d.estado === 'Revisado' ? 'revisado' : ''}" onclick="window.auditar('${id}')" ${d.estado === 'Revisado' ? 'disabled' : ''}>
-                        ${d.estado === 'Revisado' ? 'AUDITADO ✓' : 'MARCAR REVISADO'}
+                        ${d.estado === 'Revisado' ? 'REVISADO ✓' : 'MARCAR REVISADO'}
                     </button>
                 `;
                 container.appendChild(card);
             });
+            
+            // Volver a aplicar el filtro visual si se actualiza la base de datos mientras alguien busca
+            window.filtrarTarjetas(); 
         });
 
         function getCol(d) {
@@ -90,12 +104,27 @@
             const btn = document.getElementById('btn-' + id);
             btn.innerText = "Auditando...";
             try {
-                // Actualiza el documento en Firestore
                 await updateDoc(doc(db, "arribos_coincidencia", id), { estado: "Revisado" });
             } catch(error) {
                 alert("Error al actualizar: " + error.message);
                 btn.innerText = "MARCAR REVISADO";
             }
+        };
+
+        // Función del Buscador en tiempo real
+        window.filtrarTarjetas = function() {
+            const textoBusqueda = document.getElementById('buscador').value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.tarjeta-arribo');
+
+            tarjetas.forEach(tarjeta => {
+                const contenido = tarjeta.innerText.toLowerCase();
+                // Si la tarjeta contiene el texto buscado, se muestra, si no, se oculta
+                if (contenido.includes(textoBusqueda)) {
+                    tarjeta.style.display = 'block';
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
         };
     </script>
 </body>
