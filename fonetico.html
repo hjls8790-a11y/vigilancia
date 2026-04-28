@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alfabeto Fonético y Manual de Radio</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            text-align: center;
+        }
+
+        /* Botón de Audio Principal */
+        .audio-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Cuadrícula del Alfabeto */
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .letter-card {
+            background: var(--card-bg);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .letter-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .letter {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            display: block;
+        }
+
+        .word {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        /* Manual de Radio */
+        .manual-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .manual-section ul {
+            padding-left: 20px;
+        }
+
+        .manual-section li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📻 Aprende el Alfabeto Fonético</h1>
+        <p style="text-align: center;">Haz clic en "Leer todo" o toca cualquier tarjeta para escuchar la pronunciación.</p>
+
+        <div class="audio-controls">
+            <button onclick="readAll()" id="btnReadAll">
+                🔊 Leer alfabeto completo
+            </button>
+            <button onclick="stopAudio()" style="background-color: #ef4444; margin-left: 10px;">
+                ⏹️ Detener
+            </button>
+        </div>
+
+        <div class="alphabet-grid" id="alphabetGrid">
+            </div>
+
+        <hr style="border: 1px solid #e2e8f0; margin: 40px 0;">
+
+        <div class="manual-section">
+            <h2>🎙️ Manual Rápido para Uso de Radio</h2>
+            <p>La comunicación por radio (VHF/UHF) requiere disciplina para ser clara y efectiva. Sigue estas reglas de oro:</p>
+            
+            <ul>
+                <li><strong>Piensa antes de hablar:</strong> Ten claro el mensaje antes de presionar el botón PTT (Push-To-Talk). El tiempo en el aire es valioso.</li>
+                <li><strong>La regla de los 2 segundos:</strong> Presiona el botón PTT, <em>espera 1 o 2 segundos</em> y luego comienza a hablar. Si hablas de inmediato, la primera palabra se cortará.</li>
+                <li><strong>Sé breve y claro:</strong> Usa frases cortas. Evita muletillas como "ehh", "este", "bueno".</li>
+                <li><strong>Usa el alfabeto fonético:</strong> Al deletrear nombres, matrículas, placas o códigos importantes, usa siempre el alfabeto fonético de la OTAN (Alfa, Bravo, Charlie...) para evitar confusiones entre letras como B y V, o M y N.</li>
+                <li><strong>"Cambio" vs "Corto":</strong> 
+                    <ul>
+                        <li>Di <strong>"Cambio"</strong> (Over) cuando terminas tu frase y esperas que el otro responda.</li>
+                        <li>Di <strong>"Corto"</strong> o "Fuera" (Out) cuando la conversación terminó y no esperas respuesta.</li>
+                        <li><em>Nota: Nunca digas "Cambio y fuera". Es contradictorio (espero respuesta, pero ya me fui).</em></li>
+                    </ul>
+                </li>
+                <li><strong>Acrónimos básicos:</strong> "Recibido" (Entendí el mensaje), "Afirmativo" (Sí), "Negativo" (No). En radio no se dice "sí" o "no" a secas porque la estática puede borrarlos.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Datos del Alfabeto Fonético
+        const phoneticData = [
+            { letter: 'A', word: 'Alfa' }, { letter: 'B', word: 'Bravo' },
+            { letter: 'C', word: 'Charlie' }, { letter: 'D', word: 'Delta' },
+            { letter: 'E', word: 'Echo' }, { letter: 'F', word: 'Foxtrot' },
+            { letter: 'G', word: 'Golf' }, { letter: 'H', word: 'Hotel' },
+            { letter: 'I', word: 'India' }, { letter: 'J', word: 'Juliett' },
+            { letter: 'K', word: 'Kilo' }, { letter: 'L', word: 'Lima' },
+            { letter: 'M', word: 'Mike' }, { letter: 'N', word: 'November' },
+            { letter: 'O', word: 'Oscar' }, { letter: 'P', word: 'Papa' },
+            { letter: 'Q', word: 'Quebec' }, { letter: 'R', word: 'Romeo' },
+            { letter: 'S', word: 'Sierra' }, { letter: 'T', word: 'Tango' },
+            { letter: 'U', word: 'Uniform' }, { letter: 'V', word: 'Victor' },
+            { letter: 'W', word: 'Whiskey' }, { letter: 'X', word: 'X-ray' },
+            { letter: 'Y', word: 'Yankee' }, { letter: 'Z', word: 'Zulu' }
+        ];
+
+        const grid = document.getElementById('alphabetGrid');
+
+        // Generar las tarjetas en el HTML
+        phoneticData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'letter-card';
+            card.onclick = () => speakText(item.word);
+            card.innerHTML = `
+                <span class="letter">${item.letter}</span>
+                <span class="word">${item.word}</span>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Función para hablar
+        function speakText(text) {
+            // Detener cualquier audio previo
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            // Configuramos un idioma base. Usamos 'en-US' o 'en-GB' para que la 
+            // pronunciación de palabras como "Whiskey" o "Charlie" suene correcta según la OTAN.
+            utterance.lang = 'en-US'; 
+            utterance.rate = 0.9; // Un poco más lento para mayor claridad
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Función para leer todo el alfabeto
+        function readAll() {
+            const fullText = phoneticData.map(item => item.word).join(", ");
+            speakText(fullText);
+        }
+
+        // Función para detener el audio
+        function stopAudio() {
+            window.speechSynthesis.cancel();
+        }
+    </script>
+</body>
+</html>
