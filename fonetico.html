@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alfabeto Fonético y Manual de Radio</title>
+    <title>Alfabeto Fonético y Claves de Radio</title>
     <style>
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
+            --secondary: #e74c3c;
+            --secondary-hover: #c0392b;
             --bg-color: #f8fafc;
             --text-color: #1e293b;
             --card-bg: #ffffff;
@@ -23,7 +25,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -32,29 +34,44 @@
             text-align: center;
         }
 
-        /* Botón de Audio Principal */
+        h2.codes-title {
+            color: var(--secondary);
+            margin-top: 40px;
+        }
+
+        /* Controles de Audio */
         .audio-controls {
             text-align: center;
             margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 16px;
+            padding: 12px 20px;
+            font-size: 15px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-weight: bold;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+        button:hover { background-color: var(--primary-hover); }
+        button:active { transform: scale(0.96); }
+
+        .btn-stop { background-color: #64748b; }
+        .btn-stop:hover { background-color: #475569; }
+
+        .btn-codes { background-color: var(--secondary); }
+        .btn-codes:hover { background-color: var(--secondary-hover); }
 
         /* Cuadrícula del Alfabeto */
         .alphabet-grid {
@@ -64,7 +81,15 @@
             margin-bottom: 40px;
         }
 
-        .letter-card {
+        /* Cuadrícula de Claves (más ancha para texto largo) */
+        .codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .card {
             background: var(--card-bg);
             border: 1px solid #e2e8f0;
             border-radius: 8px;
@@ -72,25 +97,35 @@
             text-align: center;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .letter-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-color: var(--primary);
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
 
-        .letter {
+        .alphabet-grid .card:hover { border-color: var(--primary); }
+        .codes-grid .card:hover { border-color: var(--secondary); }
+
+        .main-text {
             font-size: 24px;
             font-weight: bold;
-            color: var(--primary);
             display: block;
         }
 
-        .word {
-            font-size: 16px;
+        .alphabet-grid .main-text { color: var(--primary); }
+        .codes-grid .main-text { color: var(--secondary); font-size: 28px;}
+
+        .sub-text {
+            font-size: 15px;
             color: #64748b;
+            margin-top: 5px;
+            line-height: 1.3;
         }
 
         /* Manual de Radio */
@@ -99,60 +134,61 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-top: 40px;
         }
 
-        .manual-section ul {
-            padding-left: 20px;
-        }
-
-        .manual-section li {
-            margin-bottom: 10px;
-        }
+        .manual-section ul { padding-left: 20px; }
+        .manual-section li { margin-bottom: 10px; }
+        hr { border: 1px solid #e2e8f0; margin: 40px 0; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>📻 Aprende el Alfabeto Fonético</h1>
-        <p style="text-align: center;">Haz clic en "Leer todo" o toca cualquier tarjeta para escuchar la pronunciación.</p>
+        <h1>📻 Alfabeto Fonético OTAN</h1>
+        <p style="text-align: center; color: #64748b;">Toca cualquier tarjeta para escuchar su pronunciación.</p>
 
         <div class="audio-controls">
-            <button onclick="readAll()" id="btnReadAll">
-                🔊 Leer alfabeto completo
-            </button>
-            <button onclick="stopAudio()" style="background-color: #ef4444; margin-left: 10px;">
-                ⏹️ Detener
-            </button>
+            <button onclick="readAlphabet()">🔊 Leer Alfabeto</button>
+            <button class="btn-stop" onclick="stopAudio()">⏹️ Detener Audio</button>
         </div>
 
-        <div class="alphabet-grid" id="alphabetGrid">
-            </div>
+        <div class="alphabet-grid" id="alphabetGrid"></div>
 
-        <hr style="border: 1px solid #e2e8f0; margin: 40px 0;">
+        <hr>
+
+        <h2 class="codes-title">🚨 Claves Operativas (1-100)</h2>
+        <p style="text-align: center; color: #64748b;">Toca la clave para escuchar su significado en español.</p>
+
+        <div class="audio-controls">
+            <button class="btn-codes" onclick="readCodes()">🔊 Leer Claves</button>
+            <button class="btn-stop" onclick="stopAudio()">⏹️ Detener Audio</button>
+        </div>
+
+        <div class="codes-grid" id="codesGrid"></div>
+
+        <hr>
 
         <div class="manual-section">
             <h2>🎙️ Manual Rápido para Uso de Radio</h2>
-            <p>La comunicación por radio (VHF/UHF) requiere disciplina para ser clara y efectiva. Sigue estas reglas de oro:</p>
-            
+            <p>La comunicación por radio requiere disciplina para ser clara y efectiva. Sigue estas reglas de oro:</p>
             <ul>
-                <li><strong>Piensa antes de hablar:</strong> Ten claro el mensaje antes de presionar el botón PTT (Push-To-Talk). El tiempo en el aire es valioso.</li>
+                <li><strong>Piensa antes de hablar:</strong> Ten claro el mensaje antes de presionar el botón PTT. El tiempo en el aire es valioso.</li>
                 <li><strong>La regla de los 2 segundos:</strong> Presiona el botón PTT, <em>espera 1 o 2 segundos</em> y luego comienza a hablar. Si hablas de inmediato, la primera palabra se cortará.</li>
                 <li><strong>Sé breve y claro:</strong> Usa frases cortas. Evita muletillas como "ehh", "este", "bueno".</li>
-                <li><strong>Usa el alfabeto fonético:</strong> Al deletrear nombres, matrículas, placas o códigos importantes, usa siempre el alfabeto fonético de la OTAN (Alfa, Bravo, Charlie...) para evitar confusiones entre letras como B y V, o M y N.</li>
+                <li><strong>Usa las claves y el alfabeto:</strong> Utiliza los códigos numéricos para acortar mensajes y el alfabeto fonético para deletrear placas o nombres complejos.</li>
                 <li><strong>"Cambio" vs "Corto":</strong> 
                     <ul>
-                        <li>Di <strong>"Cambio"</strong> (Over) cuando terminas tu frase y esperas que el otro responda.</li>
-                        <li>Di <strong>"Corto"</strong> o "Fuera" (Out) cuando la conversación terminó y no esperas respuesta.</li>
-                        <li><em>Nota: Nunca digas "Cambio y fuera". Es contradictorio (espero respuesta, pero ya me fui).</em></li>
+                        <li>Di <strong>"Cambio"</strong> cuando terminas tu frase y esperas que el otro responda.</li>
+                        <li>Di <strong>"Corto"</strong> o "Fuera" cuando la conversación terminó y no esperas respuesta.</li>
                     </ul>
                 </li>
-                <li><strong>Acrónimos básicos:</strong> "Recibido" (Entendí el mensaje), "Afirmativo" (Sí), "Negativo" (No). En radio no se dice "sí" o "no" a secas porque la estática puede borrarlos.</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // Datos del Alfabeto Fonético
+        // --- DATOS DEL ALFABETO ---
         const phoneticData = [
             { letter: 'A', word: 'Alfa' }, { letter: 'B', word: 'Bravo' },
             { letter: 'C', word: 'Charlie' }, { letter: 'D', word: 'Delta' },
@@ -169,41 +205,111 @@
             { letter: 'Y', word: 'Yankee' }, { letter: 'Z', word: 'Zulu' }
         ];
 
-        const grid = document.getElementById('alphabetGrid');
+        // --- DATOS DE LAS CLAVES (Extraídas de la imagen) ---
+        const codesData = [
+            { code: '1', meaning: 'Servicio / Dirigirse' },
+            { code: '2', meaning: 'Filtro o punto de revisión' },
+            { code: '3', meaning: 'Reunión' },
+            { code: '6', meaning: 'Relevo' },
+            { code: '7', meaning: 'Ubicación' },
+            { code: '8', meaning: 'Negativo' },
+            { code: '9', meaning: 'Novedad' },
+            { code: '11', meaning: 'Investigar' },
+            { code: '12', meaning: 'Comida' },
+            { code: '14', meaning: 'Apoyo' },
+            { code: '15', meaning: 'Repetir' },
+            { code: '16', meaning: 'Disturbio, alegato, confrontación' },
+            { code: '17', meaning: 'Falso' },
+            { code: '18', meaning: 'Dinero' },
+            { code: '19', meaning: 'Orden' },
+            { code: '20', meaning: 'Autorización' },
+            { code: '23', meaning: 'Teléfono' },
+            { code: '24', meaning: 'Detenido' },
+            { code: '27', meaning: 'Contacto' },
+            { code: '28', meaning: 'Choque / Daños' },
+            { code: '29', meaning: 'Policía / Compañero' },
+            { code: '30', meaning: 'Administración (30-1 Lizet / 30-M Mantenimiento)' },
+            { code: '31', meaning: 'Salir' },
+            { code: '32', meaning: 'Radio' },
+            { code: '33', meaning: 'Necesidad fisiológica' },
+            { code: '34', meaning: 'Banco' },
+            { code: '35', meaning: 'Sospechoso' },
+            { code: '36', meaning: 'Persona' },
+            { code: '37', meaning: 'Médico' },
+            { code: '38', meaning: 'Orden cumplida' },
+            { code: '39', meaning: 'Arma de fuego' },
+            { code: '40', meaning: 'Arma blanca' },
+            { code: '41', meaning: 'Muerto' },
+            { code: '43', meaning: 'Fuga' },
+            { code: '44', meaning: 'Escolta / Seguir' },
+            { code: '45', meaning: 'Combustible' },
+            { code: '47', meaning: 'Robo' },
+            { code: '50', meaning: 'Peligro' },
+            { code: '51', meaning: 'Drogas' },
+            { code: '52', meaning: 'Alcohol' },
+            { code: '55', meaning: 'Herido' },
+            { code: '56', meaning: 'Enterado' },
+            { code: '57', meaning: 'Pendiente' },
+            { code: '60', meaning: 'Traslado' },
+            { code: '61', meaning: 'Disparos arma de fuego' },
+            { code: '65', meaning: 'Automóvil' },
+            { code: '66', meaning: 'Camioneta' },
+            { code: '67', meaning: 'Plataforma' },
+            { code: '68', meaning: 'Volteo / Retroexcavadora / Bomba' },
+            { code: '69', meaning: 'Bien' },
+            { code: '70', meaning: 'Mal' },
+            { code: '100', meaning: 'Emergencia / Urgencia' }
+        ];
 
-        // Generar las tarjetas en el HTML
+        // --- RENDERIZADO DEL ALFABETO ---
+        const alphaGrid = document.getElementById('alphabetGrid');
         phoneticData.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'letter-card';
-            card.onclick = () => speakText(item.word);
+            card.className = 'card';
+            // Pasa el idioma inglés para el alfabeto
+            card.onclick = () => speakText(item.word, 'en-US');
             card.innerHTML = `
-                <span class="letter">${item.letter}</span>
-                <span class="word">${item.word}</span>
+                <span class="main-text">${item.letter}</span>
+                <span class="sub-text">${item.word}</span>
             `;
-            grid.appendChild(card);
+            alphaGrid.appendChild(card);
         });
 
-        // Función para hablar
-        function speakText(text) {
-            // Detener cualquier audio previo
+        // --- RENDERIZADO DE LAS CLAVES ---
+        const codeGrid = document.getElementById('codesGrid');
+        codesData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            // Pasa el idioma español para las claves
+            card.onclick = () => speakText(`Clave ${item.code}: ${item.meaning}`, 'es-MX');
+            card.innerHTML = `
+                <span class="main-text">${item.code}</span>
+                <span class="sub-text">${item.meaning}</span>
+            `;
+            codeGrid.appendChild(card);
+        });
+
+        // --- FUNCIÓN DE AUDIO MULTILENGUAJE ---
+        function speakText(text, langCode) {
             window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
-            // Configuramos un idioma base. Usamos 'en-US' o 'en-GB' para que la 
-            // pronunciación de palabras como "Whiskey" o "Charlie" suene correcta según la OTAN.
-            utterance.lang = 'en-US'; 
-            utterance.rate = 0.9; // Un poco más lento para mayor claridad
-            
+            utterance.lang = langCode; 
+            utterance.rate = 0.95; 
             window.speechSynthesis.speak(utterance);
         }
 
-        // Función para leer todo el alfabeto
-        function readAll() {
+        // --- FUNCIONES DE BOTONES PRINCIPALES ---
+        function readAlphabet() {
             const fullText = phoneticData.map(item => item.word).join(", ");
-            speakText(fullText);
+            speakText(fullText, 'en-US');
         }
 
-        // Función para detener el audio
+        function readCodes() {
+            // Construimos una frase amigable para que la lea de corrido
+            const fullText = codesData.map(item => `Clave ${item.code}, ${item.meaning}.`).join(" ");
+            speakText(fullText, 'es-MX');
+        }
+
         function stopAudio() {
             window.speechSynthesis.cancel();
         }
