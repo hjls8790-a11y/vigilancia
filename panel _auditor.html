@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Auditoría | Asamblea</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a3a; color: white; margin: 0; padding: 20px; }
+        h1 { color: #f1c40f; text-align: center; text-transform: uppercase; }
+        .table-container { width: 100%; overflow-x: auto; margin-top: 20px; background: #23374d; padding: 15px; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { background: #3498db; color: white; }
+        tr:hover { background: rgba(52, 152, 219, 0.2); }
+        .img-firma { background: white; border-radius: 4px; height: 50px; border: 1px solid #ccc; }
+        .link-mapa { color: #2ecc71; text-decoration: none; font-weight: bold; background: rgba(46, 204, 113, 0.2); padding: 5px 10px; border-radius: 4px; }
+        .link-mapa:hover { background: #2ecc71; color: #1a2a3a; }
+        #loading { text-align: center; color: #3498db; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>📊 Panel de Auditoría - Asamblea</h1>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha / Hora</th>
+                    <th>Unidad</th>
+                    <th>Propietario</th>
+                    <th>Voto</th>
+                    <th>Ubicación GPS</th>
+                    <th>Firma Digital</th>
+                </tr>
+            </thead>
+            <tbody id="tablaCuerpo"></tbody>
+        </table>
+        <div id="loading">Cargando registros...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebaseapp.com",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function cargarDatos() {
+            const tbody = document.getElementById('tablaCuerpo');
+            const loading = document.getElementById('loading');
+
+            try {
+                // Ordenamos usando el timestamp manual que creamos
+                const q = query(collection(db, "asistencia_asamblea"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                loading.style.display = 'none';
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    
+                    const linkMapa = `https://www.google.com/maps/search/?api=1&query=${data.latitud},${data.longitud}`;
+
+                    tr.innerHTML = `
+                        <td>${data.fecha || 'Sin fecha'}</td>
+                        <td><strong>${data.unidad}</strong></td>
+                        <td>${data.nombre}</td>
+                        <td><strong>${data.voto}</strong></td>
+                        <td><a href="${linkMapa}" target="_blank" class="link-mapa">📍 Ver en Mapa</a></td>
+                        <td><img src="${data.firma}" class="img-firma" alt="Firma"></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros todavía.</td></tr>';
+                }
+
+            } catch (error) {
+                console.error(error);
+                loading.innerText = "Error al conectar con la base de datos.";
+            }
+        }
+
+        cargarDatos();
+    </script>
+</body>
+</html>
