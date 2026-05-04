@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Consignas - Seguridad</title>
+    <style>
+        :root { --bg: #f4f7f6; --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
+        .header { background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.8rem; }
+        
+        /* Formulario de Creación */
+        .crear-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; border-left: 5px solid var(--accent); }
+        .form-group { margin-bottom: 15px; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; box-sizing: border-box; font-family: inherit; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-crear { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        
+        /* Tarjetas de Consignas */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;}
+        .card-header { padding: 15px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center;}
+        .card-header h3 { margin: 0; font-size: 1.2rem; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge.activa { background: var(--warning); color: black; }
+        .badge.completada { background: var(--success); color: white; }
+        .card-body { padding: 15px; flex-grow: 1;}
+        .desc { background: #f8fafc; padding: 10px; border-radius: 5px; font-size: 0.95rem; margin-bottom: 15px; border-left: 3px solid #cbd5e1;}
+        
+        /* Sección Enterados */
+        .enterados-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .btn-enterado { padding: 8px; border: 1px solid #cbd5e1; background: white; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; }
+        .btn-enterado.confirmado { background: var(--success); color: white; border-color: var(--success); cursor: default; }
+        
+        /* Sección Seguimiento */
+        .seguimiento-box { border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px; }
+        .seg-lista { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 150px; overflow-y: auto; font-size: 0.85rem;}
+        .seg-lista li { background: #f1f5f9; margin-bottom: 5px; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent);}
+        .input-group { display: flex; gap: 5px; margin-bottom: 15px;}
+        .btn-accion { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        
+        /* Sección Conclusión */
+        .conclusion-box { background: #ecfdf5; padding: 15px; border-radius: 5px; border-left: 4px solid var(--success); margin-top: auto;}
+        .conclusion-box h4 { margin: 0 0 5px 0; color: #065f46; }
+        .btn-finalizar { background: #ef4444; color: white; width: 100%; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Plataforma de Consignas y Seguimiento</h1>
+    </div>
+
+    <!-- Panel para crear nueva consigna -->
+    <div class="crear-panel">
+        <form id="formNuevaConsigna">
+            <div class="form-group">
+                <input type="text" id="titulo" placeholder="Título o Asunto de la Consigna" required>
+            </div>
+            <div class="form-group">
+                <textarea id="descripcion" placeholder="Describe detalladamente la consigna o instrucción..." required></textarea>
+            </div>
+            <button type="submit" class="btn-crear" id="btnCrear">NUEVA CONSIGNA</button>
+        </form>
+    </div>
+
+    <!-- Contenedor donde aparecerán las consignas -->
+    <div class="grid" id="contenedorConsignas"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Tus credenciales de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.appspot.com",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. CREAR NUEVA CONSIGNA
+        document.getElementById('formNuevaConsigna').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnCrear');
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            try {
+                await addDoc(collection(db, "consignas"), {
+                    titulo: document.getElementById('titulo').value,
+                    descripcion: document.getElementById('descripcion').value,
+                    fecha_creacion: new Date().getTime(),
+                    estado: "Activa",
+                    enterados: {
+                        Vinalay: false, Leroy: false, Alejandro: false, Abel: false
+                    },
+                    seguimientos: [],
+                    conclusion: ""
+                });
+                document.getElementById('formNuevaConsigna').reset();
+            } catch (error) {
+                alert("Error al crear: " + error.message);
+            }
+            btn.disabled = false;
+            btn.innerText = "NUEVA CONSIGNA";
+        });
+
+        // 2. LEER Y MOSTRAR CONSIGNAS EN TIEMPO REAL
+        const q = query(collection(db, "consignas"), orderBy("fecha_creacion", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            const contenedor = document.getElementById('contenedorConsignas');
+            contenedor.innerHTML = ''; // Limpiar
+
+            snapshot.forEach((docSnap) => {
+                const c = docSnap.data();
+                const id = docSnap.id;
+                const activa = c.estado === 'Activa';
+
+                // Generar lista de seguimientos
+                let htmlSeguimientos = c.seguimientos.map(seg => `<li>${seg}</li>`).join('');
+
+                // Generar botones de enterado
+                const encargados = ['Vinalay', 'Leroy', 'Alejandro', 'Abel'];
+                let htmlEnterados = encargados.map(nombre => {
+                    const confirmado = c.enterados[nombre];
+                    return `
+                        <button class="btn-enterado ${confirmado ? 'confirmado' : ''}" 
+                                ${confirmado || !activa ? 'disabled' : `onclick="window.marcarEnterado('${id}', '${nombre}')"`}>
+                            ${nombre}: ${confirmado ? '✓ Enterado' : 'Pendiente'}
+                        </button>
+                    `;
+                }).join('');
+
+                // Construir la Tarjeta HTML
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'card';
+                tarjeta.innerHTML = `
+                    <div class="card-header">
+                        <h3>${c.titulo}</h3>
+                        <span class="badge ${activa ? 'activa' : 'completada'}">${c.estado}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="desc">${c.descripcion.replace(/\n/g, '<br>')}</div>
+                        
+                        <strong>Control de Enterados:</strong>
+                        <div class="enterados-grid">${htmlEnterados}</div>
+                        
+                        <div class="seguimiento-box">
+                            <strong>Seguimiento/Reportes:</strong>
+                            <ul class="seg-lista">${htmlSeguimientos || '<li>Sin seguimientos aún.</li>'}</ul>
+                            
+                            ${activa ? `
+                            <div class="input-group">
+                                <input type="text" id="seg_${id}" placeholder="Agregar nota de avance...">
+                                <button class="btn-accion" onclick="window.agregarSeguimiento('${id}')">Añadir</button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    ${activa ? `
+                    <div style="padding: 15px; border-top: 1px solid #eee;">
+                        <textarea id="conc_${id}" placeholder="Escribe la conclusión o resolución para cerrar la consigna..." style="min-height:50px; margin-bottom: 5px;"></textarea>
+                        <button class="btn-finalizar" onclick="window.finalizarConsigna('${id}')">CERRAR CONSIGNA</button>
+                    </div>
+                    ` : `
+                    <div class="conclusion-box">
+                        <h4>✓ Conclusión final:</h4>
+                        <p style="margin:0; font-size:0.95rem;">${c.conclusion}</p>
+                    </div>
+                    `}
+                `;
+                contenedor.appendChild(tarjeta);
+            });
+        });
+
+        // 3. FUNCIONES DE ACCIÓN (DISPONIBLES GLOBALMENTE)
+        
+        // Función para marcar enterado
+        window.marcarEnterado = async function(id, nombre) {
+            try {
+                const ref = doc(db, "consignas", id);
+                await updateDoc(ref, {
+                    [`enterados.${nombre}`]: true
+                });
+            } catch (error) { alert("Error: " + error.message); }
+        };
+
+        // Función para agregar un texto de seguimiento
+        window.agregarSeguimiento = async function(id) {
+            const input = document.getElementById(`seg_${id}`);
+            const texto = input.value.trim();
+            if(!texto) return alert("Escribe un seguimiento primero.");
+
+            // Crear string con fecha "DD/MM HH:MM - Texto"
+            const fecha = new Date();
+            const fechaStr = `${fecha.getDate()}/${fecha.getMonth()+1} ${fecha.getHours().toString().padStart(2,'0')}:${fecha.getMinutes().toString().padStart(2,'0')}`;
+            const notaFinal = `[${fechaStr}] - ${texto}`;
+
+            try {
+                await updateDoc(doc(db, "consignas", id), {
+                    seguimientos: arrayUnion(notaFinal)
+                });
+                input.value = ''; // Limpiar input
+            } catch (error) { alert("Error: " + error.message); }
+        };
+
+        // Función para cerrar y concluir la consigna
+        window.finalizarConsigna = async function(id) {
+            const input = document.getElementById(`conc_${id}`);
+            const conclusion = input.value.trim();
+            if(!conclusion) return alert("Debes escribir una conclusión para poder cerrar la consigna.");
+
+            if(confirm("¿Estás seguro de cerrar esta consigna? Ya no se podrán agregar seguimientos.")) {
+                try {
+                    await updateDoc(doc(db, "consignas", id), {
+                        estado: "Completada",
+                        conclusion: conclusion
+                    });
+                } catch (error) { alert("Error: " + error.message); }
+            }
+        };
+    </script>
+</body>
+</html>
