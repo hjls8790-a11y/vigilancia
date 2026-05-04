@@ -10,6 +10,10 @@
         .header { background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
         .header h1 { margin: 0; font-size: 1.8rem; }
         
+        /* Buscador */
+        .search-input { width: 100%; padding: 15px; border-radius: 8px; border: 2px solid var(--accent); margin-bottom: 20px; font-size: 1rem; box-sizing: border-box; outline: none; }
+        .search-input:focus { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+
         /* Formulario de Creación */
         .crear-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; border-left: 5px solid var(--accent); }
         .form-group { margin-bottom: 15px; }
@@ -52,6 +56,9 @@
         <h1>Plataforma de Consignas y Seguimiento</h1>
     </div>
 
+    <!-- Buscador Integrado -->
+    <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar por palabra clave, estado (Activa / Completada), nombre o fecha..." onkeyup="window.filtrarConsignas()">
+
     <!-- Panel para crear nueva consigna -->
     <div class="crear-panel">
         <form id="formNuevaConsigna">
@@ -72,7 +79,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Tus credenciales de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -92,11 +98,15 @@
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
+            // Guardamos la fecha legible para que el buscador pueda leerla
+            const fechaStr = new Date().toLocaleDateString('es-MX');
+
             try {
                 await addDoc(collection(db, "consignas"), {
                     titulo: document.getElementById('titulo').value,
                     descripcion: document.getElementById('descripcion').value,
                     fecha_creacion: new Date().getTime(),
+                    fecha_legible: fechaStr,
                     estado: "Activa",
                     enterados: {
                         Vinalay: false, Leroy: false, Alejandro: false, Abel: false
@@ -117,17 +127,15 @@
         
         onSnapshot(q, (snapshot) => {
             const contenedor = document.getElementById('contenedorConsignas');
-            contenedor.innerHTML = ''; // Limpiar
+            contenedor.innerHTML = ''; 
 
             snapshot.forEach((docSnap) => {
                 const c = docSnap.data();
                 const id = docSnap.id;
                 const activa = c.estado === 'Activa';
 
-                // Generar lista de seguimientos
                 let htmlSeguimientos = c.seguimientos.map(seg => `<li>${seg}</li>`).join('');
 
-                // Generar botones de enterado
                 const encargados = ['Vinalay', 'Leroy', 'Alejandro', 'Abel'];
                 let htmlEnterados = encargados.map(nombre => {
                     const confirmado = c.enterados[nombre];
@@ -139,15 +147,15 @@
                     `;
                 }).join('');
 
-                // Construir la Tarjeta HTML
                 const tarjeta = document.createElement('div');
-                tarjeta.className = 'card';
+                tarjeta.className = 'card tarjeta-consigna'; // Añadida clase para el buscador
                 tarjeta.innerHTML = `
                     <div class="card-header">
                         <h3>${c.titulo}</h3>
                         <span class="badge ${activa ? 'activa' : 'completada'}">${c.estado}</span>
                     </div>
                     <div class="card-body">
+                        <small style="color: #64748b; display: block; margin-bottom: 10px;">Fecha: ${c.fecha_legible || 'N/A'}</small>
                         <div class="desc">${c.descripcion.replace(/\n/g, '<br>')}</div>
                         
                         <strong>Control de Enterados:</strong>
@@ -180,11 +188,12 @@
                 `;
                 contenedor.appendChild(tarjeta);
             });
+            
+            // Volver a aplicar filtro visual si alguien está buscando mientras se actualiza la base
+            window.filtrarConsignas();
         });
 
-        // 3. FUNCIONES DE ACCIÓN (DISPONIBLES GLOBALMENTE)
-        
-        // Función para marcar enterado
+        // 3. FUNCIONES DE ACCIÓN
         window.marcarEnterado = async function(id, nombre) {
             try {
                 const ref = doc(db, "consignas", id);
@@ -194,26 +203,23 @@
             } catch (error) { alert("Error: " + error.message); }
         };
 
-        // Función para agregar un texto de seguimiento
         window.agregarSeguimiento = async function(id) {
             const input = document.getElementById(`seg_${id}`);
             const texto = input.value.trim();
             if(!texto) return alert("Escribe un seguimiento primero.");
 
-            // Crear string con fecha "DD/MM HH:MM - Texto"
             const fecha = new Date();
-            const fechaStr = `${fecha.getDate()}/${fecha.getMonth()+1} ${fecha.getHours().toString().padStart(2,'0')}:${fecha.getMinutes().toString().padStart(2,'0')}`;
+            const fechaStr = `${fecha.getDate().toString().padStart(2,'0')}/${(fecha.getMonth()+1).toString().padStart(2,'0')} ${fecha.getHours().toString().padStart(2,'0')}:${fecha.getMinutes().toString().padStart(2,'0')}`;
             const notaFinal = `[${fechaStr}] - ${texto}`;
 
             try {
                 await updateDoc(doc(db, "consignas", id), {
                     seguimientos: arrayUnion(notaFinal)
                 });
-                input.value = ''; // Limpiar input
+                input.value = '';
             } catch (error) { alert("Error: " + error.message); }
         };
 
-        // Función para cerrar y concluir la consigna
         window.finalizarConsigna = async function(id) {
             const input = document.getElementById(`conc_${id}`);
             const conclusion = input.value.trim();
@@ -227,6 +233,21 @@
                     });
                 } catch (error) { alert("Error: " + error.message); }
             }
+        };
+
+        // 4. FUNCIÓN DEL BUSCADOR
+        window.filtrarConsignas = function() {
+            const textoBusqueda = document.getElementById('buscador').value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.tarjeta-consigna');
+
+            tarjetas.forEach(tarjeta => {
+                const contenido = tarjeta.innerText.toLowerCase();
+                if (contenido.includes(textoBusqueda)) {
+                    tarjeta.style.display = 'flex'; // Usamos flex para mantener el diseño original de la tarjeta
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
         };
     </script>
 </body>
