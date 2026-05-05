@@ -3,251 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Consignas - Seguridad</title>
+    <title>Control y Auditoría de Consignas</title>
     <style>
-        :root { --bg: #f4f7f6; --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        .header { background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 1.8rem; }
-        
-        /* Buscador */
-        .search-input { width: 100%; padding: 15px; border-radius: 8px; border: 2px solid var(--accent); margin-bottom: 20px; font-size: 1rem; box-sizing: border-box; outline: none; }
-        .search-input:focus { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+        :root {
+            --primary: #1a2a3a;
+            --secondary: #3498db;
+            --accent: #2980b9;
+            --bg-dark: #2c3e50;
+            --text-light: #ecf0f1;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+        }
 
-        /* Formulario de Creación */
-        .crear-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; border-left: 5px solid var(--accent); }
-        .form-group { margin-bottom: 15px; }
-        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; box-sizing: border-box; font-family: inherit; }
-        textarea { resize: vertical; min-height: 80px; }
-        .btn-crear { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121c26;
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: var(--primary);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Pestañas de Navegación */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background: var(--bg-dark);
+            padding: 10px 0 0 0;
+        }
+
+        .tab-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            margin: 0 5px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Formulario de Registro */
+        .card {
+            background: var(--bg-dark);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a2a3a;
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .btn-guardar {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .btn-guardar:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        /* Tabla de Historial */
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--bg-dark);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f2f6;
+        }
+
+        .badge-alta { background: var(--danger); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
+        .badge-media { background: var(--warning); color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
+        .badge-baja { background: var(--success); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;}
         
-        /* Tarjetas de Consignas */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;}
-        .card-header { padding: 15px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center;}
-        .card-header h3 { margin: 0; font-size: 1.2rem; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .badge.activa { background: var(--warning); color: black; }
-        .badge.completada { background: var(--success); color: white; }
-        .card-body { padding: 15px; flex-grow: 1;}
-        .desc { background: #f8fafc; padding: 10px; border-radius: 5px; font-size: 0.95rem; margin-bottom: 15px; border-left: 3px solid #cbd5e1;}
-        
-        /* Sección Enterados */
-        .enterados-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .btn-enterado { padding: 8px; border: 1px solid #cbd5e1; background: white; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; }
-        .btn-enterado.confirmado { background: var(--success); color: white; border-color: var(--success); cursor: default; }
-        
-        /* Sección Seguimiento */
-        .seguimiento-box { border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px; }
-        .seg-lista { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 150px; overflow-y: auto; font-size: 0.85rem;}
-        .seg-lista li { background: #f1f5f9; margin-bottom: 5px; padding: 8px; border-radius: 4px; border-left: 3px solid var(--accent);}
-        .input-group { display: flex; gap: 5px; margin-bottom: 15px;}
-        .btn-accion { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-        
-        /* Sección Conclusión */
-        .conclusion-box { background: #ecfdf5; padding: 15px; border-radius: 5px; border-left: 4px solid var(--success); margin-top: auto;}
-        .conclusion-box h4 { margin: 0 0 5px 0; color: #065f46; }
-        .btn-finalizar { background: #ef4444; color: white; width: 100%; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px;}
+        #btnActualizar {
+            background: var(--primary); color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; border: 1px solid var(--secondary);
+        }
+
+        /* Buscador */
+        .filtros-busqueda {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .input-busqueda {
+            background: white;
+            color: #333;
+            border: 1px solid #ccc;
+            flex: 1;
+            min-width: 180px;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Plataforma de Consignas y Seguimiento</h1>
+        <h1>📋 Control y Auditoría de Consignas</h1>
     </div>
 
-    <!-- Buscador Integrado -->
-    <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar por palabra clave, estado (Activa / Completada), nombre o fecha..." onkeyup="window.filtrarConsignas()">
-
-    <!-- Panel para crear nueva consigna -->
-    <div class="crear-panel">
-        <form id="formNuevaConsigna">
-            <div class="form-group">
-                <input type="text" id="titulo" placeholder="Título o Asunto de la Consigna" required>
-            </div>
-            <div class="form-group">
-                <textarea id="descripcion" placeholder="Describe detalladamente la consigna o instrucción..." required></textarea>
-            </div>
-            <button type="submit" class="btn-crear" id="btnCrear">NUEVA CONSIGNA</button>
-        </form>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarPestana('registro')">📝 Emitir Consigna</button>
+        <button class="tab-btn" onclick="cambiarPestana('historial'); cargarHistorial();">🔍 Auditoría de Operaciones</button>
     </div>
 
-    <!-- Contenedor donde aparecerán las consignas -->
-    <div class="grid" id="contenedorConsignas"></div>
+    <!-- PESTAÑA: REGISTRO DE CONSIGNA -->
+    <div id="registro" class="tab-content active">
+        <div class="card">
+            <h2 style="text-align: center; color: var(--secondary); margin-top: 0;">Registro Oficial de Instrucción</h2>
+            
+            <div class="form-group">
+                <label>📍 Sector / Ubicación</label>
+                <select id="consSector">
+                    <option value="El Cielo Parque Residencial">El Cielo Parque Residencial</option>
+                    <option value="Caseta Principal">Caseta Principal</option>
+                    <option value="Rondines / Perímetro">Rondines / Perímetro</option>
+                    <option value="Obras y Construcción">Obras y Construcción</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label>📌 Asunto / Título de la Consigna</label>
+                    <input type="text" id="consAsunto" placeholder="Ej. Control de acceso de proveedores" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>⚠️ Prioridad</label>
+                    <select id="consPrioridad">
+                        <option value="Alta">Alta (Roja)</option>
+                        <option value="Media">Media (Amarilla)</option>
+                        <option value="Baja">Baja (Verde)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>📅 Fecha de Emisión</label>
+                    <input type="date" id="consFecha" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>👮 Dirigido a (Responsables)</label>
+                    <input type="text" id="consReceptor" placeholder="Ej. Guillermo Jiménez, Turno Nocturno..." required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>📝 Descripción Detallada de la Instrucción</label>
+                <textarea id="consDesc" rows="5" placeholder="Redacta la consigna con la premisa de Oír, Ver y Callar..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>✍️ Emitida por (Autoriza)</label>
+                <input type="text" id="consEmisor" placeholder="Nombre de quien autoriza la instrucción" required>
+            </div>
+
+            <button class="btn-guardar" id="btnGuardarCons" onclick="guardarConsigna()">💾 Generar Registro de Consigna</button>
+        </div>
+    </div>
+
+    <!-- PESTAÑA: HISTORIAL Y AUDITORÍA -->
+    <div id="historial" class="tab-content">
+        
+        <div class="filtros-busqueda">
+            <button id="btnActualizar" onclick="cargarHistorial()">🔄 Actualizar Tabla</button>
+            <input type="date" id="busquedaFecha" class="input-busqueda" onchange="filtrarHistorial()" title="Filtrar por fecha">
+            <input type="text" id="busquedaTexto" class="input-busqueda" style="flex: 2;" placeholder="🔍 Buscar por Asunto, Sector, Responsable o Texto..." onkeyup="filtrarHistorial()">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sector</th>
+                        <th>Prioridad</th>
+                        <th>Asunto / Detalle</th>
+                        <th>Responsables</th>
+                        <th>Emitió</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaHistorial">
+                    <tr><td colspan="6" style="text-align: center;">Cargando base de datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
             projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.appspot.com",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
             messagingSenderId: "714792023462",
             appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
-
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. CREAR NUEVA CONSIGNA
-        document.getElementById('formNuevaConsigna').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnCrear');
+        let datosHistorialGlobal = [];
+
+        window.cambiarPestana = (idPestana) => {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(idPestana).classList.add('active');
+            event.currentTarget.classList.add('active');
+        };
+
+        // Fecha de hoy por defecto
+        document.getElementById('consFecha').valueAsDate = new Date();
+
+        // 1. GUARDAR CONSIGNA (SOLO CREACIÓN, CUMPLE LA REGLA)
+        window.guardarConsigna = async () => {
+            const sector = document.getElementById('consSector').value;
+            const asunto = document.getElementById('consAsunto').value.trim();
+            const prioridad = document.getElementById('consPrioridad').value;
+            const fecha = document.getElementById('consFecha').value;
+            const receptor = document.getElementById('consReceptor').value.trim();
+            const descripcion = document.getElementById('consDesc').value.trim();
+            const emisor = document.getElementById('consEmisor').value.trim();
+
+            if (!asunto || !receptor || !descripcion || !emisor) {
+                return alert("⚠️ Debes llenar todos los campos de texto para generar la consigna.");
+            }
+
+            const btn = document.getElementById('btnGuardarCons');
+            btn.innerText = "⏳ Generando Registro..."; 
             btn.disabled = true;
-            btn.innerText = "Guardando...";
-
-            // Guardamos la fecha legible para que el buscador pueda leerla
-            const fechaStr = new Date().toLocaleDateString('es-MX');
 
             try {
-                await addDoc(collection(db, "consignas"), {
-                    titulo: document.getElementById('titulo').value,
-                    descripcion: document.getElementById('descripcion').value,
-                    fecha_creacion: new Date().getTime(),
-                    fecha_legible: fechaStr,
-                    estado: "Activa",
-                    enterados: {
-                        Vinalay: false, Leroy: false, Alejandro: false, Abel: false
-                    },
-                    seguimientos: [],
-                    conclusion: ""
+                // Creamos una nueva colección llamada "registro_consignas"
+                await addDoc(collection(db, "registro_consignas"), {
+                    sector: sector,
+                    asunto: asunto,
+                    prioridad: prioridad,
+                    fecha_emision: fecha,
+                    dirigido_a: receptor,
+                    descripcion: descripcion,
+                    emitido_por: emisor,
+                    timestamp: Date.now(),
+                    fecha_sistema: new Date().toLocaleString('es-MX')
                 });
-                document.getElementById('formNuevaConsigna').reset();
+
+                alert("✅ Consigna emitida y respaldada en la base de datos.");
+                document.getElementById('consAsunto').value = '';
+                document.getElementById('consDesc').value = '';
+                btn.innerText = "💾 Generar Registro de Consigna"; 
+                btn.disabled = false;
+                
             } catch (error) {
-                alert("Error al crear: " + error.message);
+                alert("❌ Error de conexión. Revisa el internet.");
+                console.error(error);
+                btn.innerText = "💾 Generar Registro de Consigna"; 
+                btn.disabled = false;
             }
-            btn.disabled = false;
-            btn.innerText = "NUEVA CONSIGNA";
-        });
+        };
 
-        // 2. LEER Y MOSTRAR CONSIGNAS EN TIEMPO REAL
-        const q = query(collection(db, "consignas"), orderBy("fecha_creacion", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            const contenedor = document.getElementById('contenedorConsignas');
-            contenedor.innerHTML = ''; 
-
-            snapshot.forEach((docSnap) => {
-                const c = docSnap.data();
-                const id = docSnap.id;
-                const activa = c.estado === 'Activa';
-
-                let htmlSeguimientos = c.seguimientos.map(seg => `<li>${seg}</li>`).join('');
-
-                const encargados = ['Vinalay', 'Leroy', 'Alejandro', 'Abel'];
-                let htmlEnterados = encargados.map(nombre => {
-                    const confirmado = c.enterados[nombre];
-                    return `
-                        <button class="btn-enterado ${confirmado ? 'confirmado' : ''}" 
-                                ${confirmado || !activa ? 'disabled' : `onclick="window.marcarEnterado('${id}', '${nombre}')"`}>
-                            ${nombre}: ${confirmado ? '✓ Enterado' : 'Pendiente'}
-                        </button>
-                    `;
-                }).join('');
-
-                const tarjeta = document.createElement('div');
-                tarjeta.className = 'card tarjeta-consigna'; // Añadida clase para el buscador
-                tarjeta.innerHTML = `
-                    <div class="card-header">
-                        <h3>${c.titulo}</h3>
-                        <span class="badge ${activa ? 'activa' : 'completada'}">${c.estado}</span>
-                    </div>
-                    <div class="card-body">
-                        <small style="color: #64748b; display: block; margin-bottom: 10px;">Fecha: ${c.fecha_legible || 'N/A'}</small>
-                        <div class="desc">${c.descripcion.replace(/\n/g, '<br>')}</div>
-                        
-                        <strong>Control de Enterados:</strong>
-                        <div class="enterados-grid">${htmlEnterados}</div>
-                        
-                        <div class="seguimiento-box">
-                            <strong>Seguimiento/Reportes:</strong>
-                            <ul class="seg-lista">${htmlSeguimientos || '<li>Sin seguimientos aún.</li>'}</ul>
-                            
-                            ${activa ? `
-                            <div class="input-group">
-                                <input type="text" id="seg_${id}" placeholder="Agregar nota de avance...">
-                                <button class="btn-accion" onclick="window.agregarSeguimiento('${id}')">Añadir</button>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    ${activa ? `
-                    <div style="padding: 15px; border-top: 1px solid #eee;">
-                        <textarea id="conc_${id}" placeholder="Escribe la conclusión o resolución para cerrar la consigna..." style="min-height:50px; margin-bottom: 5px;"></textarea>
-                        <button class="btn-finalizar" onclick="window.finalizarConsigna('${id}')">CERRAR CONSIGNA</button>
-                    </div>
-                    ` : `
-                    <div class="conclusion-box">
-                        <h4>✓ Conclusión final:</h4>
-                        <p style="margin:0; font-size:0.95rem;">${c.conclusion}</p>
-                    </div>
-                    `}
-                `;
-                contenedor.appendChild(tarjeta);
-            });
+        // 2. DESCARGAR Y AUDITAR HISTORIAL (SOLO LECTURA)
+        window.cargarHistorial = async () => {
+            const tbody = document.getElementById('tablaHistorial');
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Consultando bitácora de servidor...</td></tr>";
             
-            // Volver a aplicar filtro visual si alguien está buscando mientras se actualiza la base
-            window.filtrarConsignas();
-        });
-
-        // 3. FUNCIONES DE ACCIÓN
-        window.marcarEnterado = async function(id, nombre) {
-            try {
-                const ref = doc(db, "consignas", id);
-                await updateDoc(ref, {
-                    [`enterados.${nombre}`]: true
-                });
-            } catch (error) { alert("Error: " + error.message); }
-        };
-
-        window.agregarSeguimiento = async function(id) {
-            const input = document.getElementById(`seg_${id}`);
-            const texto = input.value.trim();
-            if(!texto) return alert("Escribe un seguimiento primero.");
-
-            const fecha = new Date();
-            const fechaStr = `${fecha.getDate().toString().padStart(2,'0')}/${(fecha.getMonth()+1).toString().padStart(2,'0')} ${fecha.getHours().toString().padStart(2,'0')}:${fecha.getMinutes().toString().padStart(2,'0')}`;
-            const notaFinal = `[${fechaStr}] - ${texto}`;
+            document.getElementById('busquedaFecha').value = "";
+            document.getElementById('busquedaTexto').value = "";
 
             try {
-                await updateDoc(doc(db, "consignas", id), {
-                    seguimientos: arrayUnion(notaFinal)
+                const q = query(collection(db, "registro_consignas"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                
+                datosHistorialGlobal = [];
+                snapshot.forEach(doc => {
+                    datosHistorialGlobal.push(doc.data());
                 });
-                input.value = '';
-            } catch (error) { alert("Error: " + error.message); }
-        };
 
-        window.finalizarConsigna = async function(id) {
-            const input = document.getElementById(`conc_${id}`);
-            const conclusion = input.value.trim();
-            if(!conclusion) return alert("Debes escribir una conclusión para poder cerrar la consigna.");
+                renderizarTabla(datosHistorialGlobal);
 
-            if(confirm("¿Estás seguro de cerrar esta consigna? Ya no se podrán agregar seguimientos.")) {
-                try {
-                    await updateDoc(doc(db, "consignas", id), {
-                        estado: "Completada",
-                        conclusion: conclusion
-                    });
-                } catch (error) { alert("Error: " + error.message); }
+            } catch(e) { 
+                console.error(e); 
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>Error de permisos o conexión a la base de datos.</td></tr>";
             }
         };
 
-        // 4. FUNCIÓN DEL BUSCADOR
-        window.filtrarConsignas = function() {
-            const textoBusqueda = document.getElementById('buscador').value.toLowerCase();
-            const tarjetas = document.querySelectorAll('.tarjeta-consigna');
+        // 3. RENDERIZAR TABLA CON ETIQUETAS DE PRIORIDAD
+        window.renderizarTabla = (datos) => {
+            const tbody = document.getElementById('tablaHistorial');
+            let filas = "";
 
-            tarjetas.forEach(tarjeta => {
-                const contenido = tarjeta.innerText.toLowerCase();
-                if (contenido.includes(textoBusqueda)) {
-                    tarjeta.style.display = 'flex'; // Usamos flex para mantener el diseño original de la tarjeta
-                } else {
-                    tarjeta.style.display = 'none';
-                }
+            datos.forEach(d => {
+                let badgeClass = "badge-baja";
+                if(d.prioridad === "Alta") badgeClass = "badge-alta";
+                if(d.prioridad === "Media") badgeClass = "badge-media";
+
+                filas += `<tr>
+                    <td style="white-space: nowrap;"><b>${d.fecha_emision}</b></td>
+                    <td style="color:var(--accent); font-weight:bold;">${d.sector}</td>
+                    <td><span class="${badgeClass}">${d.prioridad}</span></td>
+                    <td style="max-width: 300px;">
+                        <strong>${d.asunto}</strong><br>
+                        <span style="color: #666; font-size: 12px;">${d.descripcion}</span>
+                    </td>
+                    <td>${d.dirigido_a}</td>
+                    <td>${d.emitido_por}</td>
+                </tr>`;
             });
+
+            if(filas === "") {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No hay consignas registradas o que coincidan con la búsqueda.</td></tr>";
+            } else {
+                tbody.innerHTML = filas;
+            }
+        };
+
+        // 4. BUSCADOR EN TIEMPO REAL
+        window.filtrarHistorial = () => {
+            const fechaBuscada = document.getElementById('busquedaFecha').value;
+            const textoBuscado = document.getElementById('busquedaTexto').value.toLowerCase();
+
+            const datosFiltrados = datosHistorialGlobal.filter(d => {
+                const coincideFecha = fechaBuscada === "" || d.fecha_emision === fechaBuscada;
+                
+                const textoEnAsunto = (d.asunto || "").toLowerCase().includes(textoBuscado);
+                const textoEnDesc = (d.descripcion || "").toLowerCase().includes(textoBuscado);
+                const textoEnSector = (d.sector || "").toLowerCase().includes(textoBuscado);
+                const textoEnReceptor = (d.dirigido_a || "").toLowerCase().includes(textoBuscado);
+                
+                const coincideTexto = textoBuscado === "" || textoEnAsunto || textoEnDesc || textoEnSector || textoEnReceptor;
+
+                return coincideFecha && coincideTexto;
+            });
+
+            renderizarTabla(datosFiltrados);
         };
     </script>
 </body>
