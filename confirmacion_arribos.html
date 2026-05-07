@@ -25,6 +25,10 @@
         
         .btn-revisar { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 4px; background: #ef4444; color: white; cursor: pointer; font-weight: bold; font-size: 1rem; transition: background 0.3s;}
         .revisado { background: #10b981 !important; cursor: default; } /* Verde para revisado */
+        
+        /* Estilo del nuevo botón de carga */
+        .btn-cargar-mas { background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: background 0.3s; width: 100%; max-width: 400px;}
+        .btn-cargar-mas:hover { background: #2563eb; }
     </style>
 </head>
 <body>
@@ -38,6 +42,12 @@
     </div>
     
     <div class="grid" id="container"></div>
+
+    <div style="text-align: center; margin-top: 25px; margin-bottom: 20px;">
+        <button id="btnCargarMas" class="btn-cargar-mas" onclick="window.cargarMasRegistros()">
+            ⬇️ Cargar más registros anteriores para auditar
+        </button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -55,46 +65,71 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Cargamos los últimos 100 registros para que el buscador tenga margen de maniobra en el turno
-        const q = query(collection(db, "arribos_coincidencia"), orderBy("timestamp", "desc"), limit(100));
+        // MODIFICACIÓN: Variables para controlar el límite dinámicamente
+        let limiteActual = 100;
+        let listenerActivo = null;
 
-        onSnapshot(q, (snapshot) => {
-            const container = document.getElementById('container');
-            container.innerHTML = ''; 
+        // MODIFICACIÓN: Envolvemos la conexión en una función
+        window.iniciarMonitor = function() {
+            // Si ya hay una conexión abierta, la cerramos antes de abrir la nueva con más capacidad
+            if (listenerActivo) {
+                listenerActivo(); 
+            }
 
-            snapshot.forEach((docSnap) => {
-                const d = docSnap.data();
-                const id = docSnap.id;
+            const q = query(collection(db, "arribos_coincidencia"), orderBy("timestamp", "desc"), limit(limiteActual));
+
+            listenerActivo = onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('container');
+                container.innerHTML = ''; 
+
+                snapshot.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+                    
+                    const fechaMostrar = d.fecha || new Date(d.timestamp).toLocaleDateString('es-MX');
+                    const horaMostrar = d.hora || new Date(d.timestamp).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+                    const card = document.createElement('div');
+                    card.className = 'card tarjeta-arribo'; 
+                    
+                    if((new Date().getTime() - d.timestamp) < 15000) {
+                        card.classList.add('flash-anim');
+                    }
+
+                    card.innerHTML = `
+                        <h3>${d.calle} #${d.numero}</h3>
+                        <div class="info">
+                            <b>Fecha:</b> ${fechaMostrar} a las ${horaMostrar}<br>
+                            <b>Visita:</b> ${d.tipo_visita}<br>
+                            <b>Vehículo:</b> ${d.marca} ${d.color} [${d.placas}]
+                        </div>
+                        <span class="tag" style="background:${getCol(d.distintivo)}">DISTINTIVO ${d.distintivo.toUpperCase()}</span>
+                        <button id="btn-${id}" class="btn-revisar ${d.estado === 'Revisado' ? 'revisado' : ''}" onclick="window.auditar('${id}')" ${d.estado === 'Revisado' ? 'disabled' : ''}>
+                            ${d.estado === 'Revisado' ? 'REVISADO ✓' : 'MARCAR REVISADO'}
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
                 
-                // Usamos la fecha y hora que mandó el agente, o calculamos si no existen (retrocompatibilidad)
-                const fechaMostrar = d.fecha || new Date(d.timestamp).toLocaleDateString('es-MX');
-                const horaMostrar = d.hora || new Date(d.timestamp).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-
-                const card = document.createElement('div');
-                card.className = 'card tarjeta-arribo'; // Agregamos clase para el buscador
-                
-                if((new Date().getTime() - d.timestamp) < 15000) {
-                    card.classList.add('flash-anim');
-                }
-
-                card.innerHTML = `
-                    <h3>${d.calle} #${d.numero}</h3>
-                    <div class="info">
-                        <b>Fecha:</b> ${fechaMostrar} a las ${horaMostrar}<br>
-                        <b>Visita:</b> ${d.tipo_visita}<br>
-                        <b>Vehículo:</b> ${d.marca} ${d.color} [${d.placas}]
-                    </div>
-                    <span class="tag" style="background:${getCol(d.distintivo)}">DISTINTIVO ${d.distintivo.toUpperCase()}</span>
-                    <button id="btn-${id}" class="btn-revisar ${d.estado === 'Revisado' ? 'revisado' : ''}" onclick="window.auditar('${id}')" ${d.estado === 'Revisado' ? 'disabled' : ''}>
-                        ${d.estado === 'Revisado' ? 'REVISADO ✓' : 'MARCAR REVISADO'}
-                    </button>
-                `;
-                container.appendChild(card);
+                window.filtrarTarjetas(); 
             });
+        };
+
+        // NUEVO: Función para aumentar el límite y volver a consultar
+        window.cargarMasRegistros = function() {
+            limiteActual += 150; // Suma 150 registros más cada vez que le des clic
+            const btn = document.getElementById('btnCargarMas');
+            btn.innerText = "Cargando historial...";
             
-            // Volver a aplicar el filtro visual si se actualiza la base de datos mientras alguien busca
-            window.filtrarTarjetas(); 
-        });
+            window.iniciarMonitor(); // Reinicia la consulta con el nuevo límite
+            
+            setTimeout(() => {
+                btn.innerText = "⬇️ Cargar más registros anteriores para auditar";
+            }, 1000);
+        };
+
+        // Arrancamos el monitor por primera vez
+        window.iniciarMonitor();
 
         function getCol(d) {
             return d === 'Amarillo' ? '#facc15' : d === 'Naranja' ? '#fb923c' : d === 'Verde' ? '#4ade80' : '#94a3b8';
@@ -111,14 +146,12 @@
             }
         };
 
-        // Función del Buscador en tiempo real
         window.filtrarTarjetas = function() {
             const textoBusqueda = document.getElementById('buscador').value.toLowerCase();
             const tarjetas = document.querySelectorAll('.tarjeta-arribo');
 
             tarjetas.forEach(tarjeta => {
                 const contenido = tarjeta.innerText.toLowerCase();
-                // Si la tarjeta contiene el texto buscado, se muestra, si no, se oculta
                 if (contenido.includes(textoBusqueda)) {
                     tarjeta.style.display = 'block';
                 } else {
