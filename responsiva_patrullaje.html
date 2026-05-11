@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conformidad de Reglamentos - Patrullaje</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 20px; margin: 0; display: flex; justify-content: center; }
-        .document-container { background: white; max-width: 800px; width: 100%; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .document-container { background: white; max-width: 800px; width: 100%; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;}
         
         .header { text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
         .header h1 { margin: 0; color: #1e3a8a; font-size: 1.5rem; text-transform: uppercase; }
@@ -24,7 +24,7 @@
         .input-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
 
         .canvas-container { border: 2px dashed #9ca3af; border-radius: 4px; background: #f9fafb; position: relative; margin-bottom: 10px; }
-        canvas { width: 100%; height: 200px; display: block; touch-action: none; /* Evita que la pantalla haga scroll al firmar */ }
+        canvas { width: 100%; height: 200px; display: block; touch-action: none; }
         
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.3s; color: white;}
@@ -34,6 +34,19 @@
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
 
         .success-msg { display: none; background: #d1fae5; color: #065f46; padding: 20px; text-align: center; border-radius: 4px; font-weight: bold; margin-top: 20px; }
+
+        /* NUEVOS ESTILOS PARA LA AUDITORÍA */
+        .btn-auditoria-toggle { background-color: #1e3a8a; width: 100%; max-width: 800px; padding: 15px; margin-top: 10px; }
+        #panel-auditoria { display: none; width: 100%; max-width: 1000px; }
+        
+        .search-input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #1e3a8a; font-size: 1rem; box-sizing: border-box; margin-bottom: 20px; outline: none; }
+        .search-input:focus { border-color: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
+        
+        .grid-firmas { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+        .card-firma { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid #10b981; }
+        .card-firma h3 { margin: 0 0 10px 0; color: #1f2937; text-transform: uppercase; font-size: 1.1rem; }
+        .card-firma p { margin: 5px 0; color: #4b5563; font-size: 0.9rem; }
+        .img-firma { width: 100%; border: 1px solid #e5e7eb; background: #f9fafb; margin-top: 10px; border-radius: 4px; }
 
         @media (max-width: 600px) {
             .document-container { padding: 20px; }
@@ -102,11 +115,34 @@
         <button onclick="location.reload()" style="background: #1e3a8a; margin-top: 15px;">Registrar otra firma</button>
     </div>
 
+    <button class="btn-auditoria-toggle" id="btnToggleAuditoria" onclick="window.abrirAuditoria()">
+        🛡️ Panel de Auditoría de Firmas
+    </button>
+
+    <div id="panel-auditoria">
+        <button class="btn-auditoria-toggle" style="background: #4b5563; margin-bottom: 20px;" onclick="window.cerrarAuditoria()">
+            ⬅️ Volver al Formulario de Captura
+        </button>
+
+        <div class="document-container" style="max-width: 100%;">
+            <div class="header">
+                <h1 style="color: #111827;">Auditoría de Documentos Firmados</h1>
+                <p>Busca por nombre del elemento o por fecha de firma</p>
+            </div>
+            
+            <input type="text" id="buscadorAuditoria" class="search-input" placeholder="🔍 Buscar por nombre (Ej. Julio) o fecha (Ej. 11/05/2026)..." onkeyup="window.filtrarFirmas()">
+            
+            <div class="grid-firmas" id="contenedor-firmas">
+                <p style="color: #6b7280; text-align: center; width: 100%;">Cargando firmas desde la base de datos...</p>
+            </div>
+        </div>
+    </div>
+
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Configuración de tu proyecto Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -119,16 +155,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Lógica del Canvas para la firma
+        // ==========================================
+        // LÓGICA DEL CANVAS Y FORMULARIO ORIGINAL
+        // ==========================================
         const canvas = document.getElementById('pizarraFirma');
         const ctx = canvas.getContext('2d');
         let dibujando = false;
 
-        // Ajustar el tamaño del canvas real para evitar distorsiones
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
             canvas.width = rect.width;
-            canvas.height = 200; // altura fija
+            canvas.height = 200; 
             ctx.lineWidth = 2;
             ctx.lineCap = "round";
             ctx.strokeStyle = "#000000";
@@ -136,7 +173,6 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Funciones para dibujar (Mouse)
         canvas.addEventListener('mousedown', (e) => {
             dibujando = true;
             ctx.beginPath();
@@ -151,7 +187,6 @@
         canvas.addEventListener('mouseup', () => dibujando = false);
         canvas.addEventListener('mouseleave', () => dibujando = false);
 
-        // Funciones para dibujar (Pantallas Táctiles / Celulares)
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             dibujando = true;
@@ -173,12 +208,10 @@
 
         canvas.addEventListener('touchend', () => dibujando = false);
 
-        // Limpiar Canvas
         window.limpiarFirma = function() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         };
 
-        // Comprobar si el canvas está vacío (para obligar a firmar)
         function canvasVacio() {
             const blank = document.createElement('canvas');
             blank.width = canvas.width;
@@ -186,7 +219,6 @@
             return canvas.toDataURL() === blank.toDataURL();
         }
 
-        // Guardar en Firebase
         window.guardarDocumento = async function() {
             const nombre = document.getElementById('nombreElemento').value.trim();
             
@@ -203,11 +235,9 @@
             btn.innerText = "Guardando...";
             btn.disabled = true;
 
-            // Convertimos la firma en una imagen en formato Base64
             const firmaImagen = canvas.toDataURL("image/png");
 
             try {
-                // Se crea una nueva colección llamada "firmas_reglamento"
                 await addDoc(collection(db, "firmas_reglamento"), {
                     nombre_elemento: nombre,
                     firma_base64: firmaImagen,
@@ -216,6 +246,7 @@
                 });
 
                 document.getElementById('form-container').style.display = 'none';
+                document.getElementById('btnToggleAuditoria').style.display = 'none';
                 document.getElementById('success-container').style.display = 'block';
             } catch (error) {
                 console.error("Error al guardar: ", error);
@@ -223,6 +254,86 @@
                 btn.innerText = "Firmar y Enviar";
                 btn.disabled = false;
             }
+        };
+
+        // ==========================================
+        // NUEVA LÓGICA DE AUDITORÍA
+        // ==========================================
+        let auditoriaIniciada = false;
+
+        window.abrirAuditoria = function() {
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('btnToggleAuditoria').style.display = 'none';
+            document.getElementById('panel-auditoria').style.display = 'block';
+
+            // Solo conectamos a Firebase para descargar las firmas si es la primera vez que se abre el panel
+            if (!auditoriaIniciada) {
+                iniciarLecturaFirmas();
+                auditoriaIniciada = true;
+            }
+        };
+
+        window.cerrarAuditoria = function() {
+            document.getElementById('panel-auditoria').style.display = 'none';
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('btnToggleAuditoria').style.display = 'block';
+            
+            // Reajustamos el canvas por si la pantalla cambió de tamaño mientras estaba oculto
+            resizeCanvas(); 
+        };
+
+        function iniciarLecturaFirmas() {
+            const q = query(collection(db, "firmas_reglamento"), orderBy("timestamp", "desc"));
+
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('contenedor-firmas');
+                container.innerHTML = ''; 
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color: #6b7280;">Aún no hay firmas registradas.</p>';
+                    return;
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    
+                    // Manejo seguro de la fecha (si acaba de guardarse, el serverTimestamp puede tardar milisegundos)
+                    let fechaString = "Fecha pendiente...";
+                    if (d.timestamp) {
+                        const dateObj = d.timestamp.toDate();
+                        fechaString = dateObj.toLocaleDateString('es-MX') + ' ' + dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'card-firma'; 
+                    card.innerHTML = `
+                        <h3>${d.nombre_elemento}</h3>
+                        <p><b>Fecha:</b> <span class="fecha-filtro">${fechaString}</span></p>
+                        <p><b>Documento:</b> ${d.documento}</p>
+                        <img src="${d.firma_base64}" class="img-firma" alt="Firma del elemento">
+                    `;
+                    container.appendChild(card);
+                });
+                
+                // Ejecutamos el filtro visual por si había algo escrito en el buscador
+                window.filtrarFirmas(); 
+            });
+        }
+
+        // Buscador en tiempo real de firmas
+        window.filtrarFirmas = function() {
+            const textoBusqueda = document.getElementById('buscadorAuditoria').value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.card-firma');
+
+            tarjetas.forEach(tarjeta => {
+                // Buscamos coincidencia en todo el texto de la tarjeta (nombre, fecha, etc.)
+                const contenido = tarjeta.innerText.toLowerCase();
+                if (contenido.includes(textoBusqueda)) {
+                    tarjeta.style.display = 'block';
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
         };
     </script>
 </body>
