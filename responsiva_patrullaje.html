@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conformidad de Reglamentos - Patrullaje</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6; color: #1f2937; padding: 20px; margin: 0; display: flex; justify-content: center; }
+        .document-container { background: white; max-width: 800px; width: 100%; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .header { text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #1e3a8a; font-size: 1.5rem; text-transform: uppercase; }
+        .header p { color: #6b7280; margin-top: 5px; }
+
+        .content { font-size: 1rem; line-height: 1.6; }
+        .content h3 { color: #111827; }
+        .content ul { margin-bottom: 20px; }
+        .content li { margin-bottom: 10px; }
+        .warning { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; color: #991b1b; font-weight: bold; }
+
+        .signature-section { margin-top: 40px; padding-top: 20px; border-top: 1px dashed #d1d5db; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+
+        .canvas-container { border: 2px dashed #9ca3af; border-radius: 4px; background: #f9fafb; position: relative; margin-bottom: 10px; }
+        canvas { width: 100%; height: 200px; display: block; touch-action: none; /* Evita que la pantalla haga scroll al firmar */ }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.3s; color: white;}
+        .btn-limpiar { background-color: #6b7280; }
+        .btn-guardar { background-color: #10b981; }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        .success-msg { display: none; background: #d1fae5; color: #065f46; padding: 20px; text-align: center; border-radius: 4px; font-weight: bold; margin-top: 20px; }
+
+        @media (max-width: 600px) {
+            .document-container { padding: 20px; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="document-container" id="form-container">
+        <div class="header">
+            <h1>Aviso Importante para Elementos de Patrullaje</h1>
+            <p>Lectura y Conformidad de Lineamientos de Seguridad</p>
+        </div>
+
+        <div class="content">
+            <p>Estimados compañeros,</p>
+            <p>Es fundamental recordar y cumplir con las siguientes normas y procedimientos para garantizar la seguridad y eficiencia en nuestros servicios:</p>
+            
+            <ul>
+                <li>Respetar los señalamientos y límites de velocidad <b>(20 km/h)</b>.</li>
+                <li>Dar pase de cortesía a condóminos y visitas.</li>
+                <li>No pasarse la pluma de acceso, <b>esperar turno</b> y marcar interphone.</li>
+                <li>Evitar virar en pendiente; se debe subir hasta la planicie y girar.</li>
+                <li>Respetar pasos peatonales.</li>
+                <li>No pasar entre el tope y el camellón.</li>
+                <li><b>Al escoltar vehículos:</b>
+                    <ul>
+                        <li>Si es un vehículo de dimensiones regulares y <i>no hay</i> probabilidad de derrame o daños, la posición es a la <b>delantera</b>.</li>
+                        <li>Si es un vehículo de <i>grandes dimensiones</i> o <i>hay probabilidad de derrame</i>, la posición es a la <b>retaguardia</b>.</li>
+                    </ul>
+                </li>
+                <li>Utilizar todos los medios para confirmación de arribos.</li>
+                <li>Seguir las indicaciones de monitoreo para los recorridos.</li>
+                <li>Usar las plataformas y herramientas proporcionadas para realizar sus funciones.</li>
+                <li>Leer y apegarse al manual de patrullaje.</li>
+            </ul>
+
+            <div class="warning">
+                ⚠️ Recuerden que el incumplimiento de estas normas y protocolos puede resultar en el levantamiento de actas administrativas.
+            </div>
+            
+            <p>Agradecemos su compromiso y colaboración para mantener un servicio seguro y eficiente.</p>
+        </div>
+
+        <div class="signature-section">
+            <div class="input-group">
+                <label for="nombreElemento">Nombre completo del Elemento:</label>
+                <input type="text" id="nombreElemento" placeholder="Ej. Juan Pérez García" required>
+            </div>
+
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Firma de conformidad:</label>
+            <div class="canvas-container">
+                <canvas id="pizarraFirma"></canvas>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn-limpiar" onclick="limpiarFirma()">Borrar Firma</button>
+                <button type="button" class="btn-guardar" id="btnGuardar" onclick="guardarDocumento()">Firmar y Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="document-container success-msg" id="success-container">
+        ✅ Documento firmado y guardado exitosamente en la base de datos.<br><br>
+        <button onclick="location.reload()" style="background: #1e3a8a; margin-top: 15px;">Registrar otra firma</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Configuración de tu proyecto Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.appspot.com",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Lógica del Canvas para la firma
+        const canvas = document.getElementById('pizarraFirma');
+        const ctx = canvas.getContext('2d');
+        let dibujando = false;
+
+        // Ajustar el tamaño del canvas real para evitar distorsiones
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 200; // altura fija
+            ctx.lineWidth = 2;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "#000000";
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Funciones para dibujar (Mouse)
+        canvas.addEventListener('mousedown', (e) => {
+            dibujando = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (dibujando) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+        canvas.addEventListener('mouseup', () => dibujando = false);
+        canvas.addEventListener('mouseleave', () => dibujando = false);
+
+        // Funciones para dibujar (Pantallas Táctiles / Celulares)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            dibujando = true;
+            const touch = e.touches;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (dibujando) {
+                const touch = e.touches;
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx.stroke();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => dibujando = false);
+
+        // Limpiar Canvas
+        window.limpiarFirma = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+        // Comprobar si el canvas está vacío (para obligar a firmar)
+        function canvasVacio() {
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width;
+            blank.height = canvas.height;
+            return canvas.toDataURL() === blank.toDataURL();
+        }
+
+        // Guardar en Firebase
+        window.guardarDocumento = async function() {
+            const nombre = document.getElementById('nombreElemento').value.trim();
+            
+            if (!nombre) {
+                alert("Por favor, ingresa el nombre del elemento.");
+                return;
+            }
+            if (canvasVacio()) {
+                alert("La firma es obligatoria.");
+                return;
+            }
+
+            const btn = document.getElementById('btnGuardar');
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            // Convertimos la firma en una imagen en formato Base64
+            const firmaImagen = canvas.toDataURL("image/png");
+
+            try {
+                // Se crea una nueva colección llamada "firmas_reglamento"
+                await addDoc(collection(db, "firmas_reglamento"), {
+                    nombre_elemento: nombre,
+                    firma_base64: firmaImagen,
+                    timestamp: serverTimestamp(),
+                    documento: "Aviso Importante para Elementos de Patrullaje"
+                });
+
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } catch (error) {
+                console.error("Error al guardar: ", error);
+                alert("Hubo un error al guardar la firma. Revisa la conexión.");
+                btn.innerText = "Firmar y Enviar";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
