@@ -21,7 +21,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 0 auto;
         }
         header {
@@ -34,7 +34,7 @@
         .motto { font-style: italic; color: #4b5563; font-weight: bold; }
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.1fr 0.9fr;
             gap: 20px;
         }
         .card {
@@ -104,8 +104,15 @@
                 <div class="flex-row">
                     <div class="form-group">
                         <label for="id-agente">Seleccionar Número de Agente</label>
-                        <select id="id-agente" required>
-                            </select>
+                        <select id="id-agente" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="turno-agente">Turno / Horario Asignado</label>
+                        <select id="turno-agente" required>
+                            <option value="Día (07:00 - 17:00)">Día (07:00 - 17:00)</option>
+                            <option value="Vespertino (17:00 - 03:00)">Vespertino (17:00 - 03:00)</option>
+                            <option value="Nocturno (21:00 - 07:00)">Nocturno (21:00 - 07:00)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -147,6 +154,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
+                        <th>Turno / Horario</th>
                         <th>Descansos</th>
                     </tr>
                 </thead>
@@ -169,6 +177,7 @@
                 <thead>
                     <tr>
                         <th>Elemento</th>
+                        <th>Horario Asignado</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -183,7 +192,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Tu configuración exacta de Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
         authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -193,14 +201,11 @@
         appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Mapeo de días para UI
     const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-    // Inicializar selectores de agentes (1 a 15)
     const selectAgente = document.getElementById('id-agente');
     for (let i = 1; i <= 15; i++) {
         let option = document.createElement('option');
@@ -209,11 +214,12 @@
         selectAgente.appendChild(option);
     }
 
-    // Guardar/Actualizar agente en Firestore
+    // Guardar/Actualizar agente en Firestore incluyendo el campo 'turno'
     document.getElementById('form-agente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idAgente = document.getElementById('id-agente').value;
         const nombre = document.getElementById('nombre-agente').value;
+        const turno = document.getElementById('turno-agente').value;
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
         const descanso2 = parseInt(document.getElementById('descanso-2').value);
 
@@ -225,6 +231,7 @@
         try {
             await setDoc(doc(db, "elementos", idAgente), {
                 nombre: nombre,
+                turno: turno,
                 descansos: [descanso1, descanso2],
                 actualizado: new Date()
             });
@@ -246,22 +253,23 @@
             elementos.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordenar por número de agente
         elementos.sort((a, b) => parseInt(a.id.split('_')) - parseInt(b.id.split('_')));
 
         elementos.forEach((el) => {
             let tr = document.createElement('tr');
             let txtDescansos = `${diasSemana[el.descansos]} y ${diasSemana[el.descansos]}`;
+            let txtTurno = el.turno || "No asignado";
             tr.innerHTML = `
                 <td>${el.id.replace('_', ' ')}</td>
                 <td><strong>${el.nombre}</strong></td>
+                <td><span style="color: var(--primary); font-weight: 500;">${txtTurno}</span></td>
                 <td>${txtDescansos}</td>
             `;
             tbody.appendChild(tr);
         });
     });
 
-    // Lógica de Auditoría por Fecha
+    // Lógica de Auditoría por Fecha incluyendo despliegue de horarios activos
     document.getElementById('btn-auditar').addEventListener('click', async () => {
         const fechaStr = document.getElementById('fecha-auditoria').value;
         if (!fechaStr) {
@@ -269,10 +277,8 @@
             return;
         }
 
-        // Obtener el día de la semana de la fecha seleccionada
-        // Se añade 'T12:00:00' para evitar desfases de zona horaria al parsear
         const fechaSeleccionada = new Date(fechaStr + 'T12:00:00');
-        const diaDeLaSemana = fechaSeleccionada.getDay(); // 0 = Domingo, 1 = Lunes...
+        const diaDeLaSemana = fechaSeleccionada.getDay();
 
         document.getElementById('titulo-reporte').style.display = 'block';
         document.getElementById('tabla-auditoria').style.display = 'table';
@@ -289,21 +295,24 @@
                 elementosAuditoria.push({ id: doc.id, ...doc.data() });
             });
 
-            // Ordenar alfabéticamente por nombre
             elementosAuditoria.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
             elementosAuditoria.forEach(el => {
                 let tr = document.createElement('tr');
-                
-                // Si el día de la semana actual coincide con alguno de sus descansos
                 let estaDeDescanso = el.descansos.includes(diaDeLaSemana);
                 
                 let estadoHTML = estaDeDescanso 
                     ? `<span class="badge bg-danger">Descanso</span>` 
                     : `<span class="badge bg-success">En Servicio</span>`;
+                
+                // Si descansa, el horario se marca como N/A. Si trabaja, muestra su turno asignado.
+                let horarioHTML = estaDeDescanso 
+                    ? `<span style="color:#9ca3af; font-style:italic;">N/A</span>` 
+                    : `<strong>${el.turno || 'No asignado'}</strong>`;
 
                 tr.innerHTML = `
                     <td>${el.nombre} <br><small style="color:#6b7280">${el.id.replace('_', ' ')}</small></td>
+                    <td>${horarioHTML}</td>
                     <td>${estadoHTML}</td>
                 `;
                 tbodyAuditoria.appendChild(tr);
