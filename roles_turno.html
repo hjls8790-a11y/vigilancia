@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<!DOCTYPE html><html lang="es"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Turnos - El Cielo Parque Residencial</title>
@@ -87,11 +85,7 @@
         .bg-danger { background-color: var(--danger); }
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
-    </style>
-</head>
-<body>
-
-<div class="container">
+    </style></head><body><div class="container">
     <header>
         <h1>Control de Personal - El Cielo Parque Residencial</h1>
         <p class="motto">Consigna: Firmeza, no prepotencia</p>
@@ -109,9 +103,9 @@
                     <div class="form-group">
                         <label for="turno-agente">Turno / Horario Asignado</label>
                         <select id="turno-agente" required>
-                            <option value="Día (07:00 - 17:00)">Día (07:00 - 17:00)</option>
-                            <option value="Vespertino (17:00 - 03:00)">Vespertino (17:00 - 03:00)</option>
-                            <option value="Nocturno (21:00 - 07:00)">Nocturno (21:00 - 07:00)</option>
+                            <option value="07:00 a 15:00">07:00 a 15:00</option>
+                            <option value="15:00 a 23:00">15:00 a 23:00</option>
+                            <option value="23:00 a 07:00">23:00 a 07:00</option>
                         </select>
                     </div>
                 </div>
@@ -134,7 +128,8 @@
                     </div>
                     <div>
                         <label for="descanso-2">Día de Descanso 2</label>
-                        <select id="descanso-2" required>
+                        <select id="descanso-2">
+                            <option value="">Ninguno (Solo 1 día)</option>
                             <option value="1">Lunes</option>
                             <option value="2">Martes</option>
                             <option value="3">Miércoles</option>
@@ -185,10 +180,7 @@
                     </tbody>
             </table>
         </div>
-    </div>
-</div>
-
-<script type="module">
+    </div></div><script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -221,18 +213,24 @@
         const nombre = document.getElementById('nombre-agente').value;
         const turno = document.getElementById('turno-agente').value;
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
-        const descanso2 = parseInt(document.getElementById('descanso-2').value);
+        const descanso2Raw = document.getElementById('descanso-2').value;
 
-        if (descanso1 === descanso2) {
-            alert("Los días de descanso deben ser diferentes.");
-            return;
+        // Error 2 corregido: Lógica para admitir 1 o 2 días de descanso de forma dinámica
+        let descansos = [descanso1];
+        if (descanso2Raw !== "") {
+            const descanso2 = parseInt(descanso2Raw);
+            if (descanso1 === descanso2) {
+                alert("Los días de descanso deben ser diferentes.");
+                return;
+            }
+            descansos.push(descanso2);
         }
 
         try {
             await setDoc(doc(db, "elementos", idAgente), {
                 nombre: nombre,
                 turno: turno,
-                descansos: [descanso1, descanso2],
+                descansos: descansos,
                 actualizado: new Date()
             });
             alert(`Datos de ${nombre} guardados exitosamente.`);
@@ -257,7 +255,11 @@
 
         elementos.forEach((el) => {
             let tr = document.createElement('tr');
-            let txtDescansos = `${diasSemana[el.descansos]} y ${diasSemana[el.descansos]}`;
+            
+            // Error 3 corregido: Mapeo seguro del arreglo de descansos para evitar errores al reasignar
+            let desArray = Array.isArray(el.descansos) ? el.descansos : (el.descansos !== undefined && el.descansos !== null ? [el.descansos] : []);
+            let txtDescansos = desArray.map(d => diasSemana[d]).join(' y ') || "Sin descansos";
+            
             let txtTurno = el.turno || "No asignado";
             tr.innerHTML = `
                 <td>${el.id.replace('_', ' ')}</td>
@@ -299,7 +301,10 @@
 
             elementosAuditoria.forEach(el => {
                 let tr = document.createElement('tr');
-                let estaDeDescanso = el.descansos.includes(diaDeLaSemana);
+                
+                // Error 3 corregido: Validación segura en la sección de auditoría
+                let desArray = Array.isArray(el.descansos) ? el.descansos : (el.descansos !== undefined && el.descansos !== null ? [el.descansos] : []);
+                let estaDeDescanso = desArray.includes(diaDeLaSemana);
                 
                 let estadoHTML = estaDeDescanso 
                     ? `<span class="badge bg-danger">Descanso</span>` 
@@ -321,7 +326,4 @@
         } catch (error) {
             console.error("Error al auditar: ", error);
         }
-    });
-</script>
-</body>
-</html>
+    });</script></body></html>
