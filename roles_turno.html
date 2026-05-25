@@ -3,248 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Roles - El Cielo</title>
+    <title>Gestión de Turnos - El Cielo Parque Residencial</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #eef2f5; margin: 0; }
-        .header { background: #2C3E50; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
-        .controles { display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px; align-items: center;}
-        .controles label { font-weight: bold; margin-right: 10px; color: #2C3E50; }
-        .controles input[type="date"], .controles input[type="text"] { padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; font-size: 1em; }
-        
-        .table-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { border: 1px solid #ecf0f1; padding: 5px; text-align: center; }
-        th { background: #34495E; color: white; padding: 12px; font-size: 0.9em; letter-spacing: 1px;}
-        
-        .input-nombre { width: 90%; border: none; font-weight: bold; background: transparent; text-transform: uppercase; outline: none; padding: 8px; color: #2C3E50; }
-        .td-nombre { background: #f8f9fa; border-left: 5px solid #27AE60; text-align: left; padding-left: 10px; }
-        
-        select { width: 100%; padding: 10px 5px; border: none; font-weight: bold; background: transparent; cursor: pointer; outline: none; font-size: 0.85em; text-align: center; }
-        
-        /* Colores condicionales */
-        .descanso { background-color: #E74C3C !important; color: white; }
-        .turno1 { background-color: #D6EAF8; color: #154360; } /* 07 a 15 - Azul Claro */
-        .turno2 { background-color: #FDEBD0; color: #7E5109; } /* 15 a 23 - Naranja Claro */
-        .turno3 { background-color: #2C3E50; color: white; }   /* 23 a 07 - Oscuro */
-        
-        .botones-grupo { display: flex; gap: 10px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; color: white; }
-        .btn:hover { opacity: 0.9; }
-        .btn-green { background: #27AE60; }
-        .btn-blue { background: #2980B9; }
-        .btn-wa { background: #25D366; }
-        .btn-copy { background: #8E44AD; }
-        
-        @media print {
-            .controles, .btn { display: none !important; }
-            body { background: white; padding: 0; }
-            .table-container { box-shadow: none; }
-            table { font-size: 12px; }
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #2563eb;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+            --success: #10b981;
+            --danger: #ef4444;
         }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        .motto { font-style: italic; color: #4b5563; font-weight: bold; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { color: var(--secondary); margin-top: 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;}
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        button:hover { background-color: var(--secondary); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        th { background-color: var(--light); color: var(--dark); }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .bg-success { background-color: var(--success); }
+        .bg-danger { background-color: var(--danger); }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > div { flex: 1; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2 style="margin:0;">🗓️ ROL DE TURNOS SEMANAL</h2>
-        <p style="margin:5px 0 0 0; opacity: 0.8;">Sistema de Gestión Operativa</p>
-    </div>
+<div class="container">
+    <header>
+        <h1>Control de Personal - El Cielo Parque Residencial</h1>
+        <p class="motto">Consigna: Firmeza, no prepotencia</p>
+    </header>
 
-    <div class="controles">
-        <div>
-            <label>Semana del:</label>
-            <input type="date" id="fechaSemana" onchange="cargarRol()">
+    <div class="grid">
+        <div class="card">
+            <h2>Configuración de Elementos</h2>
+            <form id="form-agente">
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label for="id-agente">Seleccionar Número de Agente</label>
+                        <select id="id-agente" required>
+                            </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nombre-agente">Nombre del Elemento</label>
+                    <input type="text" id="nombre-agente" placeholder="Ej. Juan Pérez" required>
+                </div>
+                <div class="flex-row form-group">
+                    <div>
+                        <label for="descanso-1">Día de Descanso 1</label>
+                        <select id="descanso-1" required>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miércoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="0">Domingo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="descanso-2">Día de Descanso 2</label>
+                        <select id="descanso-2" required>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miércoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="0">Domingo</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit">Actualizar Elemento en Base de Datos</button>
+            </form>
+
+            <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Actual</h3>
+            <table id="tabla-plantilla">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descansos</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-plantilla">
+                    </tbody>
+            </table>
         </div>
-        <div>
-            <input type="text" id="buscador" placeholder="🔍 Buscar Agente..." onkeyup="filtrarTabla()">
-        </div>
-        <div class="botones-grupo">
-            <button class="btn btn-blue" onclick="window.print()">🖨️ Imprimir</button>
-            <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar</button>
-            <button class="btn btn-wa" onclick="enviarRolesWhatsApp()">📲 Enviar WA</button>
+
+        <div class="card">
+            <h2>Auditoría de Servicio</h2>
+            <p style="font-size: 14px; color: #4b5563;">Selecciona una fecha para verificar qué elementos estaban en servicio o de descanso.</p>
+            <div class="form-group">
+                <label for="fecha-auditoria">Fecha a auditar:</label>
+                <input type="date" id="fecha-auditoria">
+            </div>
+            <button id="btn-auditar">Generar Reporte del Día</button>
+
+            <h3 id="titulo-reporte" style="margin-top: 20px; display: none;">Reporte del <span id="fecha-texto"></span></h3>
+            <table id="tabla-auditoria" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Elemento</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-auditoria">
+                    </tbody>
+            </table>
         </div>
     </div>
+</div>
 
-    <div class="table-container">
-        <table id="tablaRoles">
-            <thead>
-                <tr>
-                    <th style="width: 22%;">NOMBRE DEL AGENTE</th>
-                    <th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th><th>SÁBADO</th><th>DOMINGO</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpoRoles">
-                </tbody>
-        </table>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    <script>
-        const nombresDefault = ["ALEJANDRO", "LEROY", "ABEL", "VINALAY", "JOSE", "JULIO", "ALFONSO ACOSTA", "MARIO", "ISAEL", "LUIS CASTRO", "SANTILLAN", "ARMANDO", "SOTELO", "PIZARRO", "VICTOR CARDENA"];
-        const turnos = ["07:00 A 15:00", "15:00 A 23:00", "23:00 A 07:00", "DESCANSO"];
-        const dias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
-        const numElementos = 15;
+    // Tu configuración exacta de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.appspot.com",
+        messagingSenderId: "714792023462",
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+    };
 
-        // Configurar fecha inicial (Lunes de la semana actual)
-        let hoy = new Date();
-        let diaSemana = hoy.getDay() || 7; 
-        if(diaSemana !== 1) hoy.setDate(hoy.getDate() - (diaSemana - 1));
-        document.getElementById('fechaSemana').valueAsDate = hoy;
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        function actualizarColor(selectElement) {
-            let valor = selectElement.value;
-            selectElement.parentElement.className = ""; 
-            if (valor === "DESCANSO") selectElement.parentElement.classList.add("descanso");
-            else if (valor === "07:00 A 15:00") selectElement.parentElement.classList.add("turno1");
-            else if (valor === "15:00 A 23:00") selectElement.parentElement.classList.add("turno2");
-            else if (valor === "23:00 A 07:00") selectElement.parentElement.classList.add("turno3");
+    // Mapeo de días para UI
+    const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+    // Inicializar selectores de agentes (1 a 15)
+    const selectAgente = document.getElementById('id-agente');
+    for (let i = 1; i <= 15; i++) {
+        let option = document.createElement('option');
+        option.value = `Agente_${i}`;
+        option.textContent = `Agente ${i}`;
+        selectAgente.appendChild(option);
+    }
+
+    // Guardar/Actualizar agente en Firestore
+    document.getElementById('form-agente').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const idAgente = document.getElementById('id-agente').value;
+        const nombre = document.getElementById('nombre-agente').value;
+        const descanso1 = parseInt(document.getElementById('descanso-1').value);
+        const descanso2 = parseInt(document.getElementById('descanso-2').value);
+
+        if (descanso1 === descanso2) {
+            alert("Los días de descanso deben ser diferentes.");
+            return;
         }
 
-        function construirTabla() {
-            let tbody = document.getElementById('cuerpoRoles');
-            tbody.innerHTML = '';
-            
-            for(let i = 0; i < numElementos; i++) {
-                let tr = document.createElement('tr');
-                tr.className = 'fila-agente';
-                
-                let tdNombre = document.createElement('td');
-                tdNombre.className = 'td-nombre';
-                let inputNombre = document.createElement('input');
-                inputNombre.type = 'text';
-                inputNombre.className = 'input-nombre';
-                inputNombre.id = `nombre_${i}`;
-                inputNombre.onchange = autoGuardar; // Guarda automáticamente al cambiar nombre
-                tdNombre.appendChild(inputNombre);
-                tr.appendChild(tdNombre);
-                
-                dias.forEach(dia => {
-                    let td = document.createElement('td');
-                    let select = document.createElement('select');
-                    select.id = `${dia}_${i}`;
-                    select.onchange = function() { 
-                        actualizarColor(this); 
-                        autoGuardar(); // Guarda automáticamente al cambiar turno
-                    };
-
-                    turnos.forEach(t => {
-                        let option = document.createElement('option');
-                        option.value = t;
-                        option.innerText = t;
-                        select.appendChild(option);
-                    });
-                    
-                    td.appendChild(select);
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            }
-        }
-
-        function cargarRol() {
-            let fecha = document.getElementById('fechaSemana').value;
-            let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
-            let datosSemana = dbRoles[fecha] || null;
-            let nombresGuardados = JSON.parse(localStorage.getItem('lista_nombres_global')) || nombresDefault;
-
-            for(let i = 0; i < numElementos; i++) {
-                // Cargar nombres
-                document.getElementById(`nombre_${i}`).value = (datosSemana && datosSemana[`nombre_${i}`]) ? datosSemana[`nombre_${i}`] : nombresGuardados[i];
-                
-                // Cargar turnos
-                dias.forEach(dia => {
-                    let select = document.getElementById(`${dia}_${i}`);
-                    select.value = (datosSemana && datosSemana[`${dia}_${i}`]) ? datosSemana[`${dia}_${i}`] : "07:00 A 15:00";
-                    actualizarColor(select);
-                });
-            }
-        }
-
-        // Nueva función de guardado silencioso (sin alertas molestas)
-        function autoGuardar() {
-            let fecha = document.getElementById('fechaSemana').value;
-            if(!fecha) return;
-
-            let dbRoles = JSON.parse(localStorage.getItem('db_roles_semanales')) || {};
-            let datosSemana = {};
-            let nombresActuales = [];
-
-            for(let i = 0; i < numElementos; i++) {
-                let nom = document.getElementById(`nombre_${i}`).value.toUpperCase();
-                datosSemana[`nombre_${i}`] = nom;
-                nombresActuales.push(nom);
-
-                dias.forEach(dia => {
-                    datosSemana[`${dia}_${i}`] = document.getElementById(`${dia}_${i}`).value;
-                });
-            }
-
-            dbRoles[fecha] = datosSemana;
-            localStorage.setItem('db_roles_semanales', JSON.stringify(dbRoles));
-            localStorage.setItem('lista_nombres_global', JSON.stringify(nombresActuales));
-        }
-
-        function filtrarTabla() {
-            let filtro = document.getElementById('buscador').value.toUpperCase();
-            let filas = document.getElementsByClassName('fila-agente');
-            for(let i = 0; i < filas.length; i++) {
-                let inputNom = filas[i].querySelector('.input-nombre');
-                if(inputNom.value.toUpperCase().indexOf(filtro) > -1) {
-                    filas[i].style.display = "";
-                } else {
-                    filas[i].style.display = "none";
-                }
-            }
-        }
-
-        // Generador central del mensaje (Lee DIRECTAMENTE de la pantalla)
-        function generarTextoMensaje() {
-            let fecha = document.getElementById('fechaSemana').value;
-            // Formatear fecha para que sea más legible
-            let fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
-            
-            let texto = `*🗓️ ROL DE TURNOS*\n*Semana del:* ${fechaFormateada}\n\n`;
-            
-            const mapT = { "07:00 A 15:00": "07 a 15", "15:00 A 23:00": "15 a 23", "23:00 A 07:00": "23 a 07", "DESCANSO": "🔴 DESC" };
-            const nDias = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
-
-            for(let i = 0; i < numElementos; i++) {
-                let nombre = document.getElementById(`nombre_${i}`).value.trim();
-                if(!nombre) continue; // Si el nombre está vacío, lo salta
-                
-                texto += `👤 *${nombre}*\n`;
-                let linea = "";
-                dias.forEach((diaClave, idx) => {
-                    let turnoSeleccionado = document.getElementById(`${diaClave}_${i}`).value;
-                    let t = mapT[turnoSeleccionado];
-                    linea += `${nDias[idx]}:${t} | `;
-                });
-                texto += linea.slice(0, -3) + `\n\n`; 
-            }
-
-            texto += `⚠️ *CONFIRMACIÓN REQUERIDA*\nResponde a este mensaje con la palabra *"ENTERADO"* para confirmar tu rol.`;
-            return texto;
-        }
-
-        function enviarRolesWhatsApp() {
-            autoGuardar(); // Aseguramos que se guarde antes de salir
-            let textoWa = generarTextoMensaje();
-            let url = `https://wa.me/526692486726?text=${encodeURIComponent(textoWa)}`;
-            window.open(url, '_blank');
-        }
-
-        function copiarTexto() {
-            autoGuardar();
-            let texto = generarTextoMensaje();
-            navigator.clipboard.writeText(texto).then(() => {
-                alert("✅ Rol copiado al portapapeles. Puedes pegarlo directamente en el grupo de WhatsApp.");
-            }).catch(err => {
-                alert("Error al copiar. Intenta usar el botón de Enviar WA.");
+        try {
+            await setDoc(doc(db, "elementos", idAgente), {
+                nombre: nombre,
+                descansos: [descanso1, descanso2],
+                actualizado: new Date()
             });
+            alert(`Datos de ${nombre} guardados exitosamente.`);
+            document.getElementById('form-agente').reset();
+        } catch (error) {
+            console.error("Error al guardar: ", error);
+            alert("Error al guardar en base de datos.");
+        }
+    });
+
+    // Escuchar cambios en la plantilla en tiempo real
+    onSnapshot(collection(db, "elementos"), (snapshot) => {
+        const tbody = document.getElementById('lista-plantilla');
+        tbody.innerHTML = '';
+        
+        let elementos = [];
+        snapshot.forEach((doc) => {
+            elementos.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Ordenar por número de agente
+        elementos.sort((a, b) => parseInt(a.id.split('_')) - parseInt(b.id.split('_')));
+
+        elementos.forEach((el) => {
+            let tr = document.createElement('tr');
+            let txtDescansos = `${diasSemana[el.descansos]} y ${diasSemana[el.descansos]}`;
+            tr.innerHTML = `
+                <td>${el.id.replace('_', ' ')}</td>
+                <td><strong>${el.nombre}</strong></td>
+                <td>${txtDescansos}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+
+    // Lógica de Auditoría por Fecha
+    document.getElementById('btn-auditar').addEventListener('click', async () => {
+        const fechaStr = document.getElementById('fecha-auditoria').value;
+        if (!fechaStr) {
+            alert("Por favor selecciona una fecha.");
+            return;
         }
 
-        // Inicializar
-        construirTabla();
-        cargarRol();
-    </script>
+        // Obtener el día de la semana de la fecha seleccionada
+        // Se añade 'T12:00:00' para evitar desfases de zona horaria al parsear
+        const fechaSeleccionada = new Date(fechaStr + 'T12:00:00');
+        const diaDeLaSemana = fechaSeleccionada.getDay(); // 0 = Domingo, 1 = Lunes...
+
+        document.getElementById('titulo-reporte').style.display = 'block';
+        document.getElementById('tabla-auditoria').style.display = 'table';
+        document.getElementById('fecha-texto').textContent = `${fechaSeleccionada.toLocaleDateString()} (${diasSemana[diaDeLaSemana]})`;
+
+        const tbodyAuditoria = document.getElementById('lista-auditoria');
+        tbodyAuditoria.innerHTML = '';
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "elementos"));
+            let elementosAuditoria = [];
+            
+            querySnapshot.forEach((doc) => {
+                elementosAuditoria.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Ordenar alfabéticamente por nombre
+            elementosAuditoria.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            elementosAuditoria.forEach(el => {
+                let tr = document.createElement('tr');
+                
+                // Si el día de la semana actual coincide con alguno de sus descansos
+                let estaDeDescanso = el.descansos.includes(diaDeLaSemana);
+                
+                let estadoHTML = estaDeDescanso 
+                    ? `<span class="badge bg-danger">Descanso</span>` 
+                    : `<span class="badge bg-success">En Servicio</span>`;
+
+                tr.innerHTML = `
+                    <td>${el.nombre} <br><small style="color:#6b7280">${el.id.replace('_', ' ')}</small></td>
+                    <td>${estadoHTML}</td>
+                `;
+                tbodyAuditoria.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("Error al auditar: ", error);
+        }
+    });
+</script>
 </body>
 </html>
