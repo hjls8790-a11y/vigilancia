@@ -32,7 +32,7 @@
         }
         h1 { color: var(--primary); margin-bottom: 5px; }
         .motto { font-style: italic; color: #4b5563; font-weight: bold; }
-        .badge-version { background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .badge-version { background: var(--success); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
         .grid {
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -89,7 +89,6 @@
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
         
-        /* Estilos del panel variable */
         .variable-select {
             width: 100%;
             padding: 4px;
@@ -111,22 +110,25 @@
 <body>
 <div class="container">
     <header>
-        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.0</span></h1>
+        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.1</span></h1>
         <p class="motto">Consigna: Firmeza, no prepotencia</p>
     </header>
 
     <div class="grid">
         <div class="card">
-            <h2>Configuración de Elementos</h2>
+            <h2>Configuración y Edición de Elementos</h2>
+            <p style="font-size: 12px; color: #4b5563; margin-top: -5px;">Selecciona a un agente para cargar sus datos actuales y modificar su rol de la semana.</p>
             <form id="form-agente">
                 <div class="flex-row">
                     <div class="form-group">
                         <label for="id-agente">Seleccionar Número de Agente</label>
-                        <select id="id-agente" required></select>
+                        <!-- Se agregó una opción vacía inicial para forzar el evento change -->
+                        <select id="id-agente" required>
+                            <option value="" disabled selected>Elige un Agente...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="turno-agente">Turno / Horario Asignado</label>
-                        <!-- AQUI ESTÁ LA NUEVA OPCIÓN -->
                         <select id="turno-agente" required>
                             <option value="07:00 a 15:00">07:00 a 15:00</option>
                             <option value="15:00 a 23:00">15:00 a 23:00</option>
@@ -136,7 +138,6 @@
                     </div>
                 </div>
 
-                <!-- ESTE ES EL PANEL QUE ESTÁ OCULTO HASTA QUE SELECCIONAS "VARIABLE" -->
                 <div id="panel-variable" class="panel-variable">
                     <label style="color: var(--primary); font-size: 14px; margin-bottom:10px;">Configurar Horario Variable (Día por Día):</label>
                     <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -148,7 +149,7 @@
                         <div><label style="font-size:11px;">Sábado</label><select id="turno-6" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
                         <div><label style="font-size:11px;">Domingo</label><select id="turno-0" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
                     </div>
-                    <small style="color:#6b7280; font-size: 11px;">Nota: El sistema prioriza el día de descanso asignado abajo, omitiendo este turno si cae en su descanso.</small>
+                    <small style="color:#6b7280; font-size: 11px;">Nota: El sistema prioriza el día de descanso asignado abajo.</small>
                 </div>
 
                 <div class="form-group">
@@ -182,7 +183,7 @@
                         </select>
                     </div>
                 </div>
-                <button type="submit">Actualizar Elemento en Base de Datos</button>
+                <button type="submit">Actualizar Rol en Base de Datos</button>
             </form>
 
             <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Actual</h3>
@@ -226,8 +227,9 @@
 </div>
 
 <script type="module">
+    // ATENCIÓN: Se agregó getDoc en la importación para poder leer datos individuales
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
@@ -252,7 +254,51 @@
         selectAgente.appendChild(option);
     }
 
-    // ACCIÓN CLAVE: Mostrar/Ocultar panel variable al cambiar la selección
+    // LÓGICA NUEVA: Al seleccionar un agente, auto-llenar sus datos de Firebase para editarlos rápido
+    document.getElementById('id-agente').addEventListener('change', async (e) => {
+        const idAgente = e.target.value;
+        try {
+            const docRef = doc(db, "elementos", idAgente);
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('nombre-agente').value = data.nombre || '';
+                document.getElementById('turno-agente').value = data.turno || '07:00 a 15:00';
+                
+                // Dispara el cambio visual del panel variable
+                document.getElementById('turno-agente').dispatchEvent(new Event('change'));
+                
+                if (data.descansos && data.descansos.length > 0) {
+                    document.getElementById('descanso-1').value = data.descansos[0];
+                    if (data.descansos.length > 1) {
+                        document.getElementById('descanso-2').value = data.descansos[1];
+                    } else {
+                        document.getElementById('descanso-2').value = "";
+                    }
+                }
+                
+                if (data.turno === 'Variable' && data.turnoSemanal) {
+                    for(let i=0; i<=6; i++) {
+                        if(data.turnoSemanal[i]) {
+                            document.getElementById(`turno-${i}`).value = data.turnoSemanal[i];
+                        }
+                    }
+                }
+            } else {
+                // Si el agente aún no está en base de datos, limpia el formulario
+                document.getElementById('nombre-agente').value = '';
+                document.getElementById('turno-agente').value = '07:00 a 15:00';
+                document.getElementById('turno-agente').dispatchEvent(new Event('change'));
+                document.getElementById('descanso-1').value = '1';
+                document.getElementById('descanso-2').value = '';
+            }
+        } catch (error) {
+            console.error("Error al cargar agente:", error);
+        }
+    });
+
+    // Mostrar/Ocultar panel variable
     document.getElementById('turno-agente').addEventListener('change', (e) => {
         const panelVariable = document.getElementById('panel-variable');
         if (e.target.value === 'Variable') {
@@ -271,7 +317,6 @@
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
         const descanso2Raw = document.getElementById('descanso-2').value;
 
-        // Armar arreglo de descansos
         let descansos = [descanso1];
         if (descanso2Raw !== "") {
             const descanso2 = parseInt(descanso2Raw);
@@ -282,7 +327,6 @@
             descansos.push(descanso2);
         }
 
-        // Armar objeto de turnos diarios si es variable
         let turnoSemanal = {};
         if (turno === 'Variable') {
             turnoSemanal = {
@@ -305,12 +349,12 @@
                 actualizado: new Date()
             }, { merge: true });
             
-            alert(`Datos de ${nombre} actualizados exitosamente en el rol.`);
+            alert(`Rol de ${nombre} actualizado correctamente.`);
             document.getElementById('form-agente').reset();
-            document.getElementById('panel-variable').style.display = 'none'; // Se vuelve a ocultar tras guardar
+            document.getElementById('panel-variable').style.display = 'none';
         } catch (error) {
             console.error("Error detallado al guardar: ", error);
-            alert("Error al actualizar en la base de datos. Revisa la consola.");
+            alert("Error al actualizar en la base de datos.");
         }
     });
 
