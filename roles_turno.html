@@ -32,6 +32,7 @@
         }
         h1 { color: var(--primary); margin-bottom: 5px; }
         .motto { font-style: italic; color: #4b5563; font-weight: bold; }
+        .badge-version { background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
         .grid {
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -88,7 +89,7 @@
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
         
-        /* Estilos para el nuevo panel variable */
+        /* Estilos del panel variable */
         .variable-select {
             width: 100%;
             padding: 4px;
@@ -110,7 +111,7 @@
 <body>
 <div class="container">
     <header>
-        <h1>Control de Personal - El Cielo Parque Residencial</h1>
+        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.0</span></h1>
         <p class="motto">Consigna: Firmeza, no prepotencia</p>
     </header>
 
@@ -125,6 +126,7 @@
                     </div>
                     <div class="form-group">
                         <label for="turno-agente">Turno / Horario Asignado</label>
+                        <!-- AQUI ESTÁ LA NUEVA OPCIÓN -->
                         <select id="turno-agente" required>
                             <option value="07:00 a 15:00">07:00 a 15:00</option>
                             <option value="15:00 a 23:00">15:00 a 23:00</option>
@@ -134,6 +136,7 @@
                     </div>
                 </div>
 
+                <!-- ESTE ES EL PANEL QUE ESTÁ OCULTO HASTA QUE SELECCIONAS "VARIABLE" -->
                 <div id="panel-variable" class="panel-variable">
                     <label style="color: var(--primary); font-size: 14px; margin-bottom:10px;">Configurar Horario Variable (Día por Día):</label>
                     <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -249,7 +252,7 @@
         selectAgente.appendChild(option);
     }
 
-    // Mostrar/Ocultar panel variable
+    // ACCIÓN CLAVE: Mostrar/Ocultar panel variable al cambiar la selección
     document.getElementById('turno-agente').addEventListener('change', (e) => {
         const panelVariable = document.getElementById('panel-variable');
         if (e.target.value === 'Variable') {
@@ -304,7 +307,7 @@
             
             alert(`Datos de ${nombre} actualizados exitosamente en el rol.`);
             document.getElementById('form-agente').reset();
-            document.getElementById('panel-variable').style.display = 'none';
+            document.getElementById('panel-variable').style.display = 'none'; // Se vuelve a ocultar tras guardar
         } catch (error) {
             console.error("Error detallado al guardar: ", error);
             alert("Error al actualizar en la base de datos. Revisa la consola.");
@@ -321,7 +324,7 @@
             elementos.push({ id: doc.id, ...doc.data() });
         });
 
-        elementos.sort((a, b) => parseInt(a.id.split('_')) - parseInt(b.id.split('_')));
+        elementos.sort((a, b) => parseInt(a.id.split('_')[1]) - parseInt(b.id.split('_')[1]));
 
         elementos.forEach((el) => {
             let tr = document.createElement('tr');
