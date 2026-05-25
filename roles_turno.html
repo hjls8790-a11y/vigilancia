@@ -206,16 +206,15 @@
         selectAgente.appendChild(option);
     }
 
-    // Guardar/Actualizar agente en Firestore incluyendo el campo 'turno'
+    // Guardar/Actualizar agente en Firestore
     document.getElementById('form-agente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idAgente = document.getElementById('id-agente').value;
-        const nombre = document.getElementById('nombre-agente').value;
-        const turno = document.getElementById('turno-agente').value;
+        const nombre = document.getElementById('nombre-agente').value || "";
+        const turno = document.getElementById('turno-agente').value || "";
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
         const descanso2Raw = document.getElementById('descanso-2').value;
 
-        // Error 2 corregido: Lógica para admitir 1 o 2 días de descanso de forma dinámica
         let descansos = [descanso1];
         if (descanso2Raw !== "") {
             const descanso2 = parseInt(descanso2Raw);
@@ -227,21 +226,23 @@
         }
 
         try {
+            // CORRECCIÓN: Uso de { merge: true } para actualizar limpiamente sin errores de sobreescritura semanal
             await setDoc(doc(db, "elementos", idAgente), {
                 nombre: nombre,
                 turno: turno,
                 descansos: descansos,
                 actualizado: new Date()
-            });
-            alert(`Datos de ${nombre} guardados exitosamente.`);
+            }, { merge: true });
+            
+            alert(`Datos de ${nombre} actualizados exitosamente en el rol.`);
             document.getElementById('form-agente').reset();
         } catch (error) {
-            console.error("Error al guardar: ", error);
-            alert("Error al guardar en base de datos.");
+            console.error("Error detallado al guardar: ", error);
+            alert("Error al actualizar en la base de datos. Revisa la consola.");
         }
     });
 
-    // Escuchar cambios en la plantilla en tiempo real
+    // Escuchar cambios en la plantilla en tiempo real con validaciones seguras anti-error
     onSnapshot(collection(db, "elementos"), (snapshot) => {
         const tbody = document.getElementById('lista-plantilla');
         tbody.innerHTML = '';
@@ -256,14 +257,21 @@
         elementos.forEach((el) => {
             let tr = document.createElement('tr');
             
-            // Error 3 corregido: Mapeo seguro del arreglo de descansos para evitar errores al reasignar
-            let desArray = Array.isArray(el.descansos) ? el.descansos : (el.descansos !== undefined && el.descansos !== null ? [el.descansos] : []);
-            let txtDescansos = desArray.map(d => diasSemana[d]).join(' y ') || "Sin descansos";
+            // Tratamiento ultra seguro de los días de descanso para registros antiguos y nuevos
+            let desArray = [];
+            if (Array.isArray(el.descansos)) {
+                desArray = el.descansos;
+            } else if (el.descansos !== undefined && el.descansos !== null && el.descansos !== "") {
+                desArray = [parseInt(el.descansos)];
+            }
             
+            let txtDescansos = desArray.map(d => diasSemana[d]).filter(d => d !== undefined).join(' y ') || "Sin descansos";
             let txtTurno = el.turno || "No asignado";
+            let txtNombre = el.nombre || "Sin Nombre";
+
             tr.innerHTML = `
                 <td>${el.id.replace('_', ' ')}</td>
-                <td><strong>${el.nombre}</strong></td>
+                <td><strong>${txtNombre}</strong></td>
                 <td><span style="color: var(--primary); font-weight: 500;">${txtTurno}</span></td>
                 <td>${txtDescansos}</td>
             `;
@@ -271,7 +279,7 @@
         });
     });
 
-    // Lógica de Auditoría por Fecha incluyendo despliegue de horarios activos
+    // Lógica de Auditoría por Fecha
     document.getElementById('btn-auditar').addEventListener('click', async () => {
         const fechaStr = document.getElementById('fecha-auditoria').value;
         if (!fechaStr) {
@@ -297,26 +305,30 @@
                 elementosAuditoria.push({ id: doc.id, ...doc.data() });
             });
 
-            elementosAuditoria.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            elementosAuditoria.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
 
             elementosAuditoria.forEach(el => {
                 let tr = document.createElement('tr');
                 
-                // Error 3 corregido: Validación segura en la sección de auditoría
-                let desArray = Array.isArray(el.descansos) ? el.descansos : (el.descansos !== undefined && el.descansos !== null ? [el.descansos] : []);
+                let desArray = [];
+                if (Array.isArray(el.descansos)) {
+                    desArray = el.descansos;
+                } else if (el.descansos !== undefined && el.descansos !== null && el.descansos !== "") {
+                    desArray = [parseInt(el.descansos)];
+                }
+
                 let estaDeDescanso = desArray.includes(diaDeLaSemana);
                 
                 let estadoHTML = estaDeDescanso 
                     ? `<span class="badge bg-danger">Descanso</span>` 
                     : `<span class="badge bg-success">En Servicio</span>`;
                 
-                // Si descansa, el horario se marca como N/A. Si trabaja, muestra su turno asignado.
                 let horarioHTML = estaDeDescanso 
                     ? `<span style="color:#9ca3af; font-style:italic;">N/A</span>` 
                     : `<strong>${el.turno || 'No asignado'}</strong>`;
 
                 tr.innerHTML = `
-                    <td>${el.nombre} <br><small style="color:#6b7280">${el.id.replace('_', ' ')}</small></td>
+                    <td>${el.nombre || "Sin Nombre"} <br><small style="color:#6b7280">${el.id.replace('_', ' ')}</small></td>
                     <td>${horarioHTML}</td>
                     <td>${estadoHTML}</td>
                 `;
