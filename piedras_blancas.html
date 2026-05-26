@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguridad Integral - El Cielo Parque Residencial</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #2563eb;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+            --success: #10b981;
+            --border: #e5e7eb;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0 0 5px 0; font-size: 24px; }
+        .motto { font-style: italic; font-size: 14px; color: #cbd5e1; margin: 0; font-weight: bold; }
+        
+        /* Sistema de Pestañas */
+        .tabs {
+            display: flex;
+            background-color: #f8fafc;
+            border-bottom: 2px solid var(--border);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { background-color: #e2e8f0; }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background-color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        .tab-content.active { display: block; }
+
+        /* Formularios y Textos */
+        h2 { color: var(--secondary); margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .reglamento-box { max-height: 400px; overflow-y: auto; padding-right: 15px; }
+        .reglamento-box p, .reglamento-box li { font-size: 14px; line-height: 1.6; color: #4b5563; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="text"], select, textarea {
+            width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;
+        }
+        .check-group { display: flex; align-items: center; margin-bottom: 10px; }
+        .check-group input { margin-right: 10px; width: 18px; height: 18px; }
+        .check-group label { margin-bottom: 0; font-weight: normal; }
+
+        button.submit-btn {
+            background-color: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px;
+            margin-top: 15px; transition: background-color 0.3s;
+        }
+        button.submit-btn:hover { background-color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Control de Acceso y Operaciones - El Cielo Parque Residencial</h1>
+        <p class="motto">Consigna: Firmeza, no prepotencia</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'tab-reglamento')">Reglamento Interno</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-acceso')">Registro de Acceso</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-checklist')">Checklist Operativo</button>
+    </div>
+
+    <div id="tab-reglamento" class="tab-content active">
+        <h2>Reglamento Interno de Convivencia y Seguridad</h2>
+        <div class="reglamento-box">
+            <p><strong>Aviso para Guardias:</strong> Este reglamento debe ser respetado y hecho valer en todo momento. Ante cualquier infracción, reportar a la administración inmediatamente.</p>
+            <ul>
+                <li><strong>Control de Velocidad:</strong> La velocidad máxima permitida dentro del parque residencial es de 20 km/h.</li>
+                <li><strong>Ruido y Fiestas:</strong> El horario para reuniones y eventos es hasta las 02:00 a.m. moderando el volumen a partir de las 11:00 p.m.</li>
+                <li><strong>Mascotas:</strong> Todo residente debe pasear a sus mascotas con correa y es obligatorio recoger las heces.</li>
+                <li><strong>Visitantes:</strong> Ningún visitante puede ingresar sin la autorización previa del condómino a través del sistema de intercomunicación o pre-registro.</li>
+                <li><strong>Proveedores y Contratistas:</strong> Horario de acceso de Lunes a Viernes de 08:00 a 18:00 hrs, y Sábados de 08:00 a 13:00 hrs.</li>
+                <li><strong>Áreas Comunes:</strong> Prohibido ingerir bebidas alcohólicas o usar envases de vidrio en el área de la alberca.</li>
+                </ul>
+            <p><em>* Pega aquí el resto de tu reglamento oficial si necesitas agregar más puntos *</em></p>
+        </div>
+    </div>
+
+    <div id="tab-acceso" class="tab-content">
+        <h2>Bitácora Electrónica de Movimientos</h2>
+        <form id="form-acceso">
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="acc-tipo-mov" required>
+                    <option value="" disabled selected>Selecciona...</option>
+                    <option value="Entrada">Entrada</option>
+                    <option value="Salida">Salida</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Clasificación</label>
+                <select id="acc-clasificacion" required>
+                    <option value="Visitante">Visitante</option>
+                    <option value="Proveedor">Proveedor / Servicio</option>
+                    <option value="Trabajador">Trabajador de Obra</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="acc-nombre" placeholder="Nombre del conductor o peatón" required>
+            </div>
+            <div class="form-group">
+                <label>Placas / Vehículo (Dejar en blanco si es peatón)</label>
+                <input type="text" id="acc-placas" placeholder="Ej. VGS-1234">
+            </div>
+            <div class="form-group">
+                <label>Destino (Casa / Lote)</label>
+                <input type="text" id="acc-destino" placeholder="Ej. Lote 45" required>
+            </div>
+            <button type="submit" class="submit-btn" id="btn-acceso">Registrar Movimiento</button>
+        </form>
+    </div>
+
+    <div id="tab-checklist" class="tab-content">
+        <h2>Checklist de Entrega / Revisión de Turno</h2>
+        <form id="form-checklist">
+            <div class="form-group">
+                <label>Nombre del Elemento que reporta:</label>
+                <input type="text" id="chk-guardia" placeholder="Tu nombre completo" required>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <label style="color: var(--secondary); font-size: 16px;">Revisión de Infraestructura</label>
+                <div class="check-group">
+                    <input type="checkbox" id="chk-1" value="Plumas y Portones operativos">
+                    <label for="chk-1">Plumas y portones de acceso operando correctamente</label>
+                </div>
+                <div class="check-group">
+                    <input type="checkbox" id="chk-2" value="Software IVMS-4200 y Cámaras">
+                    <label for="chk-2">Software IVMS-4200 en línea y cámaras sin obstrucciones</label>
+                </div>
+                <div class="check-group">
+                    <input type="checkbox" id="chk-3" value="Perimetro intacto">
+                    <label for="chk-3">Rondín perimetral realizado sin alteraciones en bardas/mallas</label>
+                </div>
+                <div class="check-group">
+                    <input type="checkbox" id="chk-4" value="Equipo de caseta completo">
+                    <label for="chk-4">Radio, bitácoras físicas, llaves y equipo de caseta completos</label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Novedades u Observaciones:</label>
+                <textarea id="chk-novedades" rows="3" placeholder="Si encontraste alguna falla, repórtala aquí. Si todo está bien, escribe 'Sin novedad'." required></textarea>
+            </div>
+            <button type="submit" class="submit-btn" id="btn-checklist">Guardar Checklist en Base de Datos</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    // Lógica para cambiar de pestañas visualmente
+    window.openTab = function(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
+        }
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Configuración de Firebase (SDK Modular v10)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.appspot.com",
+        messagingSenderId: "714792023462",
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 1. Guardar Registro de Accesos
+    document.getElementById('form-acceso').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-acceso');
+        btn.textContent = "Registrando..."; btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "registro_accesos"), {
+                tipoMovimiento: document.getElementById('acc-tipo-mov').value,
+                clasificacion: document.getElementById('acc-clasificacion').value,
+                nombre: document.getElementById('acc-nombre').value,
+                placas: document.getElementById('acc-placas').value || "Peatón/No aplica",
+                destino: document.getElementById('acc-destino').value,
+                timestamp: serverTimestamp() // Sello de tiempo inmutable del servidor
+            });
+            alert("Movimiento registrado exitosamente.");
+            document.getElementById('form-acceso').reset();
+        } catch (error) {
+            console.error("Error al registrar acceso:", error);
+            alert("Hubo un error de conexión con la base de datos.");
+        } finally {
+            btn.textContent = "Registrar Movimiento"; btn.disabled = false;
+        }
+    });
+
+    // 2. Guardar Checklist de Seguridad
+    document.getElementById('form-checklist').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-checklist');
+        btn.textContent = "Guardando..."; btn.disabled = true;
+
+        // Recolectar valores de los checkboxes
+        let revisiones = [];
+        for(let i=1; i<=4; i++) {
+            let chk = document.getElementById(`chk-${i}`);
+            revisiones.push({
+                tarea: chk.value,
+                cumplido: chk.checked
+            });
+        }
+
+        try {
+            await addDoc(collection(db, "checklist_operativo"), {
+                guardia: document.getElementById('chk-guardia').value,
+                revisiones: revisiones,
+                novedades: document.getElementById('chk-novedades').value,
+                timestamp: serverTimestamp()
+            });
+            alert("Checklist guardado en bitácora correctamente.");
+            document.getElementById('form-checklist').reset();
+        } catch (error) {
+            console.error("Error al guardar checklist:", error);
+            alert("Hubo un error de conexión con la base de datos.");
+        } finally {
+            btn.textContent = "Guardar Checklist en Base de Datos"; btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
