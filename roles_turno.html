@@ -63,6 +63,7 @@
             cursor: pointer;
             font-weight: bold;
             width: 100%;
+            transition: background-color 0.3s;
         }
         button:hover { background-color: var(--secondary); }
         table {
@@ -86,6 +87,7 @@
         }
         .bg-success { background-color: var(--success); }
         .bg-danger { background-color: var(--danger); }
+        .bg-info { background-color: #3b82f6; }
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
         
@@ -110,30 +112,40 @@
 <body>
 <div class="container">
     <header>
-        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.1</span></h1>
+        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.2</span></h1>
         <p class="motto">Consigna: Firmeza, no prepotencia</p>
     </header>
 
     <div class="grid">
         <div class="card">
-            <h2>Configuración y Edición de Elementos</h2>
-            <p style="font-size: 12px; color: #4b5563; margin-top: -5px;">Selecciona a un agente para cargar sus datos actuales y modificar su rol de la semana.</p>
+            <h2>Rotación Semanal de Elementos</h2>
+            <p style="font-size: 12px; color: #4b5563; margin-top: -5px;">Selecciona a un agente para cargar su rol actual. Al guardar, el sistema actualizará su turno de forma segura sin marcar error.</p>
             <form id="form-agente">
                 <div class="flex-row">
                     <div class="form-group">
                         <label for="id-agente">Seleccionar Número de Agente</label>
-                        <!-- Se agregó una opción vacía inicial para forzar el evento change -->
                         <select id="id-agente" required>
                             <option value="" disabled selected>Elige un Agente...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="turno-agente">Turno / Horario Asignado</label>
+                        <label for="semana-agente">Semana a Programar (Opcional)</label>
+                        <input type="text" id="semana-agente" placeholder="Ej. Semana 24">
+                    </div>
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="nombre-agente">Nombre del Elemento</label>
+                        <input type="text" id="nombre-agente" placeholder="Ej. Juan Pérez" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="turno-agente">Turno Asignado</label>
                         <select id="turno-agente" required>
                             <option value="07:00 a 15:00">07:00 a 15:00</option>
                             <option value="15:00 a 23:00">15:00 a 23:00</option>
                             <option value="23:00 a 07:00">23:00 a 07:00</option>
-                            <option value="Variable">Horario Variable (Cubre Descansos)</option>
+                            <option value="Variable">Horario Variable</option>
                         </select>
                     </div>
                 </div>
@@ -149,13 +161,9 @@
                         <div><label style="font-size:11px;">Sábado</label><select id="turno-6" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
                         <div><label style="font-size:11px;">Domingo</label><select id="turno-0" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
                     </div>
-                    <small style="color:#6b7280; font-size: 11px;">Nota: El sistema prioriza el día de descanso asignado abajo.</small>
+                    <small style="color:#6b7280; font-size: 11px;">Nota: El día de descanso siempre tiene prioridad sobre este horario.</small>
                 </div>
 
-                <div class="form-group">
-                    <label for="nombre-agente">Nombre del Elemento</label>
-                    <input type="text" id="nombre-agente" placeholder="Ej. Juan Pérez" required>
-                </div>
                 <div class="flex-row form-group">
                     <div>
                         <label for="descanso-1">Día de Descanso 1</label>
@@ -183,16 +191,16 @@
                         </select>
                     </div>
                 </div>
-                <button type="submit">Actualizar Rol en Base de Datos</button>
+                <button type="submit" id="btn-guardar">Actualizar Rol Semanal</button>
             </form>
 
-            <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Actual</h3>
+            <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Operativa</h3>
             <table id="tabla-plantilla">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
-                        <th>Turno / Horario</th>
+                        <th>Turno Asignado</th>
                         <th>Descansos</th>
                     </tr>
                 </thead>
@@ -203,7 +211,7 @@
 
         <div class="card">
             <h2>Auditoría de Servicio</h2>
-            <p style="font-size: 14px; color: #4b5563;">Selecciona una fecha para verificar qué elementos estaban en servicio o de descanso.</p>
+            <p style="font-size: 14px; color: #4b5563;">Revisa rápidamente la cobertura de una fecha específica.</p>
             <div class="form-group">
                 <label for="fecha-auditoria">Fecha a auditar:</label>
                 <input type="date" id="fecha-auditoria">
@@ -215,7 +223,7 @@
                 <thead>
                     <tr>
                         <th>Elemento</th>
-                        <th>Horario Asignado</th>
+                        <th>Horario a Cubrir</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -227,7 +235,6 @@
 </div>
 
 <script type="module">
-    // ATENCIÓN: Se agregó getDoc en la importación para poder leer datos individuales
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -254,7 +261,7 @@
         selectAgente.appendChild(option);
     }
 
-    // LÓGICA NUEVA: Al seleccionar un agente, auto-llenar sus datos de Firebase para editarlos rápido
+    // Auto-llenado seguro al cambiar de agente
     document.getElementById('id-agente').addEventListener('change', async (e) => {
         const idAgente = e.target.value;
         try {
@@ -264,18 +271,21 @@
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 document.getElementById('nombre-agente').value = data.nombre || '';
+                document.getElementById('semana-agente').value = data.semana || '';
                 document.getElementById('turno-agente').value = data.turno || '07:00 a 15:00';
                 
-                // Dispara el cambio visual del panel variable
                 document.getElementById('turno-agente').dispatchEvent(new Event('change'));
                 
                 if (data.descansos && data.descansos.length > 0) {
-                    document.getElementById('descanso-1').value = data.descansos[0];
+                    document.getElementById('descanso-1').value = data.descansos;
                     if (data.descansos.length > 1) {
-                        document.getElementById('descanso-2').value = data.descansos[1];
+                        document.getElementById('descanso-2').value = data.descansos;
                     } else {
                         document.getElementById('descanso-2').value = "";
                     }
+                } else {
+                    document.getElementById('descanso-1').value = '1';
+                    document.getElementById('descanso-2').value = '';
                 }
                 
                 if (data.turno === 'Variable' && data.turnoSemanal) {
@@ -286,19 +296,15 @@
                     }
                 }
             } else {
-                // Si el agente aún no está en base de datos, limpia el formulario
-                document.getElementById('nombre-agente').value = '';
-                document.getElementById('turno-agente').value = '07:00 a 15:00';
+                document.getElementById('form-agente').reset();
+                document.getElementById('id-agente').value = idAgente;
                 document.getElementById('turno-agente').dispatchEvent(new Event('change'));
-                document.getElementById('descanso-1').value = '1';
-                document.getElementById('descanso-2').value = '';
             }
         } catch (error) {
             console.error("Error al cargar agente:", error);
         }
     });
 
-    // Mostrar/Ocultar panel variable
     document.getElementById('turno-agente').addEventListener('change', (e) => {
         const panelVariable = document.getElementById('panel-variable');
         if (e.target.value === 'Variable') {
@@ -308,11 +314,16 @@
         }
     });
 
-    // Guardar/Actualizar agente
+    // Guardado blindado contra errores
     document.getElementById('form-agente').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btnGuardar = document.getElementById('btn-guardar');
+        btnGuardar.textContent = "Actualizando...";
+        btnGuardar.disabled = true;
+
         const idAgente = document.getElementById('id-agente').value;
         const nombre = document.getElementById('nombre-agente').value || "";
+        const semana = document.getElementById('semana-agente').value || "";
         const turno = document.getElementById('turno-agente').value || "";
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
         const descanso2Raw = document.getElementById('descanso-2').value;
@@ -321,15 +332,26 @@
         if (descanso2Raw !== "") {
             const descanso2 = parseInt(descanso2Raw);
             if (descanso1 === descanso2) {
-                alert("Los días de descanso deben ser diferentes.");
+                alert("Precaución: Los días de descanso deben ser diferentes.");
+                btnGuardar.textContent = "Actualizar Rol Semanal";
+                btnGuardar.disabled = false;
                 return;
             }
             descansos.push(descanso2);
         }
 
-        let turnoSemanal = {};
+        // Construimos la data de forma segura
+        let dataToUpdate = {
+            nombre: nombre,
+            semana: semana,
+            turno: turno,
+            descansos: descansos,
+            actualizado: new Date()
+        };
+
+        // Si es variable agregamos el desglose, si es fijo mandamos un objeto vacío para limpiar rastros
         if (turno === 'Variable') {
-            turnoSemanal = {
+            dataToUpdate.turnoSemanal = {
                 1: document.getElementById('turno-1').value,
                 2: document.getElementById('turno-2').value,
                 3: document.getElementById('turno-3').value,
@@ -338,27 +360,27 @@
                 6: document.getElementById('turno-6').value,
                 0: document.getElementById('turno-0').value
             };
+        } else {
+            dataToUpdate.turnoSemanal = {}; 
         }
 
         try {
-            await setDoc(doc(db, "elementos", idAgente), {
-                nombre: nombre,
-                turno: turno,
-                turnoSemanal: turnoSemanal,
-                descansos: descansos,
-                actualizado: new Date()
-            }, { merge: true });
+            await setDoc(doc(db, "elementos", idAgente), dataToUpdate, { merge: true });
             
-            alert(`Rol de ${nombre} actualizado correctamente.`);
+            alert(`Novedad confirmada: Rol de ${nombre} actualizado correctamente.`);
             document.getElementById('form-agente').reset();
             document.getElementById('panel-variable').style.display = 'none';
+            document.getElementById('id-agente').value = ""; // Regresa al placeholder
         } catch (error) {
-            console.error("Error detallado al guardar: ", error);
-            alert("Error al actualizar en la base de datos.");
+            console.error("Error al guardar: ", error);
+            alert("Hubo un error de conexión con la base de datos. Verifica tu red.");
+        } finally {
+            btnGuardar.textContent = "Actualizar Rol Semanal";
+            btnGuardar.disabled = false;
         }
     });
 
-    // Escuchar plantilla en tiempo real
+    // Escuchar plantilla
     onSnapshot(collection(db, "elementos"), (snapshot) => {
         const tbody = document.getElementById('lista-plantilla');
         tbody.innerHTML = '';
@@ -368,7 +390,7 @@
             elementos.push({ id: doc.id, ...doc.data() });
         });
 
-        elementos.sort((a, b) => parseInt(a.id.split('_')[1]) - parseInt(b.id.split('_')[1]));
+        elementos.sort((a, b) => parseInt(a.id.split('_')) - parseInt(b.id.split('_')));
 
         elementos.forEach((el) => {
             let tr = document.createElement('tr');
@@ -384,14 +406,15 @@
             
             let txtTurno = el.turno || "No asignado";
             if (el.turno === 'Variable') {
-                txtTurno = "Cubre Descansos (Variable)";
+                txtTurno = "Cubre Descansos (Rotativo)";
             }
             
             let txtNombre = el.nombre || "Sin Nombre";
+            let txtSemana = el.semana ? `<br><span class="badge bg-info">${el.semana}</span>` : '';
 
             tr.innerHTML = `
                 <td>${el.id.replace('_', ' ')}</td>
-                <td><strong>${txtNombre}</strong></td>
+                <td><strong>${txtNombre}</strong> ${txtSemana}</td>
                 <td><span style="color: var(--primary); font-weight: 500;">${txtTurno}</span></td>
                 <td>${txtDescansos}</td>
             `;
@@ -399,11 +422,11 @@
         });
     });
 
-    // Lógica de Auditoría
+    // Auditoría
     document.getElementById('btn-auditar').addEventListener('click', async () => {
         const fechaStr = document.getElementById('fecha-auditoria').value;
         if (!fechaStr) {
-            alert("Por favor selecciona una fecha.");
+            alert("Por favor selecciona una fecha para la auditoría.");
             return;
         }
 
@@ -449,7 +472,7 @@
                 } else {
                     if (el.turno === 'Variable' && el.turnoSemanal) {
                         const turnoDelDia = el.turnoSemanal[diaDeLaSemana] || 'No asignado';
-                        horarioHTML = `<strong>${turnoDelDia}</strong> <span style="font-size:10px;color:var(--secondary);">(Cubre descansos)</span>`;
+                        horarioHTML = `<strong>${turnoDelDia}</strong> <span style="font-size:10px;color:var(--secondary);">(Rotativo)</span>`;
                     } else {
                         horarioHTML = `<strong>${el.turno || 'No asignado'}</strong>`;
                     }
@@ -465,6 +488,7 @@
 
         } catch (error) {
             console.error("Error al auditar: ", error);
+            alert("Error al cargar la auditoría. Verifica tu conexión.");
         }
     });
 </script>
