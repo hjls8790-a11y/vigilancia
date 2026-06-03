@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditor Táctico de Accesos</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --primary: #2c3e50; /* Azul táctico */
+            --success: #27ae60; /* Verde aprobación */
+            --warning: #f39c12; /* Naranja alerta */
+            --danger: #e74c3c;  /* Rojo detener */
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            text-align: center; 
+            padding: 15px; 
+            margin: 0;
+        }
+        h2 { color: var(--primary); }
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 18px; 
+            margin: 15px 0; 
+            font-size: 18px; 
+            font-weight: bold;
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-registro { background-color: var(--primary); }
+        .btn-auditoria { background-color: var(--success); }
+        .btn-descarga { background-color: #34495e; font-size: 16px; padding: 12px; }
+        
+        .panel { 
+            display: none; 
+            margin-top: 20px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        input, textarea { 
+            width: 90%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            font-size: 16px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+    <h2>🛡️ Control de Escoltas</h2>
+    
+    <button class="btn btn-registro" onclick="mostrarPanel('registro')">📍 Registrar Nueva Escolta</button>
+    <button class="btn btn-auditoria" onclick="mostrarPanel('auditoria')">📊 Auditar Registros</button>
+
+    <div id="panel-registro" class="panel">
+        <h3>Punto de Control</h3>
+        <input type="text" id="qr_id" placeholder="ID del Código QR o Nombre">
+        <button class="btn" style="background-color: var(--warning);" onclick="iniciarEscolta()">▶️ 1. Iniciar Escolta (GPS)</button>
+        
+        <div id="en_proceso" style="display:none; margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px;">
+            <h4 style="color: var(--danger);">🔴 Escolta en curso...</h4>
+            <textarea id="comentarios" rows="3" placeholder="Añadir novedades (Ej. Proveedor tardó en encender vehículo)"></textarea>
+            <button class="btn" style="background-color: var(--danger);" onclick="finalizarEscolta()">⏹️ 2. Finalizar en Domicilio (GPS)</button>
+        </div>
+    </div>
+
+    <div id="panel-auditoria" class="panel">
+        <h3>Registros de la Jornada</h3>
+        <button class="btn btn-descarga" onclick="descargarCSV()">📥 Descargar Reporte (Excel/CSV)</button>
+        <div style="overflow-x:auto;">
+            <table id="tabla-registros">
+                <thead>
+                    <tr>
+                        <th>ID / QR</th>
+                        <th>Fecha y Hora</th>
+                        <th>Minutos</th>
+                        <th>Novedades</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-registros">
+                    <tr><td colspan="4">Cargando base de datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE
+        // Sustituye esto por las claves de tu proyecto Firebase
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+        
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        // ==========================================
+        // 2. LÓGICA OPERATIVA (GPS Y TIEMPOS)
+        // ==========================================
+        let escoltaActual = {};
+        let datosGlobales = []; // Para guardar datos y exportar a Excel
+
+        function mostrarPanel(panel) {
+            document.getElementById('panel-registro').style.display = panel === 'registro' ? 'block' : 'none';
+            document.getElementById('panel-auditoria').style.display = panel === 'auditoria' ? 'block' : 'none';
+            if(panel === 'auditoria') cargarAuditoria();
+        }
+
+        function iniciarEscolta() {
+            let qrId = document.getElementById('qr_id').value;
+            if(!qrId) { alert("Obligatorio: Ingresa el código QR o nombre del proveedor."); return; }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    escoltaActual = {
+                        id_proveedor: qrId,
+                        tiempo_inicio: Date.now(),
+                        fecha_legible: new Date().toLocaleString(),
+                        gps_inicio: { lat: position.coords.latitude, lng: position.coords.longitude }
+                    };
+                    document.getElementById('en_proceso').style.display = 'block';
+                    alert("✅ Inicio registrado con éxito. Coordenadas capturadas.");
+                }, () => {
+                    alert("⚠️ Error: Activa el GPS del dispositivo para continuar.");
+                });
+            } else {
+                alert("Tu navegador no soporta GPS.");
+            }
+        }
+
+        function finalizarEscolta() {
+            let comentarios = document.getElementById('comentarios').value || "Sin novedades";
+
+            navigator.geolocation.getCurrentPosition(position => {
+                escoltaActual.tiempo_fin = Date.now();
+                escoltaActual.gps_fin = { lat: position.coords.latitude, lng: position.coords.longitude };
+                escoltaActual.comentarios = comentarios;
+                
+                // Cálculo de tiempo exacto
+                let diferenciaMs = escoltaActual.tiempo_fin - escoltaActual.tiempo_inicio;
+                escoltaActual.duracion_minutos = (diferenciaMs / 1000 / 60).toFixed(1);
+
+                // Enviar a la nube (Firebase)
+                database.ref('escoltas_registros/').push(escoltaActual).then(() => {
+                    alert(`🏁 Escolta finalizada en ${escoltaActual.duracion_minutos} minutos. Guardado en servidor.`);
+                    
+                    // Limpiar pantalla para el siguiente
+                    document.getElementById('en_proceso').style.display = 'none';
+                    document.getElementById('qr_id').value = '';
+                    document.getElementById('comentarios').value = '';
+                    escoltaActual = {};
+                }).catch(error => {
+                    alert("Error al guardar en base de datos: " + error);
+                });
+            });
+        }
+
+        // ==========================================
+        // 3. LÓGICA DE AUDITORÍA Y DESCARGA
+        // ==========================================
+        function cargarAuditoria() {
+            let lista = document.getElementById('lista-registros');
+            
+            database.ref('escoltas_registros/').limitToLast(50).on('value', (snapshot) => {
+                lista.innerHTML = '';
+                datosGlobales = [];
+                
+                if(!snapshot.exists()){
+                    lista.innerHTML = '<tr><td colspan="4">No hay registros aún.</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    let data = childSnapshot.val();
+                    datosGlobales.push(data); // Guardar para CSV
+                    
+                    let fila = `<tr>
+                        <td><strong>${data.id_proveedor}</strong></td>
+                        <td>${data.fecha_legible}</td>
+                        <td style="color: ${data.duracion_minutos > 15 ? 'red' : 'green'}; font-weight:bold;">
+                            ${data.duracion_minutos} min
+                        </td>
+                        <td>${data.comentarios}</td>
+                    </tr>`;
+                    lista.innerHTML = fila + lista.innerHTML; // Insertar al principio (más recientes arriba)
+                });
+            });
+        }
+
+        function descargarCSV() {
+            if(datosGlobales.length === 0) { alert("No hay datos para descargar."); return; }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID Proveedor,Fecha,Minutos,Latitud Inicial,Longitud Inicial,Latitud Final,Longitud Final,Comentarios\n";
+            
+            datosGlobales.forEach(row => {
+                let cleanComentarios = row.comentarios.replace(/,/g, " "); // Evitar que comas rompan el CSV
+                let fila = `${row.id_proveedor},${row.fecha_legible},${row.duracion_minutos},${row.gps_inicio.lat},${row.gps_inicio.lng},${row.gps_fin.lat},${row.gps_fin.lng},${cleanComentarios}`;
+                csvContent += fila + "\n";
+            });
+
+            // Forzar descarga del archivo
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Auditoria_Accesos.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
