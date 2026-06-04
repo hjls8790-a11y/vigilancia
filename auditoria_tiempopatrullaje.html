@@ -218,7 +218,26 @@
 
     <div id="panel-auditoria" class="panel">
         <h3>Historial Operativo y Trazabilidad</h3>
-        <button class="btn btn-descarga" onclick="descargarCSV()">📥 Descargar Todo a Excel (CSV)</button>
+        
+        <fieldset style="border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-bottom: 15px; background-color: #fafafa;">
+            <legend style="font-weight:bold; color: var(--primary);">Filtro de Fecha y Hora</legend>
+            <div class="flex-group">
+                <div>
+                    <label for="filtro_inicio" style="margin-top:0;">Desde:</label>
+                    <input type="datetime-local" id="filtro_inicio">
+                </div>
+                <div>
+                    <label for="filtro_fin" style="margin-top:0;">Hasta:</label>
+                    <input type="datetime-local" id="filtro_fin">
+                </div>
+            </div>
+            <div class="flex-group" style="margin-top: 10px;">
+                <button class="btn" style="background-color: var(--primary); margin: 0; padding: 12px; font-size: 15px;" onclick="cargarAuditoria()">🔍 Aplicar Filtro</button>
+                <button class="btn" style="background-color: #7f8c8d; margin: 0; padding: 12px; font-size: 15px;" onclick="limpiarFiltros()">❌ Limpiar</button>
+            </div>
+        </fieldset>
+
+        <button class="btn btn-descarga" onclick="descargarCSV()">📥 Descargar a Excel (CSV)</button>
         
         <div id="mapa-contenedor">
             <div style="padding: 8px; background: #2c3e50; color: white; font-weight: bold; font-size: 14px;">
@@ -272,6 +291,7 @@
         let rutaLayer = null;
         let markerInicio = null;
         let markerFin = null;
+        let unsubscribeAuditoria = null; // Para limpiar la consulta anterior si se aplica un filtro nuevo
 
         function mostrarPanel(panel) {
             document.getElementById('panel-registro').style.display = panel === 'registro' ? 'block' : 'none';
@@ -284,9 +304,7 @@
         }
 
         function seleccionarEscolta(color) {
-            // Remover estado activo de todos
             document.querySelectorAll('.btn-esc').forEach(el => el.classList.remove('active'));
-            // Activar el seleccionado
             document.getElementById(`esc_${color.toLowerCase()}`).classList.add('active');
             tipoEscoltaSeleccionado = color;
         }
@@ -303,7 +321,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     escoltaActual = {
                         id_proveedor: qrId,
-                        tipo_proveedor: document.getElementById('tipo_provider' === null ? 'tipo_proveedor' : 'tipo_proveedor').value,
+                        tipo_proveedor: document.getElementById('tipo_proveedor').value,
                         vehiculo: {
                             placas: document.getElementById('vehiculo_placas').value || "N/A",
                             marca: document.getElementById('vehiculo_marca').value || "N/A",
@@ -339,12 +357,10 @@
                 let diferenciaMs = escoltaActual.tiempo_fin - escoltaActual.tiempo_inicio;
                 escoltaActual.duracion_minutos = parseFloat((diferenciaMs / 1000 / 60).toFixed(1));
 
-                // Inserción directa en Cloud Firestore (Cumple regla allow create)
                 db.collection("escoltas_registros").add(escoltaActual)
                 .then(() => {
                     alert(`🏁 Escolta registrada exitosamente.\nTiempo de traslado: ${escoltaActual.duracion_minutos} minutos.`);
                     
-                    // Resetear interfaz de captura
                     document.getElementById('en_proceso').style.display = 'none';
                     document.getElementById('qr_id').value = '';
                     document.getElementById('comentarios').value = '';
@@ -365,20 +381,48 @@
         }
 
         // ==========================================
-        // 3. AUDITORÍA, DESCARGAS Y MAPEADO DE TRAYECTORIA
+        // 3. AUDITORÍA, DESCARGAS, FILTROS Y MAPA
         // ==========================================
+        function limpiarFiltros() {
+            document.getElementById('filtro_inicio').value = '';
+            document.getElementById('filtro_fin').value = '';
+            cargarAuditoria(); // Recargar sin filtros
+        }
+
         function cargarAuditoria() {
             let lista = document.getElementById('lista-registros');
-            
-            db.collection("escoltas_registros")
-              .orderBy("tiempo_inicio", "desc")
-              .limit(40)
-              .onSnapshot((querySnapshot) => {
+            let filtroInicio = document.getElementById('filtro_inicio').value;
+            let filtroFin = document.getElementById('filtro_fin').value;
+
+            lista.innerHTML = '<tr><td colspan="6">Buscando registros...</td></tr>';
+            ocultarMapa();
+
+            // Si hay una consulta anterior activa, la detenemos para no empalmar datos
+            if (unsubscribeAuditoria) {
+                unsubscribeAuditoria();
+            }
+
+            let query = db.collection("escoltas_registros");
+
+            // Aplicar filtros si el usuario seleccionó fechas
+            if (filtroInicio && filtroFin) {
+                let msInicio = new Date(filtroInicio).getTime();
+                let msFin = new Date(filtroFin).getTime();
+                
+                query = query.where("tiempo_inicio", ">=", msInicio)
+                             .where("tiempo_inicio", "<=", msFin)
+                             .orderBy("tiempo_inicio", "desc");
+            } else {
+                // Comportamiento normal por defecto: últimos 40 registros
+                query = query.orderBy("tiempo_inicio", "desc").limit(40);
+            }
+
+            unsubscribeAuditoria = query.onSnapshot((querySnapshot) => {
                   lista.innerHTML = '';
                   datosGlobales = [];
                   
                   if (querySnapshot.empty) {
-                      lista.innerHTML = '<tr><td colspan="6">No se registran operaciones en la bitácora actual.</td></tr>';
+                      lista.innerHTML = '<tr><td colspan="6">No se encontraron operaciones en el rango especificado.</td></tr>';
                       return;
                   }
 
@@ -396,12 +440,13 @@
                           <td>${vehiculoTxt}</td>
                           <td><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background-color:${obtenerHexColor(data.tipo_escolta)}; color:${data.tipo_escolta==='Amarillo'?'#000':'#fff'}">${data.tipo_escolta}</span></td>
                           <td style="font-weight:bold; color:${data.duracion_minutos > 10 ? 'red' : 'green'};">${data.duracion_minutos} min</td>
-                          <td><button class="btn-ver-mapa" onclick="visualizarTrayecto('${idFila}', ${data.gps_inicio.lat}, ${data.gps_inicio.lng}, ${data.gps_fin.lat}, ${data.gps_fin.lng})">🗺️ Ver Trayecto</button></td>
+                          <td><button class="btn-ver-mapa" onclick="visualizarTrayecto('${idFila}', ${data.gps_inicio.lat}, ${data.gps_inicio.lng}, ${data.gps_fin.lat}, ${data.gps_fin.lng})">🗺️ Ver</button></td>
                       </tr>`;
                       lista.innerHTML += fila;
                   });
               }, (error) => {
-                  lista.innerHTML = `<tr><td colspan="6" style="color:red;">Fallo de privilegios de lectura: ${error.message}</td></tr>`;
+                  lista.innerHTML = `<tr><td colspan="6" style="color:red;">Error al consultar: ${error.message}. Si usa filtros, es posible que Firestore requiera crear un índice.</td></tr>`;
+                  console.error(error);
               });
         }
 
@@ -414,13 +459,11 @@
         }
 
         function visualizarTrayecto(idFila, latIn, lngIn, latFn, lngFn) {
-            // Resaltar visualmente la fila seleccionada en la tabla
             document.querySelectorAll('#tabla-registros tbody tr').forEach(tr => tr.classList.remove('seleccionada'));
             document.getElementById(`fila_${idFila}`).classList.add('seleccionada');
 
             document.getElementById('mapa-contenedor').style.display = 'block';
 
-            // Inicializar mapa de Leaflet si no existe
             if (map === null) {
                 map = L.map('map').setView([latIn, lngIn], 16);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -431,27 +474,19 @@
                 map.setView([latIn, lngIn], 16);
             }
 
-            // Limpiar trazos o marcadores anteriores
             if (rutaLayer) map.removeLayer(rutaLayer);
             if (markerInicio) map.removeLayer(markerInicio);
             if (markerFin) map.removeLayer(markerFin);
 
-            // Colocar marcador de inicio (Filtro de Entrada)
             markerInicio = L.marker([latIn, lngIn]).addTo(map)
                 .bindPopup('<b>Punto de Inicio:</b> Filtro de Acceso').openPopup();
 
-            // Colocar marcador de fin (Domicilio Destino)
             markerFin = L.marker([latFn, lngFn]).addTo(map)
                 .bindPopup('<b>Punto de Fin:</b> Domicilio del Propietario');
 
-            // Dibujar la trayectoria solicitada (Línea Roja Inalterable)
-            let coordenadasTrayecto = [
-                [latIn, lngIn],
-                [latFn, lngFn]
-            ];
+            let coordenadasTrayecto = [ [latIn, lngIn], [latFn, lngFn] ];
             rutaLayer = L.polyline(coordenadasTrayecto, {color: 'red', weight: 5, opacity: 0.8}).addTo(map);
             
-            // Ajustar encuadre del mapa para visualizar ambos puntos perfectamente
             map.fitBounds(rutaLayer.getBounds(), {padding: [50, 50]});
         }
 
@@ -462,7 +497,7 @@
         function descargarCSV() {
             if(datosGlobales.length === 0) { alert("No existen registros procesados para generar descarga."); return; }
             
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Inclusión de BOM para compatibilidad directa con acentos en Excel
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
             csvContent += "ID Proveedor,Giro Proveedor,Calle Destino,Numero Destino,Placas,Marca,Color,Prioridad Escolta,Fecha de Registro,Minutos Totales,Lat Entrada,Lng Entrada,Lat Destino,Lng Destino,Comentarios\n";
             
             datosGlobales.forEach(row => {
@@ -474,7 +509,11 @@
             let encodedUri = encodeURI(csvContent);
             let link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Auditoria_Escoltas_Tácticas.csv");
+            
+            // Nombre del archivo modificado para incluir la fecha de descarga
+            let fechaHoy = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `Auditoria_Escoltas_${fechaHoy}.csv`);
+            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
