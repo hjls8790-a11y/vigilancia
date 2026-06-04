@@ -6,15 +6,15 @@
     <title>Auditor Táctico de Accesos</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
         :root {
             --bg-color: #f4f4f9;
-            --primary: #2c3e50; /* Azul táctico */
-            --success: #27ae60; /* Verde aprobación */
-            --warning: #f39c12; /* Naranja alerta */
-            --danger: #e74c3c;  /* Rojo detener */
+            --primary: #2c3e50; 
+            --success: #27ae60; 
+            --warning: #f39c12; 
+            --danger: #e74c3c;  
         }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -104,27 +104,29 @@
     <script>
         // ==========================================
         // 1. CONFIGURACIÓN DE FIREBASE
-        // Sustituye esto por las claves de tu proyecto Firebase
         // ==========================================
         const firebaseConfig = {
-        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
-        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-        projectId: "sistema-vigilancia-6851e",
-        storageBucket: "sistema-vigilancia-6851e.firebaseapp.com",
-        messagingSenderId: "714792023462",
-        appId: "1:714792023462:web:4f560ecf2a16e6a041cb7"
-    };
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+        
         // Inicializar Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const database = firebase.database();
+        
+        // Inicializar Firestore (Motor de base de datos correcto)
+        const db = firebase.firestore();
 
         // ==========================================
         // 2. LÓGICA OPERATIVA (GPS Y TIEMPOS)
         // ==========================================
         let escoltaActual = {};
-        let datosGlobales = []; // Para guardar datos y exportar a Excel
+        let datosGlobales = [];
 
         function mostrarPanel(panel) {
             document.getElementById('panel-registro').style.display = panel === 'registro' ? 'block' : 'none';
@@ -164,19 +166,22 @@
                 
                 // Cálculo de tiempo exacto
                 let diferenciaMs = escoltaActual.tiempo_fin - escoltaActual.tiempo_inicio;
-                escoltaActual.duracion_minutos = (diferenciaMs / 1000 / 60).toFixed(1);
+                escoltaActual.duracion_minutos = parseFloat((diferenciaMs / 1000 / 60).toFixed(1));
 
-                // Enviar a la nube (Firebase)
-                database.ref('escoltas_registros/').push(escoltaActual).then(() => {
-                    alert(`🏁 Escolta finalizada en ${escoltaActual.duracion_minutos} minutos. Guardado en servidor.`);
+                // Guardar en FIRESTORE usando .add() para respetar el "allow create: if true"
+                db.collection("escoltas_registros").add(escoltaActual)
+                .then((docRef) => {
+                    alert(`🏁 Escolta finalizada en ${escoltaActual.duracion_minutos} minutos. ID: ${docRef.id}`);
                     
-                    // Limpiar pantalla para el siguiente
+                    // Limpiar pantalla
                     document.getElementById('en_proceso').style.display = 'none';
                     document.getElementById('qr_id').value = '';
                     document.getElementById('comentarios').value = '';
                     escoltaActual = {};
-                }).catch(error => {
-                    alert("Error al guardar en base de datos: " + error);
+                })
+                .catch((error) => {
+                    alert("Error al guardar en Firestore: " + error.message);
+                    console.error("Detalle del error:", error);
                 });
             });
         }
@@ -187,30 +192,37 @@
         function cargarAuditoria() {
             let lista = document.getElementById('lista-registros');
             
-            database.ref('escoltas_registros/').limitToLast(50).on('value', (snapshot) => {
-                lista.innerHTML = '';
-                datosGlobales = [];
-                
-                if(!snapshot.exists()){
-                    lista.innerHTML = '<tr><td colspan="4">No hay registros aún.</td></tr>';
-                    return;
-                }
+            // Consultar FIRESTORE ordenando por tiempo_inicio descendente
+            db.collection("escoltas_registros")
+              .orderBy("tiempo_inicio", "desc")
+              .limit(50)
+              .onSnapshot((querySnapshot) => {
+                  lista.innerHTML = '';
+                  datosGlobales = [];
+                  
+                  if (querySnapshot.empty) {
+                      lista.innerHTML = '<tr><td colspan="4">No hay registros aún.</td></tr>';
+                      return;
+                  }
 
-                snapshot.forEach((childSnapshot) => {
-                    let data = childSnapshot.val();
-                    datosGlobales.push(data); // Guardar para CSV
-                    
-                    let fila = `<tr>
-                        <td><strong>${data.id_proveedor}</strong></td>
-                        <td>${data.fecha_legible}</td>
-                        <td style="color: ${data.duracion_minutos > 15 ? 'red' : 'green'}; font-weight:bold;">
-                            ${data.duracion_minutos} min
-                        </td>
-                        <td>${data.comentarios}</td>
-                    </tr>`;
-                    lista.innerHTML = fila + lista.innerHTML; // Insertar al principio (más recientes arriba)
-                });
-            });
+                  querySnapshot.forEach((doc) => {
+                      let data = doc.data();
+                      datosGlobales.push(data);
+                      
+                      let fila = `<tr>
+                          <td><strong>${data.id_proveedor}</strong></td>
+                          <td>${data.fecha_legible}</td>
+                          <td style="color: ${data.duracion_minutos > 15 ? 'red' : 'green'}; font-weight:bold;">
+                              ${data.duracion_minutos} min
+                          </td>
+                          <td>${data.comentarios}</td>
+                      </tr>`;
+                      lista.innerHTML += fila;
+                  });
+              }, (error) => {
+                  lista.innerHTML = `<tr><td colspan="4" style="color:red;">Error cargando datos: ${error.message}</td></tr>`;
+                  console.error("Error cargando auditoría:", error);
+              });
         }
 
         function descargarCSV() {
@@ -220,12 +232,11 @@
             csvContent += "ID Proveedor,Fecha,Minutos,Latitud Inicial,Longitud Inicial,Latitud Final,Longitud Final,Comentarios\n";
             
             datosGlobales.forEach(row => {
-                let cleanComentarios = row.comentarios.replace(/,/g, " "); // Evitar que comas rompan el CSV
+                let cleanComentarios = (row.comentarios || "").replace(/,/g, " ");
                 let fila = `${row.id_proveedor},${row.fecha_legible},${row.duracion_minutos},${row.gps_inicio.lat},${row.gps_inicio.lng},${row.gps_fin.lat},${row.gps_fin.lng},${cleanComentarios}`;
                 csvContent += fila + "\n";
             });
 
-            // Forzar descarga del archivo
             let encodedUri = encodeURI(csvContent);
             let link = document.createElement("a");
             link.setAttribute("href", encodedUri);
