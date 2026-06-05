@@ -67,7 +67,6 @@
             box-sizing: border-box;
         }
         
-        /* Contenedor de Botones de Escolta */
         .grid-escoltas {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -88,19 +87,13 @@
         .esc-naranja { background-color: #e67e22; }
         .esc-verde { background-color: #2ecc71; }
         .esc-gris { background-color: #95a5a6; }
-        .btn-esc.active {
-            border-color: #000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
+        .btn-esc.active { border-color: #000; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        .flex-group {
-            display: flex;
-            gap: 10px;
-        }
+        .flex-group { display: flex; gap: 10px; }
         .flex-group div { flex: 1; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
         th { background-color: var(--primary); color: white; }
         tr.seleccionada { background-color: #e8f4fd; }
         .btn-ver-mapa {
@@ -110,6 +103,7 @@
             padding: 6px 10px;
             border-radius: 4px;
             cursor: pointer;
+            width: 100%;
         }
 
         #mapa-contenedor {
@@ -124,7 +118,7 @@
 </head>
 <body>
 
-    <h2>🛡️ Control de Escoltas</h2>
+    <h2>🛡️ Control de Escoltas - El Cielo Parque Residencial</h2>
     <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 15px;">Módulo de Auditoría Inmutable</div>
     
     <button class="btn btn-registro" onclick="mostrarPanel('registro')">📍 Registrar Nueva Escolta</button>
@@ -133,8 +127,11 @@
     <div id="panel-registro" class="panel">
         <h3>Punto de Control de Proveedores</h3>
         
-        <label for="qr_id">Código QR o Identificación:</label>
-        <input type="text" id="qr_id" placeholder="Escanee o digite el identificador">
+        <label for="qr_id">Punto de Acceso (Origen):</label>
+        <select id="qr_id">
+            <option value="Seccion 0">Sección 0</option>
+            <option value="Filtro 11">Filtro 11</option>
+        </select>
 
         <label for="tipo_proveedor">Tipo de Proveedor / Visita:</label>
         <select id="tipo_proveedor">
@@ -151,16 +148,38 @@
             <legend style="font-weight:bold; color: var(--primary);">Datos del Vehículo</legend>
             <div class="flex-group">
                 <div>
-                    <label for="vehiculo_placas" style="margin-top:0;">Placas:</label>
-                    <input type="text" id="vehiculo_placas" placeholder="Ej. ABC-123">
-                </div>
-                <div>
                     <label for="vehiculo_marca" style="margin-top:0;">Marca:</label>
-                    <input type="text" id="vehiculo_marca" placeholder="Ej. Nissan">
+                    <select id="vehiculo_marca">
+                        <option value="Nissan">Nissan</option>
+                        <option value="Chevrolet">Chevrolet</option>
+                        <option value="Ford">Ford</option>
+                        <option value="Volkswagen">Volkswagen</option>
+                        <option value="Toyota">Toyota</option>
+                        <option value="Honda">Honda</option>
+                        <option value="Hyundai">Hyundai</option>
+                        <option value="Kia">Kia</option>
+                        <option value="Mazda">Mazda</option>
+                        <option value="RAM">RAM</option>
+                        <option value="Motocicleta">Motocicleta</option>
+                        <option value="Otro">Otro</option>
+                    </select>
                 </div>
                 <div>
                     <label for="vehiculo_color" style="margin-top:0;">Color:</label>
-                    <input type="text" id="vehiculo_color" placeholder="Ej. Blanco">
+                    <select id="vehiculo_color">
+                        <option value="Blanco">Blanco</option>
+                        <option value="Gris/Plata">Gris / Plata</option>
+                        <option value="Negro">Negro</option>
+                        <option value="Rojo">Rojo</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Amarillo">Amarillo</option>
+                        <option value="Verde">Verde</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="vehiculo_placas" style="margin-top:0;">Placas:</label>
+                    <input type="text" id="vehiculo_placas" placeholder="ABC-123" style="text-transform: uppercase;">
                 </div>
             </div>
         </fieldset>
@@ -250,11 +269,11 @@
             <table id="tabla-registros">
                 <thead>
                     <tr>
-                        <th>Proveedor / QR</th>
-                        <th>Destino</th>
+                        <th>Origen / Fecha</th>
+                        <th>Prov. / Destino</th>
                         <th>Vehículo</th>
-                        <th>Escolta</th>
-                        <th>Duración</th>
+                        <th>Escolta / Tiempo</th>
+                        <th>Novedades</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -291,7 +310,7 @@
         let rutaLayer = null;
         let markerInicio = null;
         let markerFin = null;
-        let unsubscribeAuditoria = null; // Para limpiar la consulta anterior si se aplica un filtro nuevo
+        let unsubscribeAuditoria = null; 
 
         function mostrarPanel(panel) {
             document.getElementById('panel-registro').style.display = panel === 'registro' ? 'block' : 'none';
@@ -314,18 +333,17 @@
         // ==========================================
         function iniciarEscolta() {
             let qrId = document.getElementById('qr_id').value;
-            if(!qrId) { alert("Error: Debe ingresar un identificador o Código QR."); return; }
             if(!tipoEscoltaSeleccionado) { alert("Error: Seleccione un color para determinar el tipo de escolta."); return; }
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     escoltaActual = {
-                        id_proveedor: qrId,
+                        id_proveedor: qrId, // Ahora guarda "Seccion 0" o "Filtro 11"
                         tipo_proveedor: document.getElementById('tipo_proveedor').value,
                         vehiculo: {
-                            placas: document.getElementById('vehiculo_placas').value || "N/A",
-                            marca: document.getElementById('vehiculo_marca').value || "N/A",
-                            color: document.getElementById('vehiculo_color').value || "N/A"
+                            marca: document.getElementById('vehiculo_marca').value,
+                            color: document.getElementById('vehiculo_color').value,
+                            placas: (document.getElementById('vehiculo_placas').value || "S/P").toUpperCase()
                         },
                         destino: {
                             calle: document.getElementById('domicilio_calle').value,
@@ -333,7 +351,7 @@
                         },
                         tipo_escolta: tipoEscoltaSeleccionado,
                         tiempo_inicio: Date.now(),
-                        fecha_legible: new Date().toLocaleString(),
+                        fecha_legible: new Date().toLocaleString(), // Captura automática de fecha y hora del sistema
                         gps_inicio: { lat: position.coords.latitude, lng: position.coords.longitude }
                     };
                     document.getElementById('en_proceso').style.display = 'block';
@@ -347,7 +365,7 @@
         }
 
         function finalizarEscolta() {
-            let comentarios = document.getElementById('comentarios').value || "Sin novedades en el traslado";
+            let comentarios = document.getElementById('comentarios').value || "Sin novedades";
 
             navigator.geolocation.getCurrentPosition(position => {
                 escoltaActual.tiempo_fin = Date.now();
@@ -362,12 +380,17 @@
                     alert(`🏁 Escolta registrada exitosamente.\nTiempo de traslado: ${escoltaActual.duracion_minutos} minutos.`);
                     
                     document.getElementById('en_proceso').style.display = 'none';
-                    document.getElementById('qr_id').value = '';
+                    // Resetear inputs de texto
                     document.getElementById('comentarios').value = '';
                     document.getElementById('vehiculo_placas').value = '';
-                    document.getElementById('vehiculo_marca').value = '';
-                    document.getElementById('vehiculo_color').value = '';
                     document.getElementById('domicilio_numero').value = '';
+                    // Resetear menús al primer valor (opcional)
+                    document.getElementById('qr_id').selectedIndex = 0;
+                    document.getElementById('tipo_proveedor').selectedIndex = 0;
+                    document.getElementById('vehiculo_marca').selectedIndex = 0;
+                    document.getElementById('vehiculo_color').selectedIndex = 0;
+                    document.getElementById('domicilio_calle').selectedIndex = 0;
+                    
                     document.querySelectorAll('.btn-esc').forEach(el => el.classList.remove('active'));
                     tipoEscoltaSeleccionado = "";
                     escoltaActual = {};
@@ -386,7 +409,7 @@
         function limpiarFiltros() {
             document.getElementById('filtro_inicio').value = '';
             document.getElementById('filtro_fin').value = '';
-            cargarAuditoria(); // Recargar sin filtros
+            cargarAuditoria(); 
         }
 
         function cargarAuditoria() {
@@ -397,14 +420,12 @@
             lista.innerHTML = '<tr><td colspan="6">Buscando registros...</td></tr>';
             ocultarMapa();
 
-            // Si hay una consulta anterior activa, la detenemos para no empalmar datos
             if (unsubscribeAuditoria) {
                 unsubscribeAuditoria();
             }
 
             let query = db.collection("escoltas_registros");
 
-            // Aplicar filtros si el usuario seleccionó fechas
             if (filtroInicio && filtroFin) {
                 let msInicio = new Date(filtroInicio).getTime();
                 let msFin = new Date(filtroFin).getTime();
@@ -413,7 +434,6 @@
                              .where("tiempo_inicio", "<=", msFin)
                              .orderBy("tiempo_inicio", "desc");
             } else {
-                // Comportamiento normal por defecto: últimos 40 registros
                 query = query.orderBy("tiempo_inicio", "desc").limit(40);
             }
 
@@ -431,15 +451,20 @@
                       datosGlobales.push(data);
                       
                       let idFila = doc.id;
-                      let vehiculoTxt = `${data.vehiculo.marca} (${data.vehiculo.color}) - Placas: ${data.vehiculo.placas}`;
-                      let destinoTxt = `${data.destino.calle.toUpperCase()} #${data.destino.numero}`;
                       
+                      // Bloques de texto unificados para la tabla
+                      let origenFechaTxt = `<b>${data.id_proveedor}</b><br><span style="font-size:11px;color:#7f8c8d;">${data.fecha_legible}</span>`;
+                      let destinoTxt = `<b>${data.tipo_proveedor.toUpperCase()}</b><br>${data.destino.calle.toUpperCase()} #${data.destino.numero}`;
+                      let vehiculoTxt = `<b>${data.vehiculo.marca}</b> (${data.vehiculo.color})<br>Placas: <span style="color:var(--primary); font-weight:bold;">${data.vehiculo.placas}</span>`;
+                      let escoltaTxt = `<span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background-color:${obtenerHexColor(data.tipo_escolta)}; color:${data.tipo_escolta==='Amarillo'?'#000':'#fff'}">${data.tipo_escolta}</span><br><span style="font-weight:bold; color:${data.duracion_minutos > 10 ? 'red' : 'green'}; display:inline-block; margin-top:5px;">${data.duracion_minutos} min</span>`;
+                      let novedadesTxt = data.comentarios ? data.comentarios : "Sin novedades";
+
                       let fila = `<tr id="fila_${idFila}">
-                          <td><strong>${data.id_proveedor}</strong><br><span style="font-size:10px;color:#7f8c8d;">${data.tipo_proveedor}</span></td>
+                          <td>${origenFechaTxt}</td>
                           <td>${destinoTxt}</td>
                           <td>${vehiculoTxt}</td>
-                          <td><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background-color:${obtenerHexColor(data.tipo_escolta)}; color:${data.tipo_escolta==='Amarillo'?'#000':'#fff'}">${data.tipo_escolta}</span></td>
-                          <td style="font-weight:bold; color:${data.duracion_minutos > 10 ? 'red' : 'green'};">${data.duracion_minutos} min</td>
+                          <td>${escoltaTxt}</td>
+                          <td style="font-size: 12px; color: #555; max-width: 180px;"><i>${novedadesTxt}</i></td>
                           <td><button class="btn-ver-mapa" onclick="visualizarTrayecto('${idFila}', ${data.gps_inicio.lat}, ${data.gps_inicio.lng}, ${data.gps_fin.lat}, ${data.gps_fin.lng})">🗺️ Ver</button></td>
                       </tr>`;
                       lista.innerHTML += fila;
@@ -498,11 +523,11 @@
             if(datosGlobales.length === 0) { alert("No existen registros procesados para generar descarga."); return; }
             
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "ID Proveedor,Giro Proveedor,Calle Destino,Numero Destino,Placas,Marca,Color,Prioridad Escolta,Fecha de Registro,Minutos Totales,Lat Entrada,Lng Entrada,Lat Destino,Lng Destino,Comentarios\n";
+            csvContent += "Punto de Acceso,Giro Proveedor,Calle Destino,Numero Destino,Marca,Color,Placas,Prioridad Escolta,Fecha de Registro,Minutos Totales,Lat Entrada,Lng Entrada,Lat Destino,Lng Destino,Comentarios\n";
             
             datosGlobales.forEach(row => {
                 let comentarioLimpio = (row.comentarios || "").replace(/,/g, " ").replace(/\n/g, " ");
-                let fila = `"${row.id_proveedor}","${row.tipo_proveedor}","${row.destino.calle}","${row.destino.numero}","${row.vehiculo.placas}","${row.vehiculo.marca}","${row.vehiculo.color}","${row.tipo_escolta}","${row.fecha_legible}",${row.duracion_minutos},${row.gps_inicio.lat},${row.gps_inicio.lng},${row.gps_fin.lat},${row.gps_fin.lng},"${comentarioLimpio}"`;
+                let fila = `"${row.id_proveedor}","${row.tipo_proveedor}","${row.destino.calle}","${row.destino.numero}","${row.vehiculo.marca}","${row.vehiculo.color}","${row.vehiculo.placas}","${row.tipo_escolta}","${row.fecha_legible}",${row.duracion_minutos},${row.gps_inicio.lat},${row.gps_inicio.lng},${row.gps_fin.lat},${row.gps_fin.lng},"${comentarioLimpio}"`;
                 csvContent += fila + "\n";
             });
 
@@ -510,7 +535,6 @@
             let link = document.createElement("a");
             link.setAttribute("href", encodedUri);
             
-            // Nombre del archivo modificado para incluir la fecha de descarga
             let fechaHoy = new Date().toISOString().split('T')[0];
             link.setAttribute("download", `Auditoria_Escoltas_${fechaHoy}.csv`);
             
