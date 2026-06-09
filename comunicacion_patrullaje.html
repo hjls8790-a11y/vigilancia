@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta de Escolta - Caseta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+            color: #e94560;
+        }
+
+        p.instruccion {
+            color: #a2a2bd;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Estilos para el selector de teléfonos */
+        .selector-patrulla {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+
+        .selector-patrulla input[type="radio"] {
+            display: none; /* Ocultamos el circulito nativo del radio button */
+        }
+
+        .selector-patrulla label {
+            padding: 15px 25px;
+            background-color: #0f3460;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #a2a2bd;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            user-select: none;
+        }
+
+        /* Cuando el botón está seleccionado */
+        .selector-patrulla input[type="radio"]:checked + label {
+            background-color: #e94560;
+            color: white;
+            border-color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(233, 69, 96, 0.4);
+        }
+
+        /* Contenedor del botón principal */
+        .boton-contenedor {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0f3460;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .boton-alerta {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: transparent;
+            border: 4px solid #e94560;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+
+        .boton-alerta:active {
+            transform: scale(0.95);
+        }
+
+        .progreso {
+            position: absolute;
+            width: 0%;
+            height: 0%;
+            border-radius: 50%;
+            background-color: #e94560;
+            z-index: 1;
+            transition: width 1s linear, height 1s linear; 
+        }
+
+        .boton-contenedor.presionado .progreso {
+            width: 100%;
+            height: 100%;
+        }
+
+        .icono {
+            position: relative;
+            z-index: 20;
+            font-size: 60px;
+            pointer-events: none; 
+        }
+
+        .estado {
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4cd137;
+            min-height: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🛡️ Unidad de Caseta</h2>
+    <p class="instruccion">1. Selecciona la patrulla <br> 2. Mantén presionado el botón por 1 segundo</p>
+
+    <div class="selector-patrulla">
+        <input type="radio" id="patrulla1" name="patrulla" value="526693263351" checked>
+        <label for="patrulla1">🚓 Unidad 1</label>
+        
+        <input type="radio" id="patrulla2" name="patrulla" value="526693267503">
+        <label for="patrulla2">🚓 Unidad 2</label>
+    </div>
+
+    <div class="boton-contenedor" id="contenedor">
+        <div class="progreso"></div>
+        <div class="boton-alerta" id="btn-alerta"></div>
+        <div class="icono">🚨</div>
+    </div>
+
+    <div class="estado" id="mensaje-estado"></div>
+
+    <script>
+        const mensajePredeterminado = "🚨 CÓDIGO DE ESCOLTA: Vehículo en caseta esperando unidad de patrullaje para ingreso al residencial.";
+
+        const boton = document.getElementById('btn-alerta');
+        const contenedor = document.getElementById('contenedor');
+        const mensajeEstado = document.getElementById('mensaje-estado');
+        
+        let timer;
+        const tiempoRequerido = 1000; 
+
+        function iniciarPresion(e) {
+            if(e.type === 'touchstart') e.preventDefault(); 
+            
+            contenedor.classList.add('presionado');
+            mensajeEstado.style.color = "#f1c40f";
+            
+            // Obtener el nombre de la unidad seleccionada para darle retroalimentación al guardia
+            const etiquetaSeleccionada = document.querySelector('input[name="patrulla"]:checked').nextElementSibling.innerText;
+            mensajeEstado.innerText = `Contactando a ${etiquetaSeleccionada}...`;
+
+            timer = setTimeout(() => {
+                alertaEnviada();
+            }, tiempoRequerido);
+        }
+
+        function cancelarPresion(e) {
+            if(e.type === 'touchend') e.preventDefault();
+
+            contenedor.classList.remove('presionado');
+            clearTimeout(timer); 
+            
+            if (mensajeEstado.innerText.includes("Contactando")) {
+                mensajeEstado.innerText = "";
+            }
+        }
+
+        function alertaEnviada() {
+            contenedor.classList.remove('presionado');
+            
+            mensajeEstado.style.color = "#4cd137";
+            mensajeEstado.innerText = "¡Mensaje Listo para Enviar!";
+
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+
+            // Aquí leemos qué teléfono está seleccionado en el momento exacto en que se cumple el segundo
+            const numeroSeleccionado = document.querySelector('input[name="patrulla"]:checked').value;
+            
+            const urlWhatsApp = `https://wa.me/${numeroSeleccionado}?text=${encodeURIComponent(mensajePredeterminado)}`;
+            window.open(urlWhatsApp, '_blank');
+
+            setTimeout(() => {
+                mensajeEstado.innerText = "";
+            }, 3000);
+        }
+
+        boton.addEventListener('mousedown', iniciarPresion);
+        boton.addEventListener('mouseup', cancelarPresion);
+        boton.addEventListener('mouseleave', cancelarPresion); 
+
+        boton.addEventListener('touchstart', iniciarPresion);
+        boton.addEventListener('touchend', cancelarPresion);
+        boton.addEventListener('touchcancel', cancelarPresion);
+    </script>
+
+</body>
+</html>
