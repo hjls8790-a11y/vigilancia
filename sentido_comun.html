@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador de Criterio Táctico - El Cielo Parque Residencial</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e272e;
+            --accent: #e94560;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .navbar h1 { margin: 0; font-size: 20px; color: var(--text); }
+        .nav-btn {
+            background-color: #334155;
+            color: var(--text);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .nav-btn:hover { background-color: var(--accent); }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        /* Formulario e Inputs */
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--text-muted); }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; }
+
+        /* Módulo de Preguntas Dinámicas */
+        .scen-box { display: none; }
+        .scen-box.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .opcion-container {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .opcion-container:hover { border-color: var(--accent); background-color: #1e293b; }
+        .opcion-container.selected { border-color: var(--success); background-color: rgba(46, 213, 115, 0.1); }
+        .opcion-container input[type="radio"] { margin: 0; width: auto; }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* Panel de Auditoría */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #1e272e; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
+        tr:hover { background-color: #1e293b; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-aprobado { background-color: rgba(46, 213, 115, 0.2); color: var(--success); }
+        .badge-revision { background-color: rgba(255, 165, 2, 0.2); color: var(--warning); }
+        .badge-rechazado { background-color: rgba(233, 69, 96, 0.2); color: var(--accent); }
+
+        .btn-tabla {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-tabla:hover { background-color: var(--accent); }
+
+        /* Modal Detalle Auditoría */
+        .modal-auditoria {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 750px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .ans-review {
+            background-color: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="navbar">
+            <h1>🛡️ Sistema de Evaluación de Criterio - El Cielo</h1>
+            <button class="nav-btn" id="btn-toggle-modulo" onclick="conmutarModulo()">⚙️ Panel de Auditoría</button>
+        </div>
+
+        <div id="modulo-aspirante">
+            <div id="registro-aspirante" class="card">
+                <h2 style="margin-top:0; color: var(--accent);">Registro de Aspirante</h2>
+                <p style="color: var(--text-muted); font-size:14px;">Complete sus datos para iniciar la evaluación táctica de sentido común y criterio operativo.</p>
+                
+                <label for="asp_nombre">Nombre Completo:</label>
+                <input type="text" id="asp_nombre" placeholder="Ej. Juan Pérez López">
+
+                <div style="display:flex; gap:15px;">
+                    <div style="flex:1;">
+                        <label for="asp_edad">Edad:</label>
+                        <input type="number" id="asp_edad" placeholder="Ej. 28">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="asp_telefono">Teléfono de Contacto:</label>
+                        <input type="tel" id="asp_telefono" placeholder="Ej. 6691234567">
+                    </div>
+                </div>
+
+                <button class="btn" onclick="comenzarExamen()">Iniciar Evaluación 📋</button>
+            </div>
+
+            <div id="examen-contenedor" class="card" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                    <span style="font-weight: bold; color: var(--accent);" id="info-progreso">Pregunta 1 de 3</span>
+                    <span style="font-size: 13px; color: var(--text-muted);">Módulo de Prevención e Incolumidad</span>
+                </div>
+
+                <div class="scen-box active" id="esc_1">
+                    <h3 style="margin-top:0;">Escenario 1: Control de Acceso Riguroso</h3>
+                    <p style="color: var(--text-muted); font-size: 15px; line-height: 1.5;">
+                        Un conductor se aproxima al filtro de acceso principal e intenta ingresar argumentando que viene a una reunión urgente en un domicilio de la sección <b>Aurora</b>. Afirma que es un amigo muy cercano de un residente importante del comité, pero manifiesta que olvidó su billetera y no cuenta con ninguna identificación oficial en ese momento. ¿Cómo reacciona usted?
+                    </p>
+                    
+                    <div class="opcion-container" onclick="marcarOpcion(1, 'A', this)">
+                        <input type="radio" name="opt_1" value="A">
+                        <span>A) Le permito el acceso de forma excepcional por cortesía institucional para evitar fricciones o reportes de inconformidad con el comité.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(1, 'B', this)">
+                        <input type="radio" name="opt_1" value="B">
+                        <span>B) Busco el número del residente en el directorio y, si me confirma vía telefónica que lo conoce, le autorizo el acceso de inmediato sin registrar documentación.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(1, 'C', this)">
+                        <input type="radio" name="opt_1" value="C">
+                        <span>C) Aplico firmemente la norma: le informo con respeto que por protocolos de seguridad residencial es obligatorio presentar una identificación oficial vigente (INE, Licencia o Pasaporte), negando el acceso hasta cumplir el requisito.</span>
+                    </div>
+
+                    <label style="margin-top: 20px;" for="just_1">Justifique detalladamente su criterio operativo (¿Por qué tomó esta decisión?):</label>
+                    <textarea id="just_1" rows="3" placeholder="Escriba aquí sus argumentos tácticos..."></textarea>
+                    
+                    <button class="btn" onclick="siguientePregunta(2)">Siguiente Escenario ➡️</button>
+                </div>
+
+                <div class="scen-box" id="esc_2">
+                    <h3 style="margin-top:0;">Escenario 2: Manejo de Crisis y Trato al Público</h3>
+                    <p style="color: var(--text-muted); font-size: 15px; line-height: 1.5;">
+                        Durante la revisión de un proveedor en caseta, el conductor se molesta visiblemente debido al tiempo de espera requerido para validar la asignación de su escolta de patrullaje. Comienza a levantar la voz, a usar lenguaje altisonante y a acusarlo de incompetencia frente a otros visitantes. ¿Cuál es su postura de actuación?
+                    </p>
+                    
+                    <div class="opcion-container" onclick="marcarOpcion(2, 'A', this)">
+                        <input type="radio" name="opt_2" value="A">
+                        <span>A) Le respondo de manera enérgica usando el mismo tono de voz para imponer autoridad en la caseta y evitar que falte al respeto al uniforme.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(2, 'B', this)">
+                        <input type="radio" name="opt_2" value="B">
+                        <span>B) Mantengo la calma absoluta y el orden, aplicando la política de <b>"Firmeza no prepotencia"</b>. No me engancho en la discusión, pero tampoco acelero ni brinco el protocolo de validación por la presión del individuo.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(2, 'C', this)">
+                        <input type="radio" name="opt_2" value="C">
+                        <span>C) Para disolver el altercado rápidamente, omito la asignación de la escolta de patrullaje y le permito pasar de forma inmediata.</span>
+                    </div>
+
+                    <label style="margin-top: 20px;" for="just_2">Justifique detalladamente su criterio operativo (¿Por qué tomó esta decisión?):</label>
+                    <textarea id="just_2" rows="3" placeholder="Escriba aquí sus argumentos tácticos..."></textarea>
+                    
+                    <button class="btn" onclick="siguientePregunta(3)">Siguiente Escenario ➡️</button>
+                </div>
+
+                <div class="scen-box" id="esc_3">
+                    <h3 style="margin-top:0;">Escenario 3: Vigilancia Estricta y Filosofía de Protección</h3>
+                    <p style="color: var(--text-muted); font-size: 15px; line-height: 1.5;">
+                        Mientras realiza labores de observación de rutina en las inmediaciones de la avenida <b>Paseo de la Nube</b>, detecta un vehículo con vidrios totalmente polarizados estacionado a la orilla del camino con el motor encendido. No reconoce el automóvil y nota que lleva más de 15 minutos inmóvil en una zona residencial de baja circulación. ¿Qué directriz sigue?
+                    </p>
+                    
+                    <div class="opcion-container" onclick="marcarOpcion(3, 'A', this)">
+                        <input type="radio" name="opt_3" value="A">
+                        <span>A) Lo ignoro provisionalmente ya que al estar fuera de las propiedades privadas no se encuentra cometiendo ninguna infracción flagrante.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(3, 'B', this)">
+                        <input type="radio" name="opt_3" value="B">
+                        <span>B) Me aproximo corriendo de manera inmediata con la mano sobre mi equipo táctico de resguardo para exigirle de forma impositiva que se identifique o abandone el complejo.</span>
+                    </div>
+                    <div class="opcion-container" onclick="marcarOpcion(3, 'C', this)">
+                        <input type="radio" name="opt_3" value="C">
+                        <span>C) Aplico la doctrina de <b>"Zero Trust"</b> y la consigna operativa de <b>"Oír, ver y callar"</b>: observo y recopilo discretamente los datos del vehículo (marca, color, placas), informo inmediatamente a la central o patrulla por radio para apoyo mutuo y procedo a una verificación preventiva bajo medidas seguras de resguardo.</span>
+                    </div>
+
+                    <label style="margin-top: 20px;" for="just_3">Justifique detalladamente su criterio operativo (¿Por qué tomó esta decisión?):</label>
+                    <textarea id="just_3" rows="3" placeholder="Escriba aquí sus argumentos tácticos..."></textarea>
+                    
+                    <button class="btn" style="background-color: var(--success);" onclick="finalizarExamen()">Concluir y Guardar Evaluación 🏁</button>
+                </div>
+            </div>
+
+            <div id="examen-exito" class="card" style="display:none; text-align:center;">
+                <h2 style="color: var(--success);">¡Evaluación Registrada con Éxito!</h2>
+                <p style="color: var(--text-muted); font-size: 16px;">Sus respuestas y argumentaciones operativas han sido resguardadas de manera inmutable en el sistema central de auditoría de El Cielo Parque Residencial.</p>
+                <p style="font-size: 14px; color: var(--accent); font-weight:bold;">Entregue el dispositivo al evaluador o supervisor en turno.</p>
+                <button class="btn" style="background-color: #334155; margin-top:20px;" onclick="reiniciarFlujoAspirante()">Registrar Siguiente Aspirante</button>
+            </div>
+        </div>
+
+
+        <div id="modulo-auditor" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px;">
+                    <h2 style="margin:0; color: var(--warning);">Panel de Control de Reclutamiento y Auditoría</h2>
+                    <button class="nav-btn" style="background-color: #2c3e50; font-size:13px;" onclick="cargarDatosAuditora()">🔄 Sincronizar Base de Datos</button>
+                </div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 0;">Filtro inmutable para la verificación profunda de criterios operativos y toma de decisiones tácticas en aspirantes de seguridad.</p>
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Aspirante</th>
+                                <th>Edad</th>
+                                <th>Respuestas Correctas</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-auditoria-body">
+                            <tr><td colspan="6" style="color: var(--text-muted); text-align:center;">Haga clic en Sincronizar para leer los expedientes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-auditoria" id="modal-detalle">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:10px; margin-bottom:20px;">
+                <h3 style="margin:0; color: var(--warning);" id="modal-title-nombre">Expediente del Aspirante</h3>
+                <button class="nav-btn" style="padding: 5px 12px; background-color: var(--accent);" onclick="cerrarModal()">✕ Cerrar</button>
+            </div>
+
+            <div style="display:flex; gap:30px; margin-bottom: 20px; background: #0f172a; padding: 15px; border-radius: 8px;">
+                <div><b>Edad:</b> <span id="m-edad">-</span> años</div>
+                <div><b>Teléfono:</b> <span id="m-tel">-</span></div>
+                <div><b>Aciertos Selección:</b> <span id="m-score" style="color: var(--success); font-weight:bold;">0/3</span></div>
+            </div>
+
+            <h4 style="color: var(--text-muted); margin-bottom:10px;">ANÁLISIS DE RESPUESTAS Y JUSTIFICACIÓN DE SENTIDO COMÚN:</h4>
+            
+            <div class="ans-review">
+                <p style="font-weight:bold; margin-top:0;">1. Control de Acceso Riguroso (Caso Aurora):</p>
+                <p><b>Opción elegida:</b> <span id="m-p1-opt" style="font-weight:bold;">-</span></p>
+                <p style="color: var(--text-muted); font-style:italic;">" <span id="m-p1-just">-</span> "</p>
+            </div>
+
+            <div class="ans-review">
+                <p style="font-weight:bold; margin-top:0;">2. Manejo de Crisis ("Firmeza no prepotencia"):</p>
+                <p><b>Opción elegida:</b> <span id="m-p2-opt" style="font-weight:bold;">-</span></p>
+                <p style="color: var(--text-muted); font-style:italic;">" <span id="m-p2-just">-</span> "</p>
+            </div>
+
+            <div class="ans-review">
+                <p style="font-weight:bold; margin-top:0;">3. Vigilancia Táctica (Caso Paseo de la Nube):</p>
+                <p><b>Opción elegida:</b> <span id="m-p3-opt" style="font-weight:bold;">-</span></p>
+                <p style="color: var(--text-muted); font-style:italic;">" <span id="m-p3-just">-</span> "</p>
+            </div>
+
+            <div style="margin-top:25px; border-top:1px solid #334155; padding-top:20px;">
+                <label for="m-cambiar-estado">Dictamen del Auditor Operativo:</label>
+                <div style="display:flex; gap:15px;">
+                    <select id="m-cambiar-estado" style="margin-bottom:0; flex:2;">
+                        <option value="En Revisión">En Revisión / Pendiente</option>
+                        <option value="Aprobado">CONTRATACIÓN RECOMENDADA (Buen Criterio)</option>
+                        <option value="Rechazado">RECHAZADO (Riesgo Operativo / Falta de Criterio)</option>
+                    </select>
+                    <button class="btn" style="background-color: var(--success); flex:1;" id="btn-save-dictamen">Guardar Dictamen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURACIÓN CENTRAL DE LA BASE DE DATOS FIREBASE
+        // ==========================================
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Variables de estado del Examen
+        let datosAspirante = {};
+        let respuestasSeleccionadas = { 1: "", 2: "", 3: "" };
+        let respuestasCorrectasEstrategicas = { 1: "C", 2: "B", 3: "C" };
+        let moduloActual = "aspirante"; // aspirante o auditor
+        let listaExpedientesLocales = [];
+        let idDocumentoActivoAuditoria = "";
+
+        // Cambiar de vista entre Aspirante y Auditor
+        function conmutarModulo() {
+            const btn = document.getElementById('btn-toggle-modulo');
+            if(moduloActual === "aspirante") {
+                // Solicitar confirmación para evitar que el aspirante vea los resultados
+                let pass = prompt("Ingrese clave de Supervisor de Seguridad para auditar:");
+                if(pass !== "1234") { alert("Clave denegada."); return; }
+                
+                moduloActual = "auditor";
+                document.getElementById('modulo-aspirante').style.display = "none";
+                document.getElementById('modulo-auditor').style.display = "block";
+                btn.innerText = "📋 Vista de Evaluación (Aspirante)";
+                btn.style.backgroundColor = '#2ed573';
+                cargarDatosAuditora();
+            } else {
+                moduloActual = "aspirante";
+                document.getElementById('modulo-auditor').style.display = "none";
+                document.getElementById('modulo-aspirante').style.display = "block";
+                btn.innerText = "⚙️ Panel de Auditoría";
+                btn.style.backgroundColor = "#334155";
+            }
+        }
+
+        // ==========================================
+        // 2. LÓGICA DE EXAMEN - ASPIRANTE
+        // ==========================================
+        function comenzarExamen() {
+            let nombre = document.getElementById('asp_nombre').value.trim();
+            let edad = document.getElementById('asp_edad').value.trim();
+            let tel = document.getElementById('asp_telefono').value.trim();
+
+            if(!nombre || !edad || !tel) {
+                alert("Por favor complete todos los datos de registro antes de iniciar.");
+                return;
+            }
+
+            datosAspirante = {
+                nombre: nombre,
+                edad: parseInt(edad),
+                telefono: tel,
+                fecha_registro: new Date().toLocaleString(),
+                timestamp: Date.now(),
+                estado_dictamen: "En Revisión"
+            };
+
+            document.getElementById('registro-aspirante').style.display = "none";
+            document.getElementById('examen-contenedor').style.display = "block";
+            mostrarPreguntaBloque(1);
+        }
+
+        function marcarOpcion(preguntaNum, opcionLetra, elemento) {
+            const contenedorPadre = elemento.parentElement;
+            contenedorPadre.querySelectorAll('.opcion-container').forEach(el => el.classList.remove('selected'));
+            
+            elemento.classList.add('selected');
+            elemento.querySelector('input[type="radio"]').checked = true;
+            
+            respuestasSeleccionadas[preguntaNum] = opcionLetra;
+        }
+
+        function mostrarPreguntaBloque(num) {
+            document.getElementById('info-progreso').innerText = `Escenario ${num} de 3`;
+            document.querySelectorAll('.scen-box').forEach(el => el.classList.remove('active'));
+            document.getElementById(`esc_${num}`).classList.add('active');
+        }
+
+        function siguientePregunta(siguienteNum) {
+            let actualNum = siguienteNum - 1;
+            if(!respuestasSeleccionadas[actualNum]) {
+                alert("Debe seleccionar una de las alternativas de actuación antes de avanzar.");
+                return;
+            }
+            let justificacionText = document.getElementById(`just_${actualNum}`).value.trim();
+            if(justificacionText.length < 15) {
+                alert("Por favor, amplíe la justificación de su criterio operativo (mínimo 15 caracteres). Es vital para evaluar su sentido común.");
+                return;
+            }
+            mostrarPreguntaBloque(siguienteNum);
+        }
+
+        function finalizarExamen() {
+            if(!respuestasSeleccionadas[3]) {
+                alert("Debe seleccionar una opción de actuación para este último escenario.");
+                return;
+            }
+            let justificacionText = document.getElementById(`just_${3}`).value.trim();
+            if(justificacionText.length < 15) {
+                alert("Por favor, amplíe la justificación de su criterio operativo para el Escenario 3.");
+                return;
+            }
+
+            let aciertos = 0;
+            if(respuestasSeleccionadas[1] === respuestasCorrectasEstrategicas[1]) aciertos++;
+            if(respuestasSeleccionadas[2] === respuestasCorrectasEstrategicas[2]) aciertos++;
+            if(respuestasSeleccionadas[3] === respuestasCorrectasEstrategicas[3]) aciertos++;
+
+            let evaluacionCompleta = {
+                ...datosAspirante,
+                aciertos_cuantitativos: aciertos,
+                respuestas: {
+                    p1: { opcion: respuestasSeleccionadas[1], justificacion: document.getElementById('just_1').value.trim() },
+                    p2: { opcion: respuestasSeleccionadas[2], justificacion: document.getElementById('just_2').value.trim() },
+                    p3: { opcion: respuestasSeleccionadas[3], justificacion: document.getElementById('just_3').value.trim() }
+                }
+            };
+
+            db.collection("evaluaciones_aspirantes").add(evaluacionCompleta)
+            .then(() => {
+                document.getElementById('examen-contenedor').style.display = "none";
+                document.getElementById('examen-exito').style.display = "block";
+            })
+            .catch(err => {
+                alert("Error al resguardar la evaluación en el servidor: " + err.message);
+            });
+        }
+
+        function reiniciarFlujoAspirante() {
+            document.getElementById('asp_nombre').value = "";
+            document.getElementById('asp_edad').value = "";
+            document.getElementById('asp_telefono').value = "";
+            document.getElementById('just_1').value = "";
+            document.getElementById('just_2').value = "";
+            document.getElementById('just_3').value = "";
+            
+            document.querySelectorAll('.opcion-container').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+
+            respuestasSeleccionadas = { 1: "", 2: "", 3: "" };
+            datosAspirante = {};
+
+            document.getElementById('examen-exito').style.display = "none";
+            document.getElementById('registro-aspirante').style.display = "block";
+        }
+
+        // ==========================================
+        // 3. LÓGICA DEL PANEL DE AUDITORÍA (ADMIN)
+        // ==========================================
+        function cargarDatosAuditora() {
+            const tbody = document.getElementById('tabla-auditoria-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--warning);">Consultando expedientes en la nube...</td></tr>';
+
+            db.collection("evaluaciones_aspirantes").orderBy("timestamp", "desc").get()
+            .then((querySnapshot) => {
+                tbody.innerHTML = "";
+                listaExpedientesLocales = [];
+
+                if(querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No existen expedientes registrados.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    let id = doc.id;
+                    let data = doc.data();
+                    
+                    listaExpedientesLocales.push({ id: id, ...data });
+
+                    let badgeClass = "badge-revision";
+                    if(data.estado_dictamen === "Aprobado") badgeClass = "badge-aprobado";
+                    if(data.estado_dictamen === "Rechazado") badgeClass = "badge-rechazado";
+
+                    let fila = `<tr>
+                        <td style="font-size:12px; color:var(--text-muted);">${data.fecha_registro || 'N/D'}</td>
+                        <td><b>${data.nombre}</b><br><span style="font-size:11px;color:var(--text-muted);">Tel: ${data.telefono}</span></td>
+                        <td>${data.edad}</td>
+                        <td style="text-align:center; font-weight:bold; color:${data.aciertos_cuantitativos >= 2 ? 'var(--success)' : 'var(--accent)'}">${data.aciertos_cuantitativos} / 3</td>
+                        <td><span class="badge ${badgeClass}">${data.estado_dictamen || 'En Revisión'}</span></td>
+                        <td><button class="btn-tabla" onclick="revisarCriterioAspirante('${id}')">🔎 Evaluar</button></td>
+                    </tr>`;
+                    tbody.innerHTML += fila;
+                });
+            })
+            .catch(err => {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:var(--accent);text-align:center;">Error: ${err.message}</td></tr>`;
+            });
+        }
+
+        function revisarCriterioAspirante(idDoc) {
+            idDocumentoActivoAuditoria = idDoc;
+            let expediente = listaExpedientesLocales.find(item => item.id === idDoc);
+            if(!expediente) return;
+
+            document.getElementById('modal-title-nombre').innerText = `Criterio Táctico: ${expediente.nombre}`;
+            document.getElementById('m-edad').innerText = expediente.edad;
+            document.getElementById('m-tel').innerText = expediente.telefono;
+            document.getElementById('m-score').innerText = `${expediente.aciertos_cuantitativos} / 3`;
+
+            document.getElementById('m-p1-opt').innerText = expediente.respuestas?.p1?.opcion || "N/D";
+            document.getElementById('m-p1-opt').style.color = (expediente.respuestas?.p1?.opcion === 'C') ? 'var(--success)' : 'var(--accent)';
+            document.getElementById('m-p1-just').innerText = expediente.respuestas?.p1?.justificacion || "Sin justificación.";
+
+            document.getElementById('m-p2-opt').innerText = expediente.respuestas?.p2?.opcion || "N/D";
+            document.getElementById('m-p2-opt').style.color = (expediente.respuestas?.p2?.opcion === 'B') ? 'var(--success)' : 'var(--accent)';
+            document.getElementById('m-p2-just').innerText = expediente.respuestas?.p2?.justificacion || "Sin justificación.";
+
+            document.getElementById('m-p3-opt').innerText = expediente.respuestas?.p3?.opcion || "N/D";
+            document.getElementById('m-p3-opt').style.color = (expediente.respuestas?.p3?.opcion === 'C') ? 'var(--success)' : 'var(--accent)';
+            document.getElementById('m-p3-just').innerText = expediente.respuestas?.p3?.justificacion || "Sin justificación.";
+
+            document.getElementById('m-cambiar-estado').value = expediente.estado_dictamen || "En Revisión";
+            document.getElementById('modal-detalle').style.display = "flex";
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-detalle').style.display = "none";
+            idDocumentoActivoAuditoria = "";
+        }
+
+        document.getElementById('btn-save-dictamen').addEventListener('click', () => {
+            if(!idDocumentoActivoAuditoria) return;
+            let nuevoEstado = document.getElementById('m-cambiar-estado').value;
+
+            db.collection("evaluaciones_aspirantes").doc(idDocumentoActivoAuditoria)
+            .update({ estado_dictamen: nuevoEstado })
+            .then(() => {
+                alert("Dictamen y estatus del expediente actualizados correctamente.");
+                cerrarModal();
+                cargarDatosAuditora();
+            })
+            .catch(e => alert("Error al actualizar dictamen: " + e.message));
+        });
+    </script>
+</body>
+</html>
