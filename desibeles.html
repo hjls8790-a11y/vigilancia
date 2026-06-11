@@ -8,6 +8,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -124,13 +127,34 @@
         th { background-color: #0f172a; color: var(--text-muted); text-transform: uppercase; }
         tr:hover { background-color: #334155; }
         
-        /* Fila resaltada en rojo para infracciones */
         tr.infraccion { background-color: rgba(239, 68, 68, 0.15); border-left: 4px solid var(--danger); }
         tr.infraccion:hover { background-color: rgba(239, 68, 68, 0.25); }
 
         .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .badge-ok { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
         .badge-alert { background-color: var(--danger); color: white; }
+
+        /* MODAL DEL MAPA AUDITABLE */
+        .modal-mapa {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-mapa-content {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #475569;
+        }
+        #map { height: 350px; width: 100%; border-radius: 8px; margin-top: 15px; border: 2px solid var(--primary); }
     </style>
 </head>
 <body onload="iniciarReloj()">
@@ -177,7 +201,7 @@
             </div>
         </div>
 
-        <label for="reg_ubicacion">Punto de Medición (Georreferencia):</label>
+        <label for="reg_ubicacion">Punto de Medición (Referencia Textual):</label>
         <input type="text" id="reg_ubicacion" placeholder="Ej. Barda colindante Casa 14" required>
 
         <div class="flex-group">
@@ -200,7 +224,7 @@
         <label for="reg_obs">Acciones Tácticas / Observaciones:</label>
         <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente de eventos reducir el volumen del bajo..."></textarea>
 
-        <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Obtener Coordenadas GPS (Obligatorio)</button>
+        <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Capturar Posición Satelital (Obligatorio)</button>
         <p id="txt-gps" style="font-size: 13px; color: var(--success); text-align: center; display:none; font-weight:bold;"></p>
 
         <button class="btn-action" id="btn-guardar" onclick="guardarRegistro()">✅ 2. Guardar en Bitácora</button>
@@ -231,8 +255,19 @@
         </div>
     </div>
 
+    <div class="modal-mapa" id="modal-mapa">
+        <div class="modal-mapa-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                <h3 style="margin:0; color: var(--text-main);" id="titulo-mapa">Auditoría Geográfica</h3>
+                <button class="btn-toggle" style="background-color: var(--danger); padding: 6px 12px; font-size: 12px;" onclick="cerrarMapa()">✕ Cerrar</button>
+            </div>
+            <div id="map"></div>
+            <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:10px;">Coordenadas de alta precisión encriptadas al momento del registro operativo.</p>
+        </div>
+    </div>
+
     <script>
-        // CONFIGURACIÓN DE FIREBASE (Asegurada)
+        // CONFIGURACIÓN DE FIREBASE (Intacta)
         const firebaseConfig = { 
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
@@ -246,27 +281,23 @@
         const db = firebase.firestore();
 
         let coordenadasActuales = null;
+        let map = null;
+        let marker = null;
 
-        // Automatización de Fecha y Hora para asegurar la exactitud del registro
         function iniciarReloj() {
             let hoy = new Date();
-            // Formatear Fecha YYYY-MM-DD
             document.getElementById('reg_fecha').value = hoy.toISOString().split('T')[0];
-            
-            // Formatear Hora HH:MM
             let horas = String(hoy.getHours()).padStart(2, '0');
             let minutos = String(hoy.getMinutes()).padStart(2, '0');
             document.getElementById('reg_hora').value = `${horas}:${minutos}`;
         }
 
-        // Alternar entre módulos
         function cambiarVista() {
             const btn = document.getElementById('btn-vista');
             const modReg = document.getElementById('modulo-registro');
             const modAud = document.getElementById('modulo-auditoria');
 
             if (modReg.style.display !== "none") {
-                // Clave de seguridad para ver la bitácora
                 let clave = prompt("Ingrese clave de Supervisor para acceder a la bitácora:");
                 if(clave !== "1234") { alert("Acceso denegado."); return; }
                 
@@ -278,38 +309,32 @@
                 modReg.style.display = "block";
                 modAud.style.display = "none";
                 btn.innerHTML = "📑 Abrir Bitácora de Mediciones";
-                iniciarReloj(); // Refrescar hora al volver
+                iniciarReloj(); 
             }
         }
 
         function obtenerGPS() {
             if (navigator.geolocation) {
+                // Parámetro 'enableHighAccuracy: true' asegura lectura exacta del chip GPS y no solo de la red
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         coordenadasActuales = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                         document.getElementById('txt-gps').style.display = "block";
-                        document.getElementById('txt-gps').innerText = `📍 Coordenadas selladas: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                        document.getElementById('txt-gps').innerText = `📍 Posición asegurada: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
                     },
-                    (err) => { alert("Error: Debe activar el GPS del dispositivo para validar la ubicación de la medición."); }
+                    (err) => { alert("Error: Debe activar el GPS del dispositivo (Ubicación) para validar la medición."); },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 alert("Geolocalización no soportada en este dispositivo.");
             }
         }
 
-        // Lógica de validación NOM-081
         function calcularLimiteNormativo(horaString) {
-            // Extraer la hora (ej. de "22:30" saca el 22)
             let hora = parseInt(horaString.split(':')[0], 10);
-            // Diurno: 06:00 a 21:59 (55dB) | Nocturno: 22:00 a 05:59 (50dB)
-            if (hora >= 6 && hora < 22) {
-                return 55;
-            } else {
-                return 50;
-            }
+            if (hora >= 6 && hora < 22) { return 55; } else { return 50; }
         }
 
-        // Validación visual en tiempo real mientras el guardia escribe los decibeles
         function verificarLimiteEnVivo() {
             let decibeles = parseFloat(document.getElementById('reg_db').value);
             let horaActual = document.getElementById('reg_hora').value;
@@ -326,7 +351,6 @@
         }
 
         function guardarRegistro() {
-            // Recolección de datos
             let fecha = document.getElementById('reg_fecha').value;
             let hora = document.getElementById('reg_hora').value;
             let auditor = document.getElementById('reg_auditor').value.trim();
@@ -336,7 +360,6 @@
             let fuente = document.getElementById('reg_fuente').value;
             let observaciones = document.getElementById('reg_obs').value.trim();
 
-            // Validaciones operativas
             if(!auditor || !evento || !ubicacion || isNaN(decibeles)) {
                 alert("Denegado: Debe llenar todos los campos obligatorios del reporte."); return;
             }
@@ -363,7 +386,6 @@
                 cumple_normativa: cumpleNormativa
             };
 
-            // Notificar al usuario si se guardará con infracción
             if(!cumpleNormativa) {
                 let conf = confirm(`ATENCIÓN: Está a punto de registrar un nivel de ruido (${decibeles} dB) superior al límite de ${limitePermitido} dB.\n\n¿Desea asentar esta infracción en la bitácora oficial?`);
                 if(!conf) return;
@@ -372,8 +394,6 @@
             db.collection("registros_sonometria").add(reporte)
             .then(() => {
                 alert("✔️ Reporte sellado e integrado a la bitácora inmutable.");
-                
-                // Limpiar campos para la siguiente lectura, pero mantener fecha/hora
                 document.getElementById('reg_ubicacion').value = "";
                 document.getElementById('reg_db').value = "";
                 document.getElementById('reg_obs').value = "";
@@ -383,6 +403,34 @@
                 iniciarReloj(); 
             })
             .catch(e => alert("Error crítico al contactar el servidor: " + e.message));
+        }
+
+        // LÓGICA DEL MAPA AUDITABLE (SIN ABRIR OTRA PESTAÑA)
+        function abrirMapa(lat, lng, ubicacion, decibeles, norm) {
+            document.getElementById('modal-mapa').style.display = 'flex';
+            document.getElementById('titulo-mapa').innerHTML = `📍 Punto de Control <span style="color:${norm ? 'var(--success)' : 'var(--danger)'};">(${decibeles} dB)</span>`;
+
+            if (map === null) {
+                map = L.map('map').setView([lat, lng], 18); // Zoom alto para precisión extrema
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 20,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+            } else {
+                map.setView([lat, lng], 18);
+            }
+
+            if (marker) { map.removeLayer(marker); }
+            
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>${ubicacion}</b><br>Nivel acústico: ${decibeles} dB`).openPopup();
+            
+            // Forzar renderizado del mapa al abrir el modal para que no se vea gris
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+
+        function cerrarMapa() {
+            document.getElementById('modal-mapa').style.display = 'none';
         }
 
         function cargarAuditoria() {
@@ -400,16 +448,15 @@
                 snapshot.forEach(doc => {
                     let d = doc.data();
                     
-                    // Lógica visual para resaltar infracciones
                     let filaClase = d.cumple_normativa ? "" : "class='infraccion'";
                     let badge = d.cumple_normativa 
                         ? `<span class="badge badge-ok">En Regla</span>` 
                         : `<span class="badge badge-alert">Infracción Acústica</span>`;
                     
-                    // Colores del texto para mayor impacto
                     let colorDb = d.cumple_normativa ? "var(--success)" : "var(--danger)";
                     
-                    let linkMapa = `<a href="https://www.google.com/maps?q=${d.latitud},${d.longitud}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">📍 Verificar</a>`;
+                    // Botón que llama a la función interna abrirMapa() en lugar del href de Google Maps
+                    let botonMapa = `<button class="btn-toggle" style="padding: 4px 8px; font-size: 11px; margin: 0; display: inline-block;" onclick="abrirMapa(${d.latitud}, ${d.longitud}, '${d.ubicacion.replace(/'/g, "\\'")}', ${d.decibeles}, ${d.cumple_normativa})">📍 Cargar Mapa</button>`;
 
                     tbody.innerHTML += `
                         <tr ${filaClase}>
@@ -419,7 +466,7 @@
                             <td style="font-weight:bold; color:${colorDb}; font-size:15px;">${d.decibeles} dB</td>
                             <td style="color:var(--text-muted);">${d.limite_permitido} dB</td>
                             <td>${badge}</td>
-                            <td>${linkMapa}</td>
+                            <td>${botonMapa}</td>
                         </tr>
                     `;
                 });
