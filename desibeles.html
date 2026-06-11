@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Sonometría - Club y Residencial</title>
+    
+    <!-- SDK de Firebase V8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .btn-toggle {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-toggle:hover { background-color: var(--primary); }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background-color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .btn-action:hover { opacity: 0.9; }
+
+        .info-box {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Tabla de Auditoría */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: var(--text-muted); }
+        tr:hover { background-color: #334155; }
+        
+        .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .badge-ok { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-alert { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0;">🔊 Monitoreo Acústico Perimetral</h2>
+        <button class="btn-toggle" id="btn-vista" onclick="cambiarVista()">Ver Auditoría</button>
+    </div>
+
+    <!-- MÓDULO DE REGISTRO EN TURNO -->
+    <div id="modulo-registro" class="card">
+        <h3 style="margin-top:0; color: var(--primary);">Registro de Medición</h3>
+        
+        <div class="info-box">
+            <b>Normativa NOM-081 Aplicable:</b><br>
+            Límite Diurno (06:00 - 22:00): <b>55 dB</b><br>
+            Límite Nocturno (22:00 - 06:00): <b>50 dB</b>
+        </div>
+
+        <label for="reg_ubicacion">Zona de Medición (Ej. Barda colindante Norte, Salón Principal):</label>
+        <input type="text" id="reg_ubicacion" placeholder="Especifique el punto exacto">
+
+        <label for="reg_db">Lectura del Sonómetro (Decibeles):</label>
+        <input type="number" id="reg_db" placeholder="Ej. 52">
+
+        <label for="reg_fuente">Fuente Principal de Ruido:</label>
+        <select id="reg_fuente">
+            <option value="Música en Vivo / DJ">Música en Vivo / DJ</option>
+            <option value="Voces / Gritos de Invitados">Voces / Gritos de Invitados</option>
+            <option value="Motores / Planta de Luz">Motores / Vehículos / Planta de Luz</option>
+            <option value="Ruido Ambiental Externo">Ruido Ambiental Externo</option>
+        </select>
+
+        <label for="reg_obs">Observaciones o Acciones Tomadas:</label>
+        <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente bajar el volumen..."></textarea>
+
+        <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Obtener Coordenadas GPS</button>
+        <p id="txt-gps" style="font-size: 13px; color: var(--success); text-align: center; display:none;">GPS Capturado Correctamente</p>
+
+        <button class="btn-action" onclick="guardarRegistro()">✅ 2. Guardar Bitácora</button>
+    </div>
+
+    <!-- MÓDULO DE AUDITORÍA -->
+    <div id="modulo-auditoria" class="card" style="display:none; max-width: 1000px;">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
+            <h3 style="margin-top:0; color: var(--primary);">Bitácora de Auditoría Acústica</h3>
+            <button class="btn-toggle" style="background-color: var(--success);" onclick="cargarAuditoria()">🔄 Actualizar</button>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Ubicación</th>
+                        <th>Lectura</th>
+                        <th>Límite Permitido</th>
+                        <th>Estatus Legal</th>
+                        <th>GPS</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-auditoria">
+                    <!-- Filas dinámicas -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        let coordenadasActuales = null;
+
+        function cambiarVista() {
+            const btn = document.getElementById('btn-vista');
+            const modReg = document.getElementById('modulo-registro');
+            const modAud = document.getElementById('modulo-auditoria');
+
+            if (modReg.style.display !== "none") {
+                let clave = prompt("Ingrese clave de Auditoría:");
+                if(clave !== "1234") { alert("Acceso denegado"); return; }
+                
+                modReg.style.display = "none";
+                modAud.style.display = "block";
+                btn.innerText = "Ir a Registro";
+                cargarAuditoria();
+            } else {
+                modReg.style.display = "block";
+                modAud.style.display = "none";
+                btn.innerText = "Ver Auditoría";
+            }
+        }
+
+        function obtenerGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        coordenadasActuales = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        document.getElementById('txt-gps').style.display = "block";
+                        document.getElementById('txt-gps').innerText = `📍 GPS Capturado: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                    },
+                    (err) => { alert("Error obteniendo GPS. Verifique los permisos del navegador."); }
+                );
+            } else {
+                alert("Geolocalización no soportada en este dispositivo.");
+            }
+        }
+
+        function evaluarNormativa(dbLeidos, horaActual) {
+            // Lógica basada en NOM-081: 55dB de Día (6-22), 50dB de Noche (22-6)
+            let limite = (horaActual >= 6 && horaActual < 22) ? 55 : 50;
+            let cumple = dbLeidos <= limite;
+            return { limite: limite, cumple: cumple };
+        }
+
+        function guardarRegistro() {
+            let ubicacion = document.getElementById('reg_ubicacion').value;
+            let decibeles = parseFloat(document.getElementById('reg_db').value);
+            let fuente = document.getElementById('reg_fuente').value;
+            let observaciones = document.getElementById('reg_obs').value;
+
+            if(!ubicacion || !decibeles) {
+                alert("Debe ingresar la ubicación y la lectura del sonómetro."); return;
+            }
+            if(!coordenadasActuales) {
+                alert("Debe capturar las coordenadas GPS primero."); return;
+            }
+
+            let fechaActual = new Date();
+            let norm = evaluarNormativa(decibeles, fechaActual.getHours());
+
+            let reporte = {
+                fecha_str: fechaActual.toLocaleString(),
+                timestamp: Date.now(),
+                ubicacion: ubicacion,
+                decibeles: decibeles,
+                fuente: fuente,
+                observaciones: observaciones,
+                latitud: coordenadasActuales.lat,
+                longitud: coordenadasActuales.lng,
+                limite_permitido: norm.limite,
+                cumple_normativa: norm.cumple
+            };
+
+            db.collection("registros_sonometria").add(reporte)
+            .then(() => {
+                alert("Medición registrada y sellada con éxito.");
+                document.getElementById('reg_ubicacion').value = "";
+                document.getElementById('reg_db').value = "";
+                document.getElementById('reg_obs').value = "";
+                coordenadasActuales = null;
+                document.getElementById('txt-gps').style.display = "none";
+            })
+            .catch(e => alert("Error al guardar: " + e.message));
+        }
+
+        function cargarAuditoria() {
+            const tbody = document.getElementById('tabla-auditoria');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando registros...</td></tr>';
+
+            db.collection("registros_sonometria").orderBy("timestamp", "desc").get()
+            .then(snapshot => {
+                tbody.innerHTML = "";
+                if(snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay mediciones registradas.</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    let badge = d.cumple_normativa 
+                        ? `<span class="badge badge-ok">Dentro de Norma</span>` 
+                        : `<span class="badge badge-alert">Infracción</span>`;
+                    
+                    let linkMapa = `<a href="https://www.google.com/maps?q=${d.latitud},${d.longitud}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">Ver Mapa</a>`;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${d.fecha_str}</td>
+                            <td><b>${d.ubicacion}</b><br><span style="font-size:11px; color:var(--text-muted);">${d.fuente}</span></td>
+                            <td style="font-weight:bold;">${d.decibeles} dB</td>
+                            <td>${d.limite_permitido} dB</td>
+                            <td>${badge}</td>
+                            <td>${linkMapa}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(e => { tbody.innerHTML = `<tr><td colspan="6">Error: ${e.message}</td></tr>`; });
+        }
+    </script>
+</body>
+</html>
