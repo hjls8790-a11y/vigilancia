@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Sonometría - Club y Residencial</title>
+    <title>Auditoría Acústica - El Cielo Parque Residencial</title>
     
-    <!-- SDK de Firebase V8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -16,6 +15,7 @@
             --primary: #3b82f6;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -32,18 +32,25 @@
             border-radius: 8px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .btn-toggle {
-            background-color: #334155;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .btn-toggle:hover { background-color: var(--primary); }
+        .btn-toggle:hover { opacity: 0.9; transform: translateY(-1px); }
 
         .card {
             background-color: var(--card-bg);
@@ -54,29 +61,35 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); }
+        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; }
+        .flex-group > div { flex: 1; }
+
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); font-size: 14px; }
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            margin-bottom: 20px;
             border-radius: 6px;
             border: 1px solid #475569;
             background-color: #0f172a;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
+            margin-bottom: 15px;
         }
+        input:read-only { background-color: #1e293b; color: var(--text-muted); border-color: #334155; }
         
         .btn-action {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             border: none;
             border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             color: white;
             cursor: pointer;
-            background-color: var(--primary);
+            background-color: var(--success);
             margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .btn-action:hover { opacity: 0.9; }
 
@@ -85,66 +98,118 @@
             border-left: 4px solid var(--primary);
             padding: 15px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
+            line-height: 1.5;
         }
 
+        /* Alerta de Infracción Visual */
+        #alerta-infraccion {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--danger);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: parpadeo 1.5s infinite;
+        }
+        @keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
         /* Tabla de Auditoría */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-        th { background-color: #0f172a; color: var(--text-muted); }
+        th { background-color: #0f172a; color: var(--text-muted); text-transform: uppercase; }
         tr:hover { background-color: #334155; }
         
-        .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        /* Fila resaltada en rojo para infracciones */
+        tr.infraccion { background-color: rgba(239, 68, 68, 0.15); border-left: 4px solid var(--danger); }
+        tr.infraccion:hover { background-color: rgba(239, 68, 68, 0.25); }
+
+        .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .badge-ok { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .badge-alert { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .badge-alert { background-color: var(--danger); color: white; }
     </style>
 </head>
-<body>
+<body onload="iniciarReloj()">
 
     <div class="header">
-        <h2 style="margin:0;">🔊 Monitoreo Acústico Perimetral</h2>
-        <button class="btn-toggle" id="btn-vista" onclick="cambiarVista()">Ver Auditoría</button>
+        <h2 style="margin:0;">🔊 Control Acústico Perimetral</h2>
+        <button class="btn-toggle" id="btn-vista" onclick="cambiarVista()">
+            📑 Abrir Bitácora de Mediciones
+        </button>
     </div>
 
-    <!-- MÓDULO DE REGISTRO EN TURNO -->
     <div id="modulo-registro" class="card">
-        <h3 style="margin-top:0; color: var(--primary);">Registro de Medición</h3>
+        <h3 style="margin-top:0; color: var(--primary); border-bottom: 1px solid #334155; padding-bottom: 10px;">Nuevo Registro de Sonometría</h3>
         
         <div class="info-box">
-            <b>Normativa NOM-081 Aplicable:</b><br>
-            Límite Diurno (06:00 - 22:00): <b>55 dB</b><br>
-            Límite Nocturno (22:00 - 06:00): <b>50 dB</b>
+            <b>NOM-081-SEMARNAT-1994 (Zonas Residenciales):</b><br>
+            Límite Diurno (06:00 a 21:59 hrs): <b>55 dB</b><br>
+            Límite Nocturno (22:00 a 05:59 hrs): <b>50 dB</b>
         </div>
 
-        <label for="reg_ubicacion">Zona de Medición (Ej. Barda colindante Norte, Salón Principal):</label>
-        <input type="text" id="reg_ubicacion" placeholder="Especifique el punto exacto">
+        <div id="alerta-infraccion">
+            ⚠️ ¡ATENCIÓN! LOS DECIBELES ESTÁN SUPERANDO EL LÍMITE PERMITIDO POR LA NORMATIVA.
+        </div>
 
-        <label for="reg_db">Lectura del Sonómetro (Decibeles):</label>
-        <input type="number" id="reg_db" placeholder="Ej. 52">
+        <div class="flex-group">
+            <div>
+                <label>Fecha de Medición:</label>
+                <input type="date" id="reg_fecha" readonly>
+            </div>
+            <div>
+                <label>Hora Exacta:</label>
+                <input type="time" id="reg_hora" readonly>
+            </div>
+        </div>
 
-        <label for="reg_fuente">Fuente Principal de Ruido:</label>
-        <select id="reg_fuente">
-            <option value="Música en Vivo / DJ">Música en Vivo / DJ</option>
-            <option value="Voces / Gritos de Invitados">Voces / Gritos de Invitados</option>
-            <option value="Motores / Planta de Luz">Motores / Vehículos / Planta de Luz</option>
-            <option value="Ruido Ambiental Externo">Ruido Ambiental Externo</option>
-        </select>
+        <div class="flex-group">
+            <div>
+                <label for="reg_auditor">Agente que Registra:</label>
+                <input type="text" id="reg_auditor" placeholder="Ej. Oficial Mendoza" required>
+            </div>
+            <div>
+                <label for="reg_evento">Nombre del Evento (Club):</label>
+                <input type="text" id="reg_evento" placeholder="Ej. Boda Familia Pérez" required>
+            </div>
+        </div>
 
-        <label for="reg_obs">Observaciones o Acciones Tomadas:</label>
-        <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente bajar el volumen..."></textarea>
+        <label for="reg_ubicacion">Punto de Medición (Georreferencia):</label>
+        <input type="text" id="reg_ubicacion" placeholder="Ej. Barda colindante Casa 14" required>
 
-        <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Obtener Coordenadas GPS</button>
-        <p id="txt-gps" style="font-size: 13px; color: var(--success); text-align: center; display:none;">GPS Capturado Correctamente</p>
+        <div class="flex-group">
+            <div style="flex: 2;">
+                <label for="reg_fuente">Fuente Principal de Ruido:</label>
+                <select id="reg_fuente">
+                    <option value="Música en Vivo / Grupo">Música en Vivo / Grupo</option>
+                    <option value="DJ / Audio Grabado">DJ / Audio Grabado</option>
+                    <option value="Voces / Gritos de Invitados">Voces / Gritos de Invitados</option>
+                    <option value="Juegos Pirotécnicos">Juegos Pirotécnicos</option>
+                    <option value="Ruido Ambiental Externo">Ruido Ambiental Externo</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label for="reg_db">Lectura (Decibeles):</label>
+                <input type="number" id="reg_db" placeholder="Ej. 52" style="font-weight: bold; font-size: 18px;" oninput="verificarLimiteEnVivo()" required>
+            </div>
+        </div>
 
-        <button class="btn-action" onclick="guardarRegistro()">✅ 2. Guardar Bitácora</button>
+        <label for="reg_obs">Acciones Tácticas / Observaciones:</label>
+        <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente de eventos reducir el volumen del bajo..."></textarea>
+
+        <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Obtener Coordenadas GPS (Obligatorio)</button>
+        <p id="txt-gps" style="font-size: 13px; color: var(--success); text-align: center; display:none; font-weight:bold;"></p>
+
+        <button class="btn-action" id="btn-guardar" onclick="guardarRegistro()">✅ 2. Guardar en Bitácora</button>
     </div>
 
-    <!-- MÓDULO DE AUDITORÍA -->
-    <div id="modulo-auditoria" class="card" style="display:none; max-width: 1000px;">
-        <div style="display:flex; justify-content: space-between; align-items:center;">
-            <h3 style="margin-top:0; color: var(--primary);">Bitácora de Auditoría Acústica</h3>
-            <button class="btn-toggle" style="background-color: var(--success);" onclick="cargarAuditoria()">🔄 Actualizar</button>
+    <div id="modulo-auditoria" class="card" style="display:none; max-width: 100% !important;">
+        <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-top:0; color: var(--primary);">Bitácora Inmutable de Sonometría</h3>
+            <button class="btn-toggle" style="background-color: var(--success); font-size: 13px;" onclick="cargarAuditoria()">🔄 Sincronizar Base de Datos</button>
         </div>
         
         <div style="overflow-x: auto;">
@@ -152,22 +217,22 @@
                 <thead>
                     <tr>
                         <th>Fecha y Hora</th>
-                        <th>Ubicación</th>
+                        <th>Agente / Evento</th>
+                        <th>Punto de Medición</th>
                         <th>Lectura</th>
-                        <th>Límite Permitido</th>
-                        <th>Estatus Legal</th>
-                        <th>GPS</th>
+                        <th>Límite Normativo</th>
+                        <th>Estatus</th>
+                        <th>Auditoría GPS</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-auditoria">
-                    <!-- Filas dinámicas -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE FIREBASE
+        // CONFIGURACIÓN DE FIREBASE (Asegurada)
         const firebaseConfig = { 
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
@@ -182,23 +247,38 @@
 
         let coordenadasActuales = null;
 
+        // Automatización de Fecha y Hora para asegurar la exactitud del registro
+        function iniciarReloj() {
+            let hoy = new Date();
+            // Formatear Fecha YYYY-MM-DD
+            document.getElementById('reg_fecha').value = hoy.toISOString().split('T')[0];
+            
+            // Formatear Hora HH:MM
+            let horas = String(hoy.getHours()).padStart(2, '0');
+            let minutos = String(hoy.getMinutes()).padStart(2, '0');
+            document.getElementById('reg_hora').value = `${horas}:${minutos}`;
+        }
+
+        // Alternar entre módulos
         function cambiarVista() {
             const btn = document.getElementById('btn-vista');
             const modReg = document.getElementById('modulo-registro');
             const modAud = document.getElementById('modulo-auditoria');
 
             if (modReg.style.display !== "none") {
-                let clave = prompt("Ingrese clave de Auditoría:");
-                if(clave !== "1234") { alert("Acceso denegado"); return; }
+                // Clave de seguridad para ver la bitácora
+                let clave = prompt("Ingrese clave de Supervisor para acceder a la bitácora:");
+                if(clave !== "1234") { alert("Acceso denegado."); return; }
                 
                 modReg.style.display = "none";
                 modAud.style.display = "block";
-                btn.innerText = "Ir a Registro";
+                btn.innerHTML = "🔙 Volver a Captura de Datos";
                 cargarAuditoria();
             } else {
                 modReg.style.display = "block";
                 modAud.style.display = "none";
-                btn.innerText = "Ver Auditoría";
+                btn.innerHTML = "📑 Abrir Bitácora de Mediciones";
+                iniciarReloj(); // Refrescar hora al volver
             }
         }
 
@@ -208,96 +288,143 @@
                     (pos) => {
                         coordenadasActuales = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                         document.getElementById('txt-gps').style.display = "block";
-                        document.getElementById('txt-gps').innerText = `📍 GPS Capturado: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                        document.getElementById('txt-gps').innerText = `📍 Coordenadas selladas: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
                     },
-                    (err) => { alert("Error obteniendo GPS. Verifique los permisos del navegador."); }
+                    (err) => { alert("Error: Debe activar el GPS del dispositivo para validar la ubicación de la medición."); }
                 );
             } else {
                 alert("Geolocalización no soportada en este dispositivo.");
             }
         }
 
-        function evaluarNormativa(dbLeidos, horaActual) {
-            // Lógica basada en NOM-081: 55dB de Día (6-22), 50dB de Noche (22-6)
-            let limite = (horaActual >= 6 && horaActual < 22) ? 55 : 50;
-            let cumple = dbLeidos <= limite;
-            return { limite: limite, cumple: cumple };
+        // Lógica de validación NOM-081
+        function calcularLimiteNormativo(horaString) {
+            // Extraer la hora (ej. de "22:30" saca el 22)
+            let hora = parseInt(horaString.split(':')[0], 10);
+            // Diurno: 06:00 a 21:59 (55dB) | Nocturno: 22:00 a 05:59 (50dB)
+            if (hora >= 6 && hora < 22) {
+                return 55;
+            } else {
+                return 50;
+            }
+        }
+
+        // Validación visual en tiempo real mientras el guardia escribe los decibeles
+        function verificarLimiteEnVivo() {
+            let decibeles = parseFloat(document.getElementById('reg_db').value);
+            let horaActual = document.getElementById('reg_hora').value;
+            let limitePermitido = calcularLimiteNormativo(horaActual);
+            
+            let alerta = document.getElementById('alerta-infraccion');
+            
+            if (decibeles > limitePermitido) {
+                alerta.style.display = "block";
+                alerta.innerText = `⚠️ ALERTA DE INFRACCIÓN: La lectura de ${decibeles} dB supera el límite normativo actual de ${limitePermitido} dB.`;
+            } else {
+                alerta.style.display = "none";
+            }
         }
 
         function guardarRegistro() {
-            let ubicacion = document.getElementById('reg_ubicacion').value;
+            // Recolección de datos
+            let fecha = document.getElementById('reg_fecha').value;
+            let hora = document.getElementById('reg_hora').value;
+            let auditor = document.getElementById('reg_auditor').value.trim();
+            let evento = document.getElementById('reg_evento').value.trim();
+            let ubicacion = document.getElementById('reg_ubicacion').value.trim();
             let decibeles = parseFloat(document.getElementById('reg_db').value);
             let fuente = document.getElementById('reg_fuente').value;
-            let observaciones = document.getElementById('reg_obs').value;
+            let observaciones = document.getElementById('reg_obs').value.trim();
 
-            if(!ubicacion || !decibeles) {
-                alert("Debe ingresar la ubicación y la lectura del sonómetro."); return;
+            // Validaciones operativas
+            if(!auditor || !evento || !ubicacion || isNaN(decibeles)) {
+                alert("Denegado: Debe llenar todos los campos obligatorios del reporte."); return;
             }
             if(!coordenadasActuales) {
-                alert("Debe capturar las coordenadas GPS primero."); return;
+                alert("Denegado: Es obligatorio capturar el GPS para blindar el reporte acústico."); return;
             }
 
-            let fechaActual = new Date();
-            let norm = evaluarNormativa(decibeles, fechaActual.getHours());
+            let limitePermitido = calcularLimiteNormativo(hora);
+            let cumpleNormativa = decibeles <= limitePermitido;
 
             let reporte = {
-                fecha_str: fechaActual.toLocaleString(),
                 timestamp: Date.now(),
+                fecha: fecha,
+                hora: hora,
+                auditor: auditor,
+                evento: evento,
                 ubicacion: ubicacion,
                 decibeles: decibeles,
                 fuente: fuente,
-                observaciones: observaciones,
+                observaciones: observaciones || "Ninguna",
                 latitud: coordenadasActuales.lat,
                 longitud: coordenadasActuales.lng,
-                limite_permitido: norm.limite,
-                cumple_normativa: norm.cumple
+                limite_permitido: limitePermitido,
+                cumple_normativa: cumpleNormativa
             };
+
+            // Notificar al usuario si se guardará con infracción
+            if(!cumpleNormativa) {
+                let conf = confirm(`ATENCIÓN: Está a punto de registrar un nivel de ruido (${decibeles} dB) superior al límite de ${limitePermitido} dB.\n\n¿Desea asentar esta infracción en la bitácora oficial?`);
+                if(!conf) return;
+            }
 
             db.collection("registros_sonometria").add(reporte)
             .then(() => {
-                alert("Medición registrada y sellada con éxito.");
+                alert("✔️ Reporte sellado e integrado a la bitácora inmutable.");
+                
+                // Limpiar campos para la siguiente lectura, pero mantener fecha/hora
                 document.getElementById('reg_ubicacion').value = "";
                 document.getElementById('reg_db').value = "";
                 document.getElementById('reg_obs').value = "";
+                document.getElementById('alerta-infraccion').style.display = "none";
                 coordenadasActuales = null;
                 document.getElementById('txt-gps').style.display = "none";
+                iniciarReloj(); 
             })
-            .catch(e => alert("Error al guardar: " + e.message));
+            .catch(e => alert("Error crítico al contactar el servidor: " + e.message));
         }
 
         function cargarAuditoria() {
             const tbody = document.getElementById('tabla-auditoria');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando registros...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Descargando matriz de auditoría...</td></tr>';
 
-            db.collection("registros_sonometria").orderBy("timestamp", "desc").get()
+            db.collection("registros_sonometria").orderBy("timestamp", "desc").limit(50).get()
             .then(snapshot => {
                 tbody.innerHTML = "";
                 if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay mediciones registradas.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Bitácora limpia. No hay mediciones registradas.</td></tr>';
                     return;
                 }
 
                 snapshot.forEach(doc => {
                     let d = doc.data();
-                    let badge = d.cumple_normativa 
-                        ? `<span class="badge badge-ok">Dentro de Norma</span>` 
-                        : `<span class="badge badge-alert">Infracción</span>`;
                     
-                    let linkMapa = `<a href="https://www.google.com/maps?q=${d.latitud},${d.longitud}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">Ver Mapa</a>`;
+                    // Lógica visual para resaltar infracciones
+                    let filaClase = d.cumple_normativa ? "" : "class='infraccion'";
+                    let badge = d.cumple_normativa 
+                        ? `<span class="badge badge-ok">En Regla</span>` 
+                        : `<span class="badge badge-alert">Infracción Acústica</span>`;
+                    
+                    // Colores del texto para mayor impacto
+                    let colorDb = d.cumple_normativa ? "var(--success)" : "var(--danger)";
+                    
+                    let linkMapa = `<a href="https://www.google.com/maps?q=${d.latitud},${d.longitud}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">📍 Verificar</a>`;
 
                     tbody.innerHTML += `
-                        <tr>
-                            <td>${d.fecha_str}</td>
-                            <td><b>${d.ubicacion}</b><br><span style="font-size:11px; color:var(--text-muted);">${d.fuente}</span></td>
-                            <td style="font-weight:bold;">${d.decibeles} dB</td>
-                            <td>${d.limite_permitido} dB</td>
+                        <tr ${filaClase}>
+                            <td><b>${d.fecha}</b><br><span style="color:var(--text-muted);">${d.hora} hrs</span></td>
+                            <td><b>${d.auditor}</b><br><span style="font-size:11px; color:var(--text-muted);">${d.evento}</span></td>
+                            <td>${d.ubicacion}<br><span style="font-size:11px; color:var(--text-muted);">${d.fuente}</span></td>
+                            <td style="font-weight:bold; color:${colorDb}; font-size:15px;">${d.decibeles} dB</td>
+                            <td style="color:var(--text-muted);">${d.limite_permitido} dB</td>
                             <td>${badge}</td>
                             <td>${linkMapa}</td>
                         </tr>
                     `;
                 });
             })
-            .catch(e => { tbody.innerHTML = `<tr><td colspan="6">Error: ${e.message}</td></tr>`; });
+            .catch(e => { tbody.innerHTML = `<tr><td colspan="7">Fallo en la lectura de red: ${e.message}</td></tr>`; });
         }
     </script>
 </body>
