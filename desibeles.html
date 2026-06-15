@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría Acústica - El Cielo Parque Residencial</title>
+    <title>Auditoría Acústica Avanzada - El Cielo Parque Residencial</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -27,131 +27,68 @@
         body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
         
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
-            padding: 15px 25px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            flex-wrap: wrap;
-            gap: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--card-bg); padding: 15px 25px; border-radius: 8px; margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px;
         }
         
         .btn-toggle {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background-color: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .btn-toggle:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-toggle:hover { opacity: 0.9; }
 
-        .card {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 10px;
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
+        .card { background-color: var(--card-bg); padding: 25px; border-radius: 10px; max-width: 800px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
-        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; }
+        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .flex-group > div { flex: 1; }
 
         label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); font-size: 14px; }
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
-            color: white;
-            font-size: 15px;
-            margin-bottom: 15px;
+            width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569;
+            background-color: #0f172a; color: white; font-size: 15px; margin-bottom: 15px;
         }
         input:read-only { background-color: #1e293b; color: var(--text-muted); border-color: #334155; }
         
         .btn-action {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            background-color: var(--success);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            width: 100%; padding: 16px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold;
+            color: white; cursor: pointer; background-color: var(--success); margin-bottom: 10px;
         }
         .btn-action:hover { opacity: 0.9; }
+        
+        .btn-add { background-color: var(--warning); color: #000; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
-        .info-box {
-            background-color: rgba(59, 130, 246, 0.1);
-            border-left: 4px solid var(--primary);
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
+        .info-box { background-color: rgba(59, 130, 246, 0.1); border-left: 4px solid var(--primary); padding: 15px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .calc-box {
+            background-color: #0f172a; border: 2px dashed #475569; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;
         }
+        .calc-box h1 { margin: 10px 0; font-size: 36px; color: var(--success); transition: color 0.3s; }
+        .muestras-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 15px; }
+        .tag-db { background-color: #334155; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
 
-        /* Alerta de Infracción Visual */
         #alerta-infraccion {
-            display: none;
-            background-color: rgba(239, 68, 68, 0.2);
-            border: 2px solid var(--danger);
-            color: #fca5a5;
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 20px;
-            animation: parpadeo 1.5s infinite;
+            display: none; background-color: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger);
+            color: #fca5a5; padding: 15px; border-radius: 6px; text-align: center; font-weight: bold;
+            margin-bottom: 20px; animation: parpadeo 1.5s infinite;
         }
         @keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
 
-        /* Tabla de Auditoría */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
         th { background-color: #0f172a; color: var(--text-muted); text-transform: uppercase; }
-        tr:hover { background-color: #334155; }
-        
         tr.infraccion { background-color: rgba(239, 68, 68, 0.15); border-left: 4px solid var(--danger); }
-        tr.infraccion:hover { background-color: rgba(239, 68, 68, 0.25); }
-
         .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .badge-ok { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
         .badge-alert { background-color: var(--danger); color: white; }
 
-        /* MODAL DEL MAPA AUDITABLE */
         .modal-mapa {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-mapa-content {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background-color: var(--card-bg); padding: 20px; border-radius: 10px; width: 100%; max-width: 600px;
             border: 1px solid #475569;
         }
         #map { height: 350px; width: 100%; border-radius: 8px; margin-top: 15px; border: 2px solid var(--primary); }
@@ -161,79 +98,68 @@
 
     <div class="header">
         <h2 style="margin:0;">🔊 Control Acústico Perimetral</h2>
-        <button class="btn-toggle" id="btn-vista" onclick="cambiarVista()">
-            📑 Abrir Bitácora de Mediciones
-        </button>
+        <button class="btn-toggle" id="btn-vista" onclick="cambiarVista()">📑 Abrir Bitácora de Mediciones</button>
     </div>
 
     <div id="modulo-registro" class="card">
-        <h3 style="margin-top:0; color: var(--primary); border-bottom: 1px solid #334155; padding-bottom: 10px;">Nuevo Registro de Sonometría</h3>
+        <h3 style="margin-top:0; color: var(--primary); border-bottom: 1px solid #334155; padding-bottom: 10px;">Nuevo Registro de Sonometría (Promedio Energético)</h3>
         
         <div class="info-box">
-            <b>NOM-081-SEMARNAT-1994 (Zonas Residenciales):</b><br>
-            Límite Diurno (06:00 a 21:59 hrs): <b>55 dB</b><br>
-            Límite Nocturno (22:00 a 05:59 hrs): <b>50 dB</b>
+            <b>Cálculo Legal (NOM-081):</b> La plataforma aplica la fórmula logarítmica (Leq) automáticamente sobre las muestras ingresadas. Ingrese al menos 3 a 5 muestras espaciadas.<br>
+            Límite Diurno (06:00-21:59): <b>55 dB</b> | Límite Nocturno (22:00-05:59): <b>50 dB</b>
         </div>
 
-        <div id="alerta-infraccion">
-            ⚠️ ¡ATENCIÓN! LOS DECIBELES ESTÁN SUPERANDO EL LÍMITE PERMITIDO POR LA NORMATIVA.
+        <div id="alerta-infraccion">⚠️ ALERTA DE INFRACCIÓN: EL PROMEDIO ENERGÉTICO SUPERA EL LÍMITE PERMITIDO.</div>
+
+        <div class="flex-group" style="margin-bottom:0;">
+            <div><label>Fecha:</label><input type="date" id="reg_fecha" readonly></div>
+            <div><label>Hora:</label><input type="time" id="reg_hora" readonly></div>
         </div>
 
-        <div class="flex-group">
-            <div>
-                <label>Fecha de Medición:</label>
-                <input type="date" id="reg_fecha" readonly>
-            </div>
-            <div>
-                <label>Hora Exacta:</label>
-                <input type="time" id="reg_hora" readonly>
-            </div>
+        <div class="flex-group" style="margin-bottom:0;">
+            <div><label>Agente:</label><input type="text" id="reg_auditor" placeholder="Ej. Oficial Mendoza" required></div>
+            <div><label>Evento:</label><input type="text" id="reg_evento" placeholder="Ej. Boda Familia Pérez" required></div>
         </div>
 
-        <div class="flex-group">
-            <div>
-                <label for="reg_auditor">Agente que Registra:</label>
-                <input type="text" id="reg_auditor" placeholder="Ej. Oficial Mendoza" required>
-            </div>
-            <div>
-                <label for="reg_evento">Nombre del Evento (Club):</label>
-                <input type="text" id="reg_evento" placeholder="Ej. Boda Familia Pérez" required>
-            </div>
-        </div>
-
-        <label for="reg_ubicacion">Punto de Medición (Referencia Textual):</label>
+        <label>Punto de Medición:</label>
         <input type="text" id="reg_ubicacion" placeholder="Ej. Barda colindante Casa 14" required>
 
-        <div class="flex-group">
-            <div style="flex: 2;">
-                <label for="reg_fuente">Fuente Principal de Ruido:</label>
-                <select id="reg_fuente">
-                    <option value="Música en Vivo / Grupo">Música en Vivo / Grupo</option>
-                    <option value="DJ / Audio Grabado">DJ / Audio Grabado</option>
-                    <option value="Voces / Gritos de Invitados">Voces / Gritos de Invitados</option>
-                    <option value="Juegos Pirotécnicos">Juegos Pirotécnicos</option>
-                    <option value="Ruido Ambiental Externo">Ruido Ambiental Externo</option>
-                </select>
+        <label>Fuente Principal:</label>
+        <select id="reg_fuente">
+            <option value="Música en Vivo / Grupo">Música en Vivo / Grupo</option>
+            <option value="DJ / Audio Grabado">DJ / Audio Grabado</option>
+            <option value="Voces / Gritos de Invitados">Voces / Gritos de Invitados</option>
+            <option value="Ruido Ambiental Externo">Ruido Ambiental Externo</option>
+        </select>
+
+        <div class="calc-box">
+            <label style="text-align: left; color:var(--text-main);">Toma de Muestras Acústicas (dBA Lento):</label>
+            <div class="flex-group" style="align-items: center;">
+                <input type="number" id="input_muestra" step="0.1" placeholder="Ej. 52.4" style="margin-bottom: 0;">
+                <button class="btn-add" onclick="agregarMuestra()">+ Añadir Muestra</button>
+                <button class="btn-add" style="background-color: var(--danger); color: white;" onclick="limpiarMuestras()">🗑️ Limpiar</button>
             </div>
-            <div style="flex: 1;">
-                <label for="reg_db">Lectura (Decibeles):</label>
-                <input type="number" id="reg_db" placeholder="Ej. 52" style="font-weight: bold; font-size: 18px;" oninput="verificarLimiteEnVivo()" required>
-            </div>
+            
+            <div class="muestras-tags" id="contenedor-tags">
+                </div>
+
+            <p style="margin: 0; color: var(--text-muted); font-weight: bold; text-transform: uppercase; font-size: 12px;">Promedio Energético Calculado (Leq)</p>
+            <h1 id="resultado_leq">0.0 dB</h1>
         </div>
 
-        <label for="reg_obs">Acciones Tácticas / Observaciones:</label>
-        <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente de eventos reducir el volumen del bajo..."></textarea>
+        <label>Acciones Tácticas / Observaciones:</label>
+        <textarea id="reg_obs" rows="2" placeholder="Ej. Se solicitó al gerente reducir volumen..."></textarea>
 
         <button class="btn-action" style="background-color: #475569;" onclick="obtenerGPS()">📍 1. Capturar Posición Satelital (Obligatorio)</button>
         <p id="txt-gps" style="font-size: 13px; color: var(--success); text-align: center; display:none; font-weight:bold;"></p>
 
-        <button class="btn-action" id="btn-guardar" onclick="guardarRegistro()">✅ 2. Guardar en Bitácora</button>
+        <button class="btn-action" onclick="guardarRegistro()">✅ 2. Guardar en Bitácora</button>
     </div>
 
     <div id="modulo-auditoria" class="card" style="display:none; max-width: 100% !important;">
-        <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+        <div style="display:flex; justify-content: space-between; align-items:center;">
             <h3 style="margin-top:0; color: var(--primary);">Bitácora Inmutable de Sonometría</h3>
-            <button class="btn-toggle" style="background-color: var(--success); font-size: 13px;" onclick="cargarAuditoria()">🔄 Sincronizar Base de Datos</button>
+            <button class="btn-toggle" style="background-color: var(--success); font-size: 13px;" onclick="cargarAuditoria()">🔄 Sincronizar</button>
         </div>
         
         <div style="overflow-x: auto;">
@@ -242,15 +168,15 @@
                     <tr>
                         <th>Fecha y Hora</th>
                         <th>Agente / Evento</th>
-                        <th>Punto de Medición</th>
-                        <th>Lectura</th>
-                        <th>Límite Normativo</th>
+                        <th>Ubicación</th>
+                        <th>Leq (Promedio)</th>
+                        <th>Muestras</th>
+                        <th>Límite</th>
                         <th>Estatus</th>
                         <th>Auditoría GPS</th>
                     </tr>
                 </thead>
-                <tbody id="tabla-auditoria">
-                    </tbody>
+                <tbody id="tabla-auditoria"></tbody>
             </table>
         </div>
     </div>
@@ -267,7 +193,7 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE FIREBASE (Intacta)
+        // CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = { 
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
@@ -280,16 +206,19 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
+        // Variables operativas
         let coordenadasActuales = null;
         let map = null;
         let marker = null;
+        
+        // Variables para Promedio Energético
+        let arrayMuestras = [];
+        let promedioEnergeticoFinal = 0;
 
         function iniciarReloj() {
             let hoy = new Date();
             document.getElementById('reg_fecha').value = hoy.toISOString().split('T')[0];
-            let horas = String(hoy.getHours()).padStart(2, '0');
-            let minutos = String(hoy.getMinutes()).padStart(2, '0');
-            document.getElementById('reg_hora').value = `${horas}:${minutos}`;
+            document.getElementById('reg_hora').value = String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0');
         }
 
         function cambiarVista() {
@@ -298,7 +227,7 @@
             const modAud = document.getElementById('modulo-auditoria');
 
             if (modReg.style.display !== "none") {
-                let clave = prompt("Ingrese clave de Supervisor para acceder a la bitácora:");
+                let clave = prompt("Ingrese clave de Supervisor:");
                 if(clave !== "1234") { alert("Acceso denegado."); return; }
                 
                 modReg.style.display = "none";
@@ -313,165 +242,200 @@
             }
         }
 
-        function obtenerGPS() {
-            if (navigator.geolocation) {
-                // Parámetro 'enableHighAccuracy: true' asegura lectura exacta del chip GPS y no solo de la red
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        coordenadasActuales = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        document.getElementById('txt-gps').style.display = "block";
-                        document.getElementById('txt-gps').innerText = `📍 Posición asegurada: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-                    },
-                    (err) => { alert("Error: Debe activar el GPS del dispositivo (Ubicación) para validar la medición."); },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
+        // ====== LÓGICA MATEMÁTICA: PROMEDIO ENERGÉTICO (Leq) ======
+        function agregarMuestra() {
+            let input = document.getElementById('input_muestra');
+            let val = parseFloat(input.value);
+            
+            if(isNaN(val) || val <= 0) {
+                alert("Ingrese un valor acústico válido."); return;
+            }
+            
+            arrayMuestras.push(val);
+            input.value = ''; // Limpiar input
+            actualizarPromedioUI();
+            
+            // Regresar el foco al input para que sea rápido ingresar varias
+            input.focus();
+        }
+
+        function limpiarMuestras() {
+            arrayMuestras = [];
+            actualizarPromedioUI();
+        }
+
+        function actualizarPromedioUI() {
+            let contenedorTags = document.getElementById('contenedor-tags');
+            contenedorTags.innerHTML = '';
+            
+            if(arrayMuestras.length === 0) {
+                promedioEnergeticoFinal = 0;
+                document.getElementById('resultado_leq').innerText = "0.0 dB";
+                document.getElementById('resultado_leq').style.color = "var(--success)";
+                document.getElementById('alerta-infraccion').style.display = "none";
+                return;
+            }
+
+            // Dibujar las etiquetas visuales
+            let sumaAntilog = 0;
+            arrayMuestras.forEach(muestra => {
+                contenedorTags.innerHTML += `<span class="tag-db">${muestra} dB</span>`;
+                // Fórmula: 10^(L/10)
+                sumaAntilog += Math.pow(10, muestra / 10);
+            });
+
+            // Promedio Energético = 10 * log10( (1/N) * Suma(10^(L/10)) )
+            let promedioLog = 10 * Math.log10(sumaAntilog / arrayMuestras.length);
+            promedioEnergeticoFinal = parseFloat(promedioLog.toFixed(1));
+
+            document.getElementById('resultado_leq').innerText = promedioEnergeticoFinal + " dB";
+            
+            // Verificar contra normativa en tiempo real
+            let horaActual = document.getElementById('reg_hora').value;
+            let limitePermitido = calcularLimiteNormativo(horaActual);
+            
+            if (promedioEnergeticoFinal > limitePermitido) {
+                document.getElementById('resultado_leq').style.color = "var(--danger)";
+                document.getElementById('alerta-infraccion').style.display = "block";
+                document.getElementById('alerta-infraccion').innerText = `⚠️ ALERTA DE INFRACCIÓN: El promedio de ${promedioEnergeticoFinal} dB supera la norma (${limitePermitido} dB).`;
             } else {
-                alert("Geolocalización no soportada en este dispositivo.");
+                document.getElementById('resultado_leq').style.color = "var(--success)";
+                document.getElementById('alerta-infraccion').style.display = "none";
             }
         }
 
         function calcularLimiteNormativo(horaString) {
             let hora = parseInt(horaString.split(':')[0], 10);
-            if (hora >= 6 && hora < 22) { return 55; } else { return 50; }
+            if (hora >= 6 && hora < 22) return 55;
+            return 50;
         }
 
-        function verificarLimiteEnVivo() {
-            let decibeles = parseFloat(document.getElementById('reg_db').value);
-            let horaActual = document.getElementById('reg_hora').value;
-            let limitePermitido = calcularLimiteNormativo(horaActual);
-            
-            let alerta = document.getElementById('alerta-infraccion');
-            
-            if (decibeles > limitePermitido) {
-                alerta.style.display = "block";
-                alerta.innerText = `⚠️ ALERTA DE INFRACCIÓN: La lectura de ${decibeles} dB supera el límite normativo actual de ${limitePermitido} dB.`;
+        function obtenerGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        coordenadasActuales = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        document.getElementById('txt-gps').style.display = "block";
+                        document.getElementById('txt-gps').innerText = `📍 GPS Bloqueado: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                    },
+                    (err) => { alert("Active la ubicación GPS del dispositivo para validar la medición."); },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
             } else {
-                alerta.style.display = "none";
+                alert("Geolocalización no soportada.");
             }
         }
 
         function guardarRegistro() {
-            let fecha = document.getElementById('reg_fecha').value;
-            let hora = document.getElementById('reg_hora').value;
+            if(arrayMuestras.length === 0) {
+                alert("Denegado: Debe capturar al menos 1 muestra acústica en la calculadora."); return;
+            }
+            if(!coordenadasActuales) {
+                alert("Denegado: Es obligatorio capturar el GPS para blindar el reporte."); return;
+            }
+            
             let auditor = document.getElementById('reg_auditor').value.trim();
             let evento = document.getElementById('reg_evento').value.trim();
             let ubicacion = document.getElementById('reg_ubicacion').value.trim();
-            let decibeles = parseFloat(document.getElementById('reg_db').value);
-            let fuente = document.getElementById('reg_fuente').value;
-            let observaciones = document.getElementById('reg_obs').value.trim();
-
-            if(!auditor || !evento || !ubicacion || isNaN(decibeles)) {
-                alert("Denegado: Debe llenar todos los campos obligatorios del reporte."); return;
-            }
-            if(!coordenadasActuales) {
-                alert("Denegado: Es obligatorio capturar el GPS para blindar el reporte acústico."); return;
+            if(!auditor || !evento || !ubicacion) {
+                alert("Llene todos los campos de texto."); return;
             }
 
+            let hora = document.getElementById('reg_hora').value;
             let limitePermitido = calcularLimiteNormativo(hora);
-            let cumpleNormativa = decibeles <= limitePermitido;
+            let cumpleNormativa = promedioEnergeticoFinal <= limitePermitido;
+
+            if(!cumpleNormativa) {
+                let conf = confirm(`ATENCIÓN: El Promedio Energético (${promedioEnergeticoFinal} dB) es INFRACCIÓN.\n\n¿Registrar oficialmente en bitácora?`);
+                if(!conf) return;
+            }
 
             let reporte = {
                 timestamp: Date.now(),
-                fecha: fecha,
+                fecha: document.getElementById('reg_fecha').value,
                 hora: hora,
                 auditor: auditor,
                 evento: evento,
                 ubicacion: ubicacion,
-                decibeles: decibeles,
-                fuente: fuente,
-                observaciones: observaciones || "Ninguna",
+                decibeles_leq: promedioEnergeticoFinal,
+                muestras_crudas: arrayMuestras, // Guardamos la matriz de muestras para auditoría profunda
+                fuente: document.getElementById('reg_fuente').value,
+                observaciones: document.getElementById('reg_obs').value.trim() || "N/A",
                 latitud: coordenadasActuales.lat,
                 longitud: coordenadasActuales.lng,
                 limite_permitido: limitePermitido,
                 cumple_normativa: cumpleNormativa
             };
 
-            if(!cumpleNormativa) {
-                let conf = confirm(`ATENCIÓN: Está a punto de registrar un nivel de ruido (${decibeles} dB) superior al límite de ${limitePermitido} dB.\n\n¿Desea asentar esta infracción en la bitácora oficial?`);
-                if(!conf) return;
-            }
-
             db.collection("registros_sonometria").add(reporte)
             .then(() => {
-                alert("✔️ Reporte sellado e integrado a la bitácora inmutable.");
+                alert("✔️ Promedio acústico sellado en bitácora.");
                 document.getElementById('reg_ubicacion').value = "";
-                document.getElementById('reg_db').value = "";
                 document.getElementById('reg_obs').value = "";
-                document.getElementById('alerta-infraccion').style.display = "none";
+                limpiarMuestras();
                 coordenadasActuales = null;
                 document.getElementById('txt-gps').style.display = "none";
                 iniciarReloj(); 
             })
-            .catch(e => alert("Error crítico al contactar el servidor: " + e.message));
+            .catch(e => alert("Error al guardar: " + e.message));
         }
 
-        // LÓGICA DEL MAPA AUDITABLE (SIN ABRIR OTRA PESTAÑA)
-        function abrirMapa(lat, lng, ubicacion, decibeles, norm) {
+        // ====== LÓGICA DEL MAPA AUDITABLE ======
+        function abrirMapa(lat, lng, ubi, dbLeq, norm) {
             document.getElementById('modal-mapa').style.display = 'flex';
-            document.getElementById('titulo-mapa').innerHTML = `📍 Punto de Control <span style="color:${norm ? 'var(--success)' : 'var(--danger)'};">(${decibeles} dB)</span>`;
+            document.getElementById('titulo-mapa').innerHTML = `📍 Punto de Control <span style="color:${norm ? 'var(--success)' : 'var(--danger)'};">(${dbLeq} dB Leq)</span>`;
 
-            if (map === null) {
-                map = L.map('map').setView([lat, lng], 18); // Zoom alto para precisión extrema
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 20,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 18);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(map);
             } else {
                 map.setView([lat, lng], 18);
             }
 
-            if (marker) { map.removeLayer(marker); }
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${ubi}</b>`).openPopup();
             
-            marker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(`<b>${ubicacion}</b><br>Nivel acústico: ${decibeles} dB`).openPopup();
-            
-            // Forzar renderizado del mapa al abrir el modal para que no se vea gris
             setTimeout(() => { map.invalidateSize(); }, 200);
         }
 
-        function cerrarMapa() {
-            document.getElementById('modal-mapa').style.display = 'none';
-        }
+        function cerrarMapa() { document.getElementById('modal-mapa').style.display = 'none'; }
 
         function cargarAuditoria() {
             const tbody = document.getElementById('tabla-auditoria');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Descargando matriz de auditoría...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sincronizando...</td></tr>';
 
             db.collection("registros_sonometria").orderBy("timestamp", "desc").limit(50).get()
             .then(snapshot => {
                 tbody.innerHTML = "";
                 if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Bitácora limpia. No hay mediciones registradas.</td></tr>';
-                    return;
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Bitácora limpia.</td></tr>'; return;
                 }
 
                 snapshot.forEach(doc => {
                     let d = doc.data();
-                    
                     let filaClase = d.cumple_normativa ? "" : "class='infraccion'";
-                    let badge = d.cumple_normativa 
-                        ? `<span class="badge badge-ok">En Regla</span>` 
-                        : `<span class="badge badge-alert">Infracción Acústica</span>`;
-                    
+                    let badge = d.cumple_normativa ? `<span class="badge badge-ok">OK</span>` : `<span class="badge badge-alert">INFRACCIÓN</span>`;
                     let colorDb = d.cumple_normativa ? "var(--success)" : "var(--danger)";
                     
-                    // Botón que llama a la función interna abrirMapa() en lugar del href de Google Maps
-                    let botonMapa = `<button class="btn-toggle" style="padding: 4px 8px; font-size: 11px; margin: 0; display: inline-block;" onclick="abrirMapa(${d.latitud}, ${d.longitud}, '${d.ubicacion.replace(/'/g, "\\'")}', ${d.decibeles}, ${d.cumple_normativa})">📍 Cargar Mapa</button>`;
+                    // Formatear array de muestras para vista rápida
+                    let muestrasTxt = d.muestras_crudas ? d.muestras_crudas.join(', ') : "N/D";
+                    
+                    let botonMapa = `<button class="btn-toggle" style="padding: 4px 8px; font-size: 11px;" onclick="abrirMapa(${d.latitud}, ${d.longitud}, '${d.ubicacion.replace(/'/g, "\\'")}', ${d.decibeles_leq}, ${d.cumple_normativa})">📍 Mapa</button>`;
 
                     tbody.innerHTML += `
                         <tr ${filaClase}>
                             <td><b>${d.fecha}</b><br><span style="color:var(--text-muted);">${d.hora} hrs</span></td>
                             <td><b>${d.auditor}</b><br><span style="font-size:11px; color:var(--text-muted);">${d.evento}</span></td>
                             <td>${d.ubicacion}<br><span style="font-size:11px; color:var(--text-muted);">${d.fuente}</span></td>
-                            <td style="font-weight:bold; color:${colorDb}; font-size:15px;">${d.decibeles} dB</td>
+                            <td style="font-weight:bold; color:${colorDb}; font-size:15px;">${d.decibeles_leq} dB</td>
+                            <td style="font-size:11px; color:var(--text-muted); max-width: 120px;">[${muestrasTxt}]</td>
                             <td style="color:var(--text-muted);">${d.limite_permitido} dB</td>
                             <td>${badge}</td>
                             <td>${botonMapa}</td>
                         </tr>
                     `;
                 });
-            })
-            .catch(e => { tbody.innerHTML = `<tr><td colspan="7">Fallo en la lectura de red: ${e.message}</td></tr>`; });
+            }).catch(e => { tbody.innerHTML = `<tr><td colspan="8">Error: ${e.message}</td></tr>`; });
         }
     </script>
 </body>
