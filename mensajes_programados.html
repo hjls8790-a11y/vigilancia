@@ -150,7 +150,6 @@
         window.onload = function() {
             let hoy = new Date();
             document.getElementById('fecha_envio').value = hoy.toISOString().split('T')[0];
-            // Revisar la cola de mensajes cada 10 segundos
             setInterval(motorDespacho, 10000); 
         };
 
@@ -203,7 +202,7 @@
             .catch(e => alert("Error de conexión: " + e.message));
         }
 
-        // Lector en tiempo real para llenar la tabla
+        // Lector en tiempo real con Limpieza de Alertas
         db.collection("mensajes_programados").orderBy("timestamp_envio", "asc").onSnapshot((snapshot) => {
             const tbody = document.getElementById('tabla-cola');
             tbody.innerHTML = "";
@@ -212,6 +211,12 @@
                 let d = doc.data();
                 let id = doc.id;
                 
+                // LIMPIEZA VISUAL: Si el estado pasó a "Enviado", destruimos la alerta amarilla si aún existe
+                if (d.estado === "Enviado") {
+                    let alertaResidual = document.getElementById('alerta-' + id);
+                    if (alertaResidual) { alertaResidual.remove(); }
+                }
+
                 let badge = d.estado === "Pendiente" 
                     ? `<span class="badge badge-pending">⏳ Esperando Hora</span>` 
                     : `<span class="badge badge-sent">✔️ Despachado</span>`;
@@ -237,7 +242,6 @@
             });
         });
 
-        // MOTOR DE DESPACHO RE-INGENIERADO (Maneja múltiples alertas sin sobreescribir)
         function motorDespacho() {
             let tiempoActual = Date.now();
             const contenedor = document.getElementById('contenedor-alertas');
@@ -247,11 +251,7 @@
                 snapshot.forEach(doc => {
                     let d = doc.data();
                     
-                    // Si ya es hora de enviar
                     if (tiempoActual >= d.timestamp_envio) {
-                        
-                        // Revisamos si la franja amarilla para este mensaje específico YA existe
-                        // Si no existe, la creamos y la apilamos en el contenedor
                         if (!document.getElementById('alerta-' + doc.id)) {
                             let alertaDiv = document.createElement('div');
                             alertaDiv.id = 'alerta-' + doc.id;
@@ -270,22 +270,19 @@
             });
         }
 
-        // Función puente: Primero borra la franja visual y luego abre WhatsApp
         window.ejecutarDespachoUnico = function(idDoc, numero, textoCodificado) {
-            // Eliminar de la pantalla la franja específica
             let alertaDiv = document.getElementById('alerta-' + idDoc);
-            if (alertaDiv) {
-                alertaDiv.remove();
-            }
-            
-            // Procesar el envío
+            if (alertaDiv) { alertaDiv.remove(); }
             despacharMensaje(idDoc, numero, textoCodificado);
         };
 
         // Función Blindada de Envío
         function despacharMensaje(idDoc, numero, textoCodificado) {
+            // Limpiar la alerta amarilla instantáneamente al hacer clic (por si se envió forzado desde la tabla)
+            let alertaDiv = document.getElementById('alerta-' + idDoc);
+            if (alertaDiv) { alertaDiv.remove(); }
+
             let urlWhatsApp = `https://wa.me/${numero}?text=${textoCodificado}`;
-            
             let nuevaVentana = window.open(urlWhatsApp, '_blank');
             
             if (!nuevaVentana || nuevaVentana.closed || typeof nuevaVentana.closed == 'undefined') {
@@ -302,8 +299,6 @@
         function borrarMensaje(idDoc) {
             if(confirm("¿Confirmar eliminación de esta tarea operativa?")) {
                 db.collection("mensajes_programados").doc(idDoc).delete();
-                
-                // Si borras el mensaje, también quitamos la alerta de la pantalla si existía
                 let alertaDiv = document.getElementById('alerta-' + idDoc);
                 if (alertaDiv) { alertaDiv.remove(); }
             }
