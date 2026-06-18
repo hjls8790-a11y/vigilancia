@@ -68,7 +68,7 @@
     <div id="alerta-despacho-inmediato" style="display:none; background-color: var(--warning); color: #000; padding: 20px; text-align: center; font-weight: bold; font-size: 18px; border-bottom: 5px solid #d97706; position: sticky; top: 0; z-index: 2000;">
         📢 ¡ATENCIÓN! HAY UN MENSAJE PROGRAMADO LISTO PARA SALIR. 
         <button id="btn-autodespacho" style="background-color: #0f172a; color: white; border: none; padding: 10px 20px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-            🚀 DESPACHAR WHATSAPP
+            🚀 DESPACHAR WHATSAPP AHORA
         </button>
     </div>
 
@@ -112,7 +112,7 @@
         </div>
 
         <label>Contenido del Mensaje:</label>
-        <textarea id="texto_mensaje" rows="4" placeholder="Ej. Reporte de turno finalizado sin novedades. El relevo se efectuó correctamente..." required></textarea>
+        <textarea id="texto_mensaje" rows="4" placeholder="Ej. Reporte de turno finalizado sin novedades..." required></textarea>
 
         <button class="btn-action" onclick="programarMensaje()">⏳ Guardar en Cola de Despacho</button>
     </div>
@@ -151,12 +151,11 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // Inicializar Fecha por defecto y Temporizador
         window.onload = function() {
             let hoy = new Date();
             document.getElementById('fecha_envio').value = hoy.toISOString().split('T')[0];
-            // Iniciar el motor que vigila el tiempo cada 30 segundos
-            setInterval(motorDespacho, 30000); 
+            // Revisar la cola de mensajes cada 15 segundos para mayor precisión
+            setInterval(motorDespacho, 15000); 
         };
 
         function verificarOtro() {
@@ -208,7 +207,7 @@
             .catch(e => alert("Error de conexión: " + e.message));
         }
 
-        // Lector en tiempo real de Firebase para llenar la tabla
+        // Lector en tiempo real para llenar la tabla
         db.collection("mensajes_programados").orderBy("timestamp_envio", "asc").onSnapshot((snapshot) => {
             const tbody = document.getElementById('tabla-cola');
             tbody.innerHTML = "";
@@ -242,7 +241,7 @@
             });
         });
 
-        // MOTOR DE DESPACHO EVOLUCIONADO (Anti-Bloqueo de Pop-ups)
+        // MOTOR DE DESPACHO RE-INGENIERADO (Cero bloqueos asíncronos)
         function motorDespacho() {
             let tiempoActual = Date.now();
 
@@ -251,18 +250,17 @@
                 snapshot.forEach(doc => {
                     let d = doc.data();
                     
-                    // Si la hora actual ya superó o igualó la hora programada
+                    // Si el tiempo actual ya alcanzó o pasó la hora programada
                     if (tiempoActual >= d.timestamp_envio) {
                         const alertaUI = document.getElementById('alerta-despacho-inmediato');
                         
-                        // Mostrar alerta visual crítica en la caseta
                         alertaUI.style.display = "block";
                         alertaUI.innerHTML = `📢 HORA DE ENVIAR: Reporte para <b>${d.nombre_destino}</b> 
                                               <button id="btn-autodespacho" style="background-color: #0f172a; color: white; border: none; padding: 10px 20px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
                                                   🚀 DESPACHAR WHATSAPP AHORA
                                               </button>`;
                         
-                        // Asignar el evento de clic humano al botón dinámico
+                        // El clic directo del usuario ejecuta la función inmediatamente de forma síncrona
                         document.getElementById('btn-autodespacho').onclick = function() {
                             alertaUI.style.display = "none";
                             despacharMensaje(doc.id, d.numero_destino, encodeURIComponent(d.texto));
@@ -272,17 +270,24 @@
             });
         }
 
-        // Ejecutar el envío de WhatsApp y marcar como completado
+        // Función Blindada: Abre la pestaña PRIMERO en el hilo del clic y luego actualiza la base de datos
         function despacharMensaje(idDoc, numero, textoCodificado) {
-            // Actualizar estado en Firebase
+            let urlWhatsApp = `https://wa.me/${numero}?text=${textoCodificado}`;
+            
+            // 1. Acción síncrona directa (Inmune a bloqueadores de pop-ups)
+            let nuevaVentana = window.open(urlWhatsApp, '_blank');
+            
+            // Verificación por si el navegador tiene políticas extremas de bloqueo
+            if (!nuevaVentana || nuevaVentana.closed || typeof nuevaVentana.closed == 'undefined') {
+                alert("🚨 El navegador bloqueó la ventana emergente. Por favor revise los permisos en la barra superior derecha.");
+                return;
+            }
+
+            // 2. Operación de actualización en segundo plano
             db.collection("mensajes_programados").doc(idDoc).update({
                 estado: "Enviado",
                 timestamp_real_envio: Date.now()
-            }).then(() => {
-                // Lanzar la API de WhatsApp
-                let urlWhatsApp = `https://wa.me/${numero}?text=${textoCodificado}`;
-                window.open(urlWhatsApp, '_blank');
-            });
+            }).catch(e => console.error("Error al asentar estado en Firebase:", e));
         }
 
         function borrarMensaje(idDoc) {
