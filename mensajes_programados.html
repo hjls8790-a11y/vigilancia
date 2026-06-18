@@ -65,12 +65,8 @@
 </head>
 <body>
 
-    <div id="alerta-despacho-inmediato" style="display:none; background-color: var(--warning); color: #000; padding: 20px; text-align: center; font-weight: bold; font-size: 18px; border-bottom: 5px solid #d97706; position: sticky; top: 0; z-index: 2000;">
-        📢 ¡ATENCIÓN! HAY UN MENSAJE PROGRAMADO LISTO PARA SALIR. 
-        <button id="btn-autodespacho" style="background-color: #0f172a; color: white; border: none; padding: 10px 20px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-            🚀 DESPACHAR WHATSAPP AHORA
-        </button>
-    </div>
+    <div id="contenedor-alertas" style="position: sticky; top: 0; z-index: 2000; width: 100%;">
+        </div>
 
     <div class="header">
         <h2 style="margin:0;">⏱️ Programador de Comunicaciones Operativas</h2>
@@ -154,8 +150,8 @@
         window.onload = function() {
             let hoy = new Date();
             document.getElementById('fecha_envio').value = hoy.toISOString().split('T')[0];
-            // Revisar la cola de mensajes cada 15 segundos para mayor precisión
-            setInterval(motorDespacho, 15000); 
+            // Revisar la cola de mensajes cada 10 segundos
+            setInterval(motorDespacho, 10000); 
         };
 
         function verificarOtro() {
@@ -241,49 +237,62 @@
             });
         });
 
-        // MOTOR DE DESPACHO RE-INGENIERADO (Cero bloqueos asíncronos)
+        // MOTOR DE DESPACHO RE-INGENIERADO (Maneja múltiples alertas sin sobreescribir)
         function motorDespacho() {
             let tiempoActual = Date.now();
+            const contenedor = document.getElementById('contenedor-alertas');
 
             db.collection("mensajes_programados").where("estado", "==", "Pendiente").get()
             .then(snapshot => {
                 snapshot.forEach(doc => {
                     let d = doc.data();
                     
-                    // Si el tiempo actual ya alcanzó o pasó la hora programada
+                    // Si ya es hora de enviar
                     if (tiempoActual >= d.timestamp_envio) {
-                        const alertaUI = document.getElementById('alerta-despacho-inmediato');
                         
-                        alertaUI.style.display = "block";
-                        alertaUI.innerHTML = `📢 HORA DE ENVIAR: Reporte para <b>${d.nombre_destino}</b> 
-                                              <button id="btn-autodespacho" style="background-color: #0f172a; color: white; border: none; padding: 10px 20px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-                                                  🚀 DESPACHAR WHATSAPP AHORA
-                                              </button>`;
-                        
-                        // El clic directo del usuario ejecuta la función inmediatamente de forma síncrona
-                        document.getElementById('btn-autodespacho').onclick = function() {
-                            alertaUI.style.display = "none";
-                            despacharMensaje(doc.id, d.numero_destino, encodeURIComponent(d.texto));
-                        };
+                        // Revisamos si la franja amarilla para este mensaje específico YA existe
+                        // Si no existe, la creamos y la apilamos en el contenedor
+                        if (!document.getElementById('alerta-' + doc.id)) {
+                            let alertaDiv = document.createElement('div');
+                            alertaDiv.id = 'alerta-' + doc.id;
+                            alertaDiv.style.cssText = "background-color: var(--warning); color: #000; padding: 15px; margin-bottom: 5px; text-align: center; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d97706; box-shadow: 0 4px 6px rgba(0,0,0,0.3);";
+                            
+                            alertaDiv.innerHTML = `
+                                📢 HORA DE ENVIAR: Reporte para <b>${d.nombre_destino}</b> 
+                                <button onclick="ejecutarDespachoUnico('${doc.id}', '${d.numero_destino}', '${encodeURIComponent(d.texto)}')" style="background-color: #0f172a; color: white; border: none; padding: 8px 16px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                    🚀 DESPACHAR AHORA
+                                </button>
+                            `;
+                            contenedor.appendChild(alertaDiv);
+                        }
                     }
                 });
             });
         }
 
-        // Función Blindada: Abre la pestaña PRIMERO en el hilo del clic y luego actualiza la base de datos
+        // Función puente: Primero borra la franja visual y luego abre WhatsApp
+        window.ejecutarDespachoUnico = function(idDoc, numero, textoCodificado) {
+            // Eliminar de la pantalla la franja específica
+            let alertaDiv = document.getElementById('alerta-' + idDoc);
+            if (alertaDiv) {
+                alertaDiv.remove();
+            }
+            
+            // Procesar el envío
+            despacharMensaje(idDoc, numero, textoCodificado);
+        };
+
+        // Función Blindada de Envío
         function despacharMensaje(idDoc, numero, textoCodificado) {
             let urlWhatsApp = `https://wa.me/${numero}?text=${textoCodificado}`;
             
-            // 1. Acción síncrona directa (Inmune a bloqueadores de pop-ups)
             let nuevaVentana = window.open(urlWhatsApp, '_blank');
             
-            // Verificación por si el navegador tiene políticas extremas de bloqueo
             if (!nuevaVentana || nuevaVentana.closed || typeof nuevaVentana.closed == 'undefined') {
-                alert("🚨 El navegador bloqueó la ventana emergente. Por favor revise los permisos en la barra superior derecha.");
+                alert("🚨 El navegador bloqueó la ventana emergente. Habilite los pop-ups.");
                 return;
             }
 
-            // 2. Operación de actualización en segundo plano
             db.collection("mensajes_programados").doc(idDoc).update({
                 estado: "Enviado",
                 timestamp_real_envio: Date.now()
@@ -293,6 +302,10 @@
         function borrarMensaje(idDoc) {
             if(confirm("¿Confirmar eliminación de esta tarea operativa?")) {
                 db.collection("mensajes_programados").doc(idDoc).delete();
+                
+                // Si borras el mensaje, también quitamos la alerta de la pantalla si existía
+                let alertaDiv = document.getElementById('alerta-' + idDoc);
+                if (alertaDiv) { alertaDiv.remove(); }
             }
         }
     </script>
