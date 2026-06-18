@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Despacho de Comunicaciones - El Cielo</title>
+    <title>Despacho de Comunicaciones - El Cielo Parque Residencial</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -71,7 +71,7 @@
     <div class="header">
         <h2 style="margin:0;">⏱️ Programador de Comunicaciones Operativas</h2>
         <div class="indicador-actividad">
-            <div class="punto-verde"></div> Monitor de envíos activo
+            <div class="punto-verde"></div> Estatus: Solo Lectura / Control Local
         </div>
     </div>
 
@@ -147,6 +147,9 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
+        // Variable global para mantener en memoria los datos puros de Firebase
+        let datosEnMemoria = [];
+
         window.onload = function() {
             let hoy = new Date();
             document.getElementById('fecha_envio').value = hoy.toISOString().split('T')[0];
@@ -156,6 +159,21 @@
         function verificarOtro() {
             let select = document.getElementById('destinatario').value;
             document.getElementById('div-numero-otro').style.display = (select === "OTRO") ? "block" : "none";
+        }
+
+        // --- SISTEMA DE MEMORIA LOCAL (CERO ESCRITURA EN DB) ---
+        // Lee el estado local del navegador
+        function obtenerEstadoLocal(idDoc) {
+            let mapaEstados = JSON.parse(localStorage.getItem('estadosMensajesCielo') || '{}');
+            return mapaEstados[idDoc] || null; // Devuelve "Enviado", "Oculto" o null
+        }
+
+        // Guarda el estado en el navegador y actualiza la pantalla
+        function guardarEstadoLocal(idDoc, nuevoEstado) {
+            let mapaEstados = JSON.parse(localStorage.getItem('estadosMensajesCielo') || '{}');
+            mapaEstados[idDoc] = nuevoEstado;
+            localStorage.setItem('estadosMensajesCielo', JSON.stringify(mapaEstados));
+            renderizarTabla(); // Forzar actualización visual inmediata
         }
 
         function programarMensaje() {
@@ -191,9 +209,10 @@
                 nombre_destino: nombreDestino,
                 numero_destino: numeroDestino,
                 texto: texto,
-                estado: "Pendiente" 
+                estado: "Pendiente" // Firebase siempre lo guardará como Pendiente
             };
 
+            // Solo agregamos, nunca actualizamos.
             db.collection("mensajes_programados").add(reporte)
             .then(() => {
                 alert("✔️ Mensaje encolado en sistema para las " + hora);
@@ -202,26 +221,35 @@
             .catch(e => alert("Error de conexión: " + e.message));
         }
 
-        // Lector en tiempo real con Limpieza de Alertas
+        // Lector en tiempo real: Solo lee y guarda en la memoria RAM
         db.collection("mensajes_programados").orderBy("timestamp_envio", "asc").onSnapshot((snapshot) => {
+            datosEnMemoria = [];
+            snapshot.forEach(doc => {
+                datosEnMemoria.push({ id: doc.id, data: doc.data() });
+            });
+            renderizarTabla();
+        });
+
+        // Dibuja la tabla combinando la DB con la Memoria Local
+        function renderizarTabla() {
             const tbody = document.getElementById('tabla-cola');
             tbody.innerHTML = "";
             
-            snapshot.forEach(doc => {
-                let d = doc.data();
-                let id = doc.id;
+            datosEnMemoria.forEach(item => {
+                let d = item.data;
+                let id = item.id;
                 
-                // LIMPIEZA VISUAL: Si el estado pasó a "Enviado", destruimos la alerta amarilla si aún existe
-                if (d.estado === "Enviado") {
-                    let alertaResidual = document.getElementById('alerta-' + id);
-                    if (alertaResidual) { alertaResidual.remove(); }
-                }
+                // Mezcla de la verdad: ¿Qué dice Firebase vs Qué dice el Navegador?
+                let estadoRealVisual = obtenerEstadoLocal(id) || d.estado;
 
-                let badge = d.estado === "Pendiente" 
+                // Si se marcó como "Oculto" localmente, simplemente lo saltamos y no lo dibujamos
+                if (estadoRealVisual === "Oculto") return;
+
+                let badge = estadoRealVisual === "Pendiente" 
                     ? `<span class="badge badge-pending">⏳ Esperando Hora</span>` 
                     : `<span class="badge badge-sent">✔️ Despachado</span>`;
                 
-                let trStyle = d.estado === "Enviado" ? "opacity: 0.5;" : "";
+                let trStyle = estadoRealVisual === "Enviado" ? "opacity: 0.5;" : "";
                 let textoResumen = d.texto.length > 50 ? d.texto.substring(0, 50) + "..." : d.texto;
 
                 tbody.innerHTML += `
@@ -231,42 +259,43 @@
                         <td style="font-style:italic;">"${textoResumen}"</td>
                         <td>${badge}</td>
                         <td>
-                            ${d.estado === "Pendiente" 
+                            ${estadoRealVisual === "Pendiente" 
                                 ? `<button class="btn-send-now" onclick="despacharMensaje('${id}', '${d.numero_destino}', '${encodeURIComponent(d.texto)}')">▶️ Forzar Envío</button>
-                                   <button class="btn-delete" onclick="borrarMensaje('${id}')">🗑️</button>` 
+                                   <button class="btn-delete" title="Ocultar de la vista" onclick="ocultarMensajeLocal('${id}')">🗑️</button>` 
                                 : `Completado`
                             }
                         </td>
                     </tr>
                 `;
             });
-        });
+        }
 
+        // Motor que revisa la hora cruzando datos locales
         function motorDespacho() {
             let tiempoActual = Date.now();
             const contenedor = document.getElementById('contenedor-alertas');
 
-            db.collection("mensajes_programados").where("estado", "==", "Pendiente").get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    let d = doc.data();
-                    
-                    if (tiempoActual >= d.timestamp_envio) {
-                        if (!document.getElementById('alerta-' + doc.id)) {
-                            let alertaDiv = document.createElement('div');
-                            alertaDiv.id = 'alerta-' + doc.id;
-                            alertaDiv.style.cssText = "background-color: var(--warning); color: #000; padding: 15px; margin-bottom: 5px; text-align: center; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d97706; box-shadow: 0 4px 6px rgba(0,0,0,0.3);";
-                            
-                            alertaDiv.innerHTML = `
-                                📢 HORA DE ENVIAR: Reporte para <b>${d.nombre_destino}</b> 
-                                <button onclick="ejecutarDespachoUnico('${doc.id}', '${d.numero_destino}', '${encodeURIComponent(d.texto)}')" style="background-color: #0f172a; color: white; border: none; padding: 8px 16px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                    🚀 DESPACHAR AHORA
-                                </button>
-                            `;
-                            contenedor.appendChild(alertaDiv);
-                        }
+            datosEnMemoria.forEach(item => {
+                let d = item.data;
+                let id = item.id;
+                let estadoRealVisual = obtenerEstadoLocal(id) || d.estado;
+                
+                // Solo alerta si es Pendiente (local y remotamente) y ya es la hora
+                if (estadoRealVisual === "Pendiente" && tiempoActual >= d.timestamp_envio) {
+                    if (!document.getElementById('alerta-' + id)) {
+                        let alertaDiv = document.createElement('div');
+                        alertaDiv.id = 'alerta-' + id;
+                        alertaDiv.style.cssText = "background-color: var(--warning); color: #000; padding: 15px; margin-bottom: 5px; text-align: center; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d97706; box-shadow: 0 4px 6px rgba(0,0,0,0.3);";
+                        
+                        alertaDiv.innerHTML = `
+                            📢 HORA DE ENVIAR: Reporte para <b>${d.nombre_destino}</b> 
+                            <button onclick="ejecutarDespachoUnico('${id}', '${d.numero_destino}', '${encodeURIComponent(d.texto)}')" style="background-color: #0f172a; color: white; border: none; padding: 8px 16px; margin-left: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                🚀 DESPACHAR AHORA
+                            </button>
+                        `;
+                        contenedor.appendChild(alertaDiv);
                     }
-                });
+                }
             });
         }
 
@@ -276,9 +305,8 @@
             despacharMensaje(idDoc, numero, textoCodificado);
         };
 
-        // Función Blindada de Envío
+        // Función Blindada de Envío (Sin escritura en DB)
         function despacharMensaje(idDoc, numero, textoCodificado) {
-            // Limpiar la alerta amarilla instantáneamente al hacer clic (por si se envió forzado desde la tabla)
             let alertaDiv = document.getElementById('alerta-' + idDoc);
             if (alertaDiv) { alertaDiv.remove(); }
 
@@ -290,17 +318,18 @@
                 return;
             }
 
-            db.collection("mensajes_programados").doc(idDoc).update({
-                estado: "Enviado",
-                timestamp_real_envio: Date.now()
-            }).catch(e => console.error("Error al asentar estado en Firebase:", e));
+            // Aquí está la magia: En vez de modificar Firebase, registramos en el navegador
+            guardarEstadoLocal(idDoc, "Enviado");
         }
 
-        function borrarMensaje(idDoc) {
-            if(confirm("¿Confirmar eliminación de esta tarea operativa?")) {
-                db.collection("mensajes_programados").doc(idDoc).delete();
+        // Función para ocultar de la pantalla (Sin borrar de DB)
+        function ocultarMensajeLocal(idDoc) {
+            if(confirm("Firmes: ¿Confirmar que desea ocultar esta tarea de su pantalla local?")) {
                 let alertaDiv = document.getElementById('alerta-' + idDoc);
                 if (alertaDiv) { alertaDiv.remove(); }
+                
+                // Registramos en el navegador que ya no queremos verlo
+                guardarEstadoLocal(idDoc, "Oculto");
             }
         }
     </script>
