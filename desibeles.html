@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -35,14 +38,14 @@
         .btn-toggle {
             background-color: var(--primary); color: white; border: none; padding: 12px 20px;
             border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: opacity 0.2s;
         }
-        .btn-toggle:hover { opacity: 0.9; }
+        .btn-toggle:hover { opacity: 0.8; }
 
         .card { background-color: var(--card-bg); padding: 25px; border-radius: 10px; max-width: 800px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
-        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
-        .flex-group > div { flex: 1; }
+        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .flex-group > div { flex: 1; min-width: 200px; }
 
         label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); font-size: 14px; }
         input, select, textarea {
@@ -134,14 +137,13 @@
 
         <div class="calc-box">
             <label style="text-align: left; color:var(--text-main);">Toma de Muestras Acústicas (dBA Lento):</label>
-            <div class="flex-group" style="align-items: center;">
+            <div class="flex-group" style="align-items: center; margin-bottom: 10px;">
                 <input type="number" id="input_muestra" step="0.1" placeholder="Ej. 52.4" style="margin-bottom: 0;">
                 <button class="btn-add" onclick="agregarMuestra()">+ Añadir Muestra</button>
                 <button class="btn-add" style="background-color: var(--danger); color: white;" onclick="limpiarMuestras()">🗑️ Limpiar</button>
             </div>
             
-            <div class="muestras-tags" id="contenedor-tags">
-                </div>
+            <div class="muestras-tags" id="contenedor-tags"></div>
 
             <p style="margin: 0; color: var(--text-muted); font-weight: bold; text-transform: uppercase; font-size: 12px;">Promedio Energético Calculado (Leq)</p>
             <h1 id="resultado_leq">0.0 dB</h1>
@@ -157,9 +159,14 @@
     </div>
 
     <div id="modulo-auditoria" class="card" style="display:none; max-width: 100% !important;">
-        <div style="display:flex; justify-content: space-between; align-items:center;">
-            <h3 style="margin-top:0; color: var(--primary);">Bitácora Inmutable de Sonometría</h3>
-            <button class="btn-toggle" style="background-color: var(--success); font-size: 13px;" onclick="cargarAuditoria()">🔄 Sincronizar</button>
+        <div class="flex-group" style="justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 15px;">
+            <h3 style="margin:0; color: var(--primary);">Bitácora Inmutable de Sonometría</h3>
+            
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="date" id="filtro_fecha_pdf" style="margin:0; width: auto; font-size: 14px; padding: 8px;">
+                <button class="btn-toggle" style="background-color: #dc2626;" onclick="exportarPDF()">📄 Generar PDF Oficial</button>
+                <button class="btn-toggle" style="background-color: var(--success);" onclick="cargarAuditoria()">🔄 Sincronizar Data</button>
+            </div>
         </div>
         
         <div style="overflow-x: auto;">
@@ -210,14 +217,15 @@
         let coordenadasActuales = null;
         let map = null;
         let marker = null;
-        
-        // Variables para Promedio Energético
         let arrayMuestras = [];
         let promedioEnergeticoFinal = 0;
 
         function iniciarReloj() {
             let hoy = new Date();
-            document.getElementById('reg_fecha').value = hoy.toISOString().split('T')[0];
+            let fechaStr = hoy.toISOString().split('T')[0];
+            document.getElementById('reg_fecha').value = fechaStr;
+            document.getElementById('filtro_fecha_pdf').value = fechaStr; // Setea el filtro PDF a hoy por defecto
+            
             document.getElementById('reg_hora').value = String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0');
         }
 
@@ -242,20 +250,15 @@
             }
         }
 
-        // ====== LÓGICA MATEMÁTICA: PROMEDIO ENERGÉTICO (Leq) ======
         function agregarMuestra() {
             let input = document.getElementById('input_muestra');
             let val = parseFloat(input.value);
             
-            if(isNaN(val) || val <= 0) {
-                alert("Ingrese un valor acústico válido."); return;
-            }
+            if(isNaN(val) || val <= 0) { alert("Ingrese un valor acústico válido."); return; }
             
             arrayMuestras.push(val);
-            input.value = ''; // Limpiar input
+            input.value = ''; 
             actualizarPromedioUI();
-            
-            // Regresar el foco al input para que sea rápido ingresar varias
             input.focus();
         }
 
@@ -276,21 +279,17 @@
                 return;
             }
 
-            // Dibujar las etiquetas visuales
             let sumaAntilog = 0;
             arrayMuestras.forEach(muestra => {
                 contenedorTags.innerHTML += `<span class="tag-db">${muestra} dB</span>`;
-                // Fórmula: 10^(L/10)
                 sumaAntilog += Math.pow(10, muestra / 10);
             });
 
-            // Promedio Energético = 10 * log10( (1/N) * Suma(10^(L/10)) )
             let promedioLog = 10 * Math.log10(sumaAntilog / arrayMuestras.length);
             promedioEnergeticoFinal = parseFloat(promedioLog.toFixed(1));
 
             document.getElementById('resultado_leq').innerText = promedioEnergeticoFinal + " dB";
             
-            // Verificar contra normativa en tiempo real
             let horaActual = document.getElementById('reg_hora').value;
             let limitePermitido = calcularLimiteNormativo(horaActual);
             
@@ -327,19 +326,13 @@
         }
 
         function guardarRegistro() {
-            if(arrayMuestras.length === 0) {
-                alert("Denegado: Debe capturar al menos 1 muestra acústica en la calculadora."); return;
-            }
-            if(!coordenadasActuales) {
-                alert("Denegado: Es obligatorio capturar el GPS para blindar el reporte."); return;
-            }
+            if(arrayMuestras.length === 0) { alert("Denegado: Debe capturar al menos 1 muestra acústica."); return; }
+            if(!coordenadasActuales) { alert("Denegado: Es obligatorio capturar el GPS para blindar el reporte."); return; }
             
             let auditor = document.getElementById('reg_auditor').value.trim();
             let evento = document.getElementById('reg_evento').value.trim();
             let ubicacion = document.getElementById('reg_ubicacion').value.trim();
-            if(!auditor || !evento || !ubicacion) {
-                alert("Llene todos los campos de texto."); return;
-            }
+            if(!auditor || !evento || !ubicacion) { alert("Llene todos los campos de texto."); return; }
 
             let hora = document.getElementById('reg_hora').value;
             let limitePermitido = calcularLimiteNormativo(hora);
@@ -358,7 +351,7 @@
                 evento: evento,
                 ubicacion: ubicacion,
                 decibeles_leq: promedioEnergeticoFinal,
-                muestras_crudas: arrayMuestras, // Guardamos la matriz de muestras para auditoría profunda
+                muestras_crudas: arrayMuestras,
                 fuente: document.getElementById('reg_fuente').value,
                 observaciones: document.getElementById('reg_obs').value.trim() || "N/A",
                 latitud: coordenadasActuales.lat,
@@ -380,7 +373,108 @@
             .catch(e => alert("Error al guardar: " + e.message));
         }
 
-        // ====== LÓGICA DEL MAPA AUDITABLE ======
+        // ==========================================
+        // SISTEMA DE EXPORTACIÓN A PDF OFICIAL
+        // ==========================================
+        async function exportarPDF() {
+            const fechaFiltro = document.getElementById('filtro_fecha_pdf').value;
+            if (!fechaFiltro) {
+                alert("Operación denegada: Seleccione una fecha válida para extraer el reporte.");
+                return;
+            }
+
+            try {
+                // Consultamos solo por fecha para evitar problemas de índices complejos en Firebase
+                const snapshot = await db.collection("registros_sonometria")
+                                         .where("fecha", "==", fechaFiltro)
+                                         .get();
+
+                if (snapshot.empty) {
+                    alert(`No existen registros acústicos en la base de datos para el día ${fechaFiltro}.`);
+                    return;
+                }
+
+                // Extraer y ordenar datos cronológicamente (lado del cliente)
+                let registros = [];
+                snapshot.forEach(doc => registros.push(doc.data()));
+                registros.sort((a, b) => a.hora.localeCompare(b.hora));
+
+                // Preparar matriz para jsPDF AutoTable
+                let dataTablaPDF = [];
+                registros.forEach(d => {
+                    let estatusStr = d.cumple_normativa ? "EN REGLA" : "INFRACCIÓN";
+                    dataTablaPDF.push([
+                        d.hora,
+                        d.auditor,
+                        d.evento,
+                        d.ubicacion,
+                        `${d.decibeles_leq} dB`,
+                        `${d.limite_permitido} dB`,
+                        estatusStr,
+                        `${d.latitud.toFixed(5)}, ${d.longitud.toFixed(5)}`
+                    ]);
+                });
+
+                // Inicializar Documento PDF (Formato Horizontal)
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('landscape');
+
+                // Cabecera Institucional
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(18);
+                doc.setTextColor(15, 23, 42); // Gris oscuro / Azul marino
+                doc.text("EL CIELO PARQUE RESIDENCIAL", 14, 20);
+                
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(12);
+                doc.setTextColor(100, 116, 139);
+                doc.text("REPORTE OFICIAL DE AUDITORÍA ACÚSTICA (NOM-081-SEMARNAT-1994)", 14, 28);
+                
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(15, 23, 42);
+                doc.text(`Fecha de Corte: ${fechaFiltro}`, 14, 35);
+
+                // Inyectar Cuadrícula
+                doc.autoTable({
+                    startY: 42,
+                    head: [['Hora', 'Agente', 'Evento', 'Punto de Medición', 'Leq', 'Límite', 'Estatus', 'Coordenadas GPS']],
+                    body: dataTablaPDF,
+                    theme: 'grid',
+                    headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    // Formato Condicional (Rojo para Infracción, Verde para En Regla)
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 6) {
+                            if (data.cell.raw === 'INFRACCIÓN') {
+                                data.cell.styles.textColor = [220, 38, 38];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else {
+                                data.cell.styles.textColor = [16, 185, 129];
+                                data.cell.styles.fontStyle = 'bold';
+                            }
+                        }
+                    }
+                });
+
+                // Pie de Página Institucional
+                const finalY = doc.lastAutoTable.finalY || 42;
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(10);
+                doc.setTextColor(148, 163, 184);
+                
+                doc.text("Documento electrónico inmutable extraído de la plataforma central de Prevención e Incolumidad.", 14, finalY + 12);
+                doc.text("Doctrina Operativa: Oír, ver y callar. | Firmeza no prepotencia.", 14, finalY + 18);
+
+                // Descargar el archivo
+                doc.save(`Auditoria_Acustica_${fechaFiltro}.pdf`);
+
+            } catch (error) {
+                alert("Fallo del motor de exportación: " + error.message);
+                console.error(error);
+            }
+        }
+
         function abrirMapa(lat, lng, ubi, dbLeq, norm) {
             document.getElementById('modal-mapa').style.display = 'flex';
             document.getElementById('titulo-mapa').innerHTML = `📍 Punto de Control <span style="color:${norm ? 'var(--success)' : 'var(--danger)'};">(${dbLeq} dB Leq)</span>`;
@@ -388,9 +482,7 @@
             if (!map) {
                 map = L.map('map').setView([lat, lng], 18);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(map);
-            } else {
-                map.setView([lat, lng], 18);
-            }
+            } else { map.setView([lat, lng], 18); }
 
             if (marker) map.removeLayer(marker);
             marker = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${ubi}</b>`).openPopup();
@@ -417,9 +509,7 @@
                     let badge = d.cumple_normativa ? `<span class="badge badge-ok">OK</span>` : `<span class="badge badge-alert">INFRACCIÓN</span>`;
                     let colorDb = d.cumple_normativa ? "var(--success)" : "var(--danger)";
                     
-                    // Formatear array de muestras para vista rápida
                     let muestrasTxt = d.muestras_crudas ? d.muestras_crudas.join(', ') : "N/D";
-                    
                     let botonMapa = `<button class="btn-toggle" style="padding: 4px 8px; font-size: 11px;" onclick="abrirMapa(${d.latitud}, ${d.longitud}, '${d.ubicacion.replace(/'/g, "\\'")}', ${d.decibeles_leq}, ${d.cumple_normativa})">📍 Mapa</button>`;
 
                     tbody.innerHTML += `
