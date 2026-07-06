@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Acceso y Entrega - Campamento</title>
     
-    <!-- SDK de Firebase V8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -95,7 +94,6 @@
         </div>
     </div>
 
-    <!-- MÓDULO 1: PANEL OPERATIVO -->
     <div id="modulo-operaciones" class="card">
         <div class="search-box">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--text-muted);">🔍 Buscar Menor o Tutor en Entrada:</label>
@@ -104,11 +102,9 @@
 
         <h3 style="margin-top:0; color: var(--primary);">Padrón Oficial de Menores</h3>
         <div class="grid-menores" id="contenedor-tarjetas">
-            <!-- Render dinámico desde JS + Firestore -->
-        </div>
+            </div>
     </div>
 
-    <!-- MÓDULO 2: BITÁCORA DIGITAL -->
     <div id="modulo-bitacora" class="card" style="display:none; max-width: 100% !important;">
         <h3 style="margin-top:0; color: var(--purple);">Historial General de Entradas y Salidas</h3>
         
@@ -136,8 +132,7 @@
                     </tr>
                 </thead>
                 <tbody id="tabla-bitacora">
-                    <!-- Registros dinámicos -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </div>
@@ -156,7 +151,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // PADRÓN OFICIAL (Extraído de tu tabla)
+        // PADRÓN OFICIAL (Extraído fielmente de tu tabla)
         const padronOficial = [
             { id: "m01", nombre: "ALEX SANTIAGO ORTEGA RUIZ", tipo: "MIEMBRO", edad: "6", tutores: "YANUARIA MARGARITA RUIZ BONILLA/ BRITANY TOLEDO BONILLA / THOMAS DUNKER", tel: "6692502797" },
             { id: "m02", nombre: "ALVARO ASPEE PEÑA", tipo: "MIEMBRO", edad: "9", tutores: "NURIA PEÑA GARCIA/ALVARO ASPEE", tel: "6692614557" },
@@ -173,7 +168,7 @@
             { id: "m13", nombre: "ROMINA IRIZAR BAUTISTA", tipo: "MIEMBRO", edad: "6", tutores: "ANGELICA BAUTISTA VARELA/EDWIN IRAZAR LEYVA", tel: "8110343029" },
             { id: "m14", nombre: "ROMINA MIRLETH TIRADO CEBALLOS", tipo: "EXTERNO", edad: "6", tutores: "ROMINA MICHELLE CEBALLOS SANDOVAL/PAULINA AVILEZ CEBALLOS/ALEJANDRO TIRADO ARIAS", tel: "669 240 3288" },
             { id: "m15", nombre: "SANTIAGO CASTILLO LIZARRAGA", tipo: "EXTERNO", edad: "7", tutores: "PATRICIA LIZARRAGA/ALEJANDRO CASTILLO/ROSA ICELA BASTIDAS", tel: "6692404454" },
-            { id: "m16", nombre: "SANTINO CANALE PALAZUELOS", tipo: "EXTERNO", edad: "7", tutores: "PAULINA VEGA STAMATIS/NATALIA VAZQUEZ ESCOBEDO/YORELI PALAZUELOS STAMATIS", tel: "6691470438" },
+            { id: "m16", nombre: "SANTIAGO CANALE PALAZUELOS", tipo: "EXTERNO", edad: "7", tutores: "PAULINA VEGA STAMATIS/NATALIA VAZQUEZ ESCOBEDO/YORELI PALAZUELOS STAMATIS", tel: "6691470438" },
             { id: "m17", nombre: "SEBASTIAN PONCE DELGADILLO", tipo: "EXTERNO", edad: "11", tutores: "MARÍA RACHELLE DELGADILLO GASTELUM/MIREYA ISABEL DELGADILLO GASTELUM /MIREYA OLIVIA GASTELUM CAZÁREZ/JOSÉ IVÁN DELGADILLO GASTELUM/AIDA YANINE DELGADILLO GATELUM", tel: "3333793465" },
             { id: "m18", nombre: "VALERIA SOFIA LARA GOMEZ", tipo: "EXTERNO", edad: "7", tutores: "CARLOS ARTURO LARA BORBOA/CANDELARIA LEYVA PARDO/RAUL GOMEZ SAUCEDO/MARCELA GUADALUPE GOMEZ LEYVA", tel: "6691648004" }
         ];
@@ -184,7 +179,7 @@
             let hoy = new Date().toISOString().split('T')[0];
             document.getElementById('bit_filtro_fecha').value = hoy;
 
-            // Escuchar el estado de asistencia desde Firestore (para mantener sincronizados los dispositivos)
+            // Escuchar el estado de asistencia desde Firestore
             db.collection("estado_asistencia_camp").onSnapshot(snapshot => {
                 estadosLocales = {};
                 snapshot.forEach(doc => { estadosLocales[doc.id] = doc.data().estatus; });
@@ -207,7 +202,6 @@
             contenedor.innerHTML = "";
 
             padronOficial.forEach(m => {
-                // Estado por defecto es Ausente si no existe en la base de datos
                 let estatusActual = estadosLocales[m.id] || "Ausente"; 
                 
                 let claseStatus = "";
@@ -216,7 +210,6 @@
                 if(estatusActual === 'En Campamento') { badgeClase = "badge-presente"; claseStatus = "status-presente"; }
                 else if(estatusActual === 'Entregado') { badgeClase = "badge-entregado"; claseStatus = "status-entregado"; }
 
-                // Separar tutores por la diagonal (/) para crear el selector
                 let listaTutores = m.tutores.split('/');
                 let opcionesTutores = listaTutores.map(t => `<option value="${t.trim()}">${t.trim()}</option>`).join('');
 
@@ -235,14 +228,13 @@
                         </div>
                         
                         <div class="op-panel">
-                            ${estatusActual === 'Ausente' || estatusActual === 'Entregado' ? `
-                                <button class="btn-action" style="background-color: var(--success);" onclick="registrarEvento('${m.id}', 'ENTRADA')">🟢 REGISTRAR ENTRADA</button>
-                            ` : ''}
+                            <button class="btn-action" style="background-color: var(--success);" onclick="registrarEvento('${m.id}', 'ENTRADA')">🟢 REGISTRAR ENTRADA</button>
 
                             ${estatusActual === 'En Campamento' ? `
                                 <button class="btn-action" style="background-color: var(--warning); color: black;" onclick="enviarAlertaWhatsApp('${m.nombre}')">📣 ALERTA AL STAFF (WhatsApp)</button>
-                                <button class="btn-action" style="background-color: var(--primary);" onclick="registrarEvento('${m.id}', 'SALIDA')">🔵 REGISTRAR SALIDA</button>
                             ` : ''}
+
+                            <button class="btn-action" style="background-color: var(--danger);" onclick="registrarEvento('${m.id}', 'SALIDA')">🔴 REGISTRAR SALIDA</button>
                         </div>
                     </div>
                 `;
@@ -263,7 +255,6 @@
 
         // ====== ACCIONES TÁCTICAS ======
         function registrarEvento(id_menor, tipoEvento) {
-            // Buscar la información del menor en el padrón local
             let menorInfo = padronOficial.find(m => m.id === id_menor);
             let tutorSeleccionado = document.getElementById(`tutor_entrega_${id_menor}`).value;
             
@@ -274,10 +265,10 @@
             let nuevoEstado = tipoEvento === 'ENTRADA' ? "En Campamento" : "Entregado";
             let descTutor = tipoEvento === 'ENTRADA' ? "N/A - Ingreso al Campamento" : `Entregado a: ${tutorSeleccionado}`;
 
-            // Actualizar estado visual en Firestore
+            // Actualizar estado en Firestore
             db.collection("estado_asistencia_camp").doc(id_menor).set({ estatus: nuevoEstado });
 
-            // Inyectar en Bitácora
+            // Inyectar Registro Inmutable en Bitácora
             db.collection("bitacora_campamento").add({
                 timestamp: Date.now(),
                 fecha: fechaStr,
@@ -296,7 +287,6 @@
             
             let urlWA = `https://api.whatsapp.com/send?phone=${telStaff}&text=${encodeURIComponent(mensaje)}`;
             
-            // Log de alerta en bitácora
             let hoy = new Date();
             db.collection("bitacora_campamento").add({
                 timestamp: Date.now(),
@@ -330,12 +320,12 @@
 
                 let registros = [];
                 snapshot.forEach(doc => registros.push(doc.data()));
-                registros.sort((a,b) => b.timestamp - a.timestamp); // Más reciente primero
+                registros.sort((a,b) => b.timestamp - a.timestamp);
 
                 registros.forEach(r => {
                     let colorBadge = "var(--text-muted)";
                     if(r.tipo === "ENTRADA") colorBadge = "var(--success)";
-                    if(r.tipo === "SALIDA") colorBadge = "var(--primary)";
+                    if(r.tipo === "SALIDA") colorBadge = "var(--danger)"; // Código visual rojo para salidas
                     if(r.tipo === "ALERTA WA") colorBadge = "var(--warning)";
 
                     tbody.innerHTML += `
