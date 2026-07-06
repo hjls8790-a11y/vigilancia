@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Acceso y Entrega - Club Cardones</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --purple: #a855f7;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+        
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--card-bg); padding: 15px 25px; border-radius: 8px; margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-wrap: wrap; gap: 15px;
+        }
+        
+        .nav-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn-tab {
+            background-color: #334155; color: var(--text-muted); border: none; padding: 12px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s;
+        }
+        .btn-tab.active { background-color: var(--primary); color: white; }
+        .btn-tab:hover { opacity: 0.9; }
+
+        .card { background-color: var(--card-bg); padding: 25px; border-radius: 10px; max-width: 1100px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        .flex-group { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .flex-group > div { flex: 1; min-width: 220px; }
+
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); font-size: 14px; }
+        input, select, textarea {
+            width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569;
+            background-color: #0f172a; color: white; font-size: 15px; margin-bottom: 15px;
+        }
+        
+        .btn-action {
+            padding: 10px 15px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold;
+            color: white; cursor: pointer; transition: opacity 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: 100%;
+        }
+        .btn-action:hover { opacity: 0.8; }
+        
+        .grid-menores {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px;
+        }
+
+        .tarjeta-menor {
+            background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 18px;
+            position: relative; border-left: 5px solid var(--text-muted);
+        }
+        .tarjeta-menor.status-presente { border-left-color: var(--success); }
+        .tarjeta-menor.status-entregado { border-left-color: var(--primary); }
+
+        .badge-status {
+            position: absolute; top: 15px; right: 15px; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;
+        }
+        .badge-ausente { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .badge-presente { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-entregado { background-color: rgba(59, 130, 246, 0.2); color: var(--primary); }
+
+        .info-data { font-size: 13px; color: var(--text-muted); margin: 5px 0; }
+        .info-data b { color: var(--text-main); }
+
+        .search-box {
+            background-color: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: var(--text-muted); text-transform: uppercase; }
+        
+        .op-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; border-top: 1px solid #233145; padding-top: 12px; }
+    </style>
+</head>
+<body onload="inicializarApp()">
+
+    <div class="header">
+        <h2 style="margin:0;">🌲 Club Cardones — Campamento de Verano</h2>
+        <div class="nav-tabs">
+            <button class="btn-tab active" id="tab-operaciones" onclick="cambiarVista('operaciones')">📱 Panel Operativo</button>
+            <button class="btn-tab" id="tab-padron" onclick="cambiarVista('padron')">📝 Alta de Menores</button>
+            <button class="btn-tab" id="tab-bitacora" onclick="cambiarVista('bitacora')">📑 Bitácora Digital</button>
+        </div>
+    </div>
+
+    <div id="modulo-operaciones" class="card">
+        <div class="search-box">
+            <label style="margin-bottom: 8px;">🔍 Buscar Menor o Tutor en Entrada:</label>
+            <input type="text" id="buscar_operativa" placeholder="Escribe el nombre para filtrar tarjetas..." oninput="filtrarTarjetas()" style="margin-bottom: 0;">
+        </div>
+
+        <h3 style="margin-top:0; color: var(--primary);">Monitoreo de Menores en Turno</h3>
+        <div class="grid-menores" id="contenedor-tarjetas">
+            </div>
+    </div>
+
+    <div id="modulo-padron" class="card" style="display:none;">
+        <h3 style="margin-top:0; color: var(--warning); border-bottom: 1px solid #334155; padding-bottom: 10px;">Ingresar Registro al Padrón Base</h3>
+        
+        <div class="flex-group">
+            <div>
+                <label>Nombre Completo del Menor:</label>
+                <input type="text" id="pad_nombre" placeholder="Nombre completo del niño(a)">
+            </div>
+            <div>
+                <label>Edad / Grupo:</label>
+                <input type="text" id="pad_grupo" placeholder="Ej. 7 años - Grupo Delfines">
+            </div>
+        </div>
+
+        <div class="flex-group">
+            <div>
+                <label>Tutores Autorizados (Separados por Comas):</label>
+                <input type="text" id="pad_tutores" placeholder="Ej. Carlos Mendoza (Padre), Ana Ríos (Madre)">
+            </div>
+            <div>
+                <label>Vehículos Autorizados (Placas / Descripción):</label>
+                <input type="text" id="pad_vehiculos" placeholder="Ej. Toyota RAV4 Gris Placas ABC-123, Honda Civic Blanco">
+            </div>
+        </div>
+
+        <button class="btn-action" style="background-color: var(--success); padding: 14px;" onclick="guardarEnPadron()">💾 Guardar en Padrón de Campamento</button>
+    </div>
+
+    <div id="modulo-bitacora" class="card" style="display:none; max-width: 100% !important;">
+        <h3 style="margin-top:0; color: var(--purple);">Historial General de Movimientos y Alertas</h3>
+        
+        <div class="search-box">
+            <div class="flex-group" style="margin-bottom:0;">
+                <div>
+                    <label>Filtrar por Fecha:</label>
+                    <input type="date" id="bit_filtro_fecha" onchange="cargarBitacora()" style="margin-bottom:0;">
+                </div>
+                <div>
+                    <label>Filtro por Texto (Niño o Tutor):</label>
+                    <input type="text" id="bit_filtro_texto" placeholder="Escribe para buscar en la bitácora..." oninput="filtrarTablaBitacora()" style="margin-bottom:0;">
+                </div>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Tipo Evento</th>
+                        <th>Menor</th>
+                        <th>Grupo</th>
+                        <th>Tutor / Vehículo Involucrado</th>
+                        <th>Detalles Operativos</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-bitacora">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN CENTRAL DE TU INFRAESTRUCTURA FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        // Inicialización
+        function inicializarApp() {
+            let hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('bit_filtro_fecha').value = hoy;
+
+            // Escuchar cambios de menores en tiempo real
+            db.collection("menores_campamento").orderBy("nombre", "asc").onSnapshot(snapshot => {
+                renderizarTarjetasOperativas(snapshot);
+            });
+        }
+
+        function cambiarVista(modulo) {
+            document.getElementById('modulo-operaciones').style.display = modulo === 'operaciones' ? 'block' : 'none';
+            document.getElementById('modulo-padron').style.display = modulo === 'padron' ? 'block' : 'none';
+            document.getElementById('modulo-bitacora').style.display = modulo === 'bitacora' ? 'block' : 'none';
+
+            document.getElementById('tab-operaciones').classList.toggle('active', modulo === 'operaciones');
+            document.getElementById('tab-padron').classList.toggle('active', modulo === 'padron');
+            document.getElementById('tab-bitacora').classList.toggle('active', modulo === 'bitacora');
+
+            if(modulo === 'bitacora') { cargarBitacora(); }
+        }
+
+        // ====== LÓGICA DE ALTA DE MENORES ======
+        function guardarEnPadron() {
+            let nombre = document.getElementById('pad_nombre').value.trim();
+            let grupo = document.getElementById('pad_grupo').value.trim();
+            let tutores = document.getElementById('pad_tutores').value.trim();
+            let vehiculos = document.getElementById('pad_vehiculos').value.trim();
+
+            if(!nombre || !grupo || !tutores) {
+                alert("Por favor ingrese al menos el nombre del menor, grupo y tutores autorizados.");
+                return;
+            }
+
+            let nuevoMenor = {
+                nombre: nombre,
+                grupo: grupo,
+                tutores: tutores,
+                vehiculos: vehiculos || "No registrados",
+                estatus: "Ausente",
+                timestamp: Date.now()
+            };
+
+            db.collection("menores_campamento").add(nuevoMenor)
+            .then(() => {
+                alert(`✔️ ${nombre} ha sido agregado exitosamente al padrón.`);
+                document.getElementById('pad_nombre').value = "";
+                document.getElementById('pad_grupo').value = "";
+                document.getElementById('pad_tutores').value = "";
+                document.getElementById('pad_vehiculos').value = "";
+                cambiarVista('operaciones');
+            })
+            .catch(err => alert("Error al registrar menor: " + err.message));
+        }
+
+        // ====== LÓGICA DEL PANEL OPERATIVO ======
+        function renderizarTarjetasOperativas(snapshot) {
+            const contenedor = document.getElementById('contenedor-tarjetas');
+            contenedor.innerHTML = "";
+
+            if(snapshot.empty) {
+                contenedor.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; text-align:center;">El padrón está vacío. Ve a la pestaña 'Alta de Menores' para iniciar.</p>`;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                let m = doc.data();
+                let id = doc.id;
+                
+                let claseStatus = "";
+                let badgeTxt = m.estatus;
+                let badgeClase = "";
+
+                if(m.estatus === 'Ausente') { badgeClase = "badge-ausente"; }
+                else if(m.estatus === 'En Campamento') { badgeClase = "badge-presente"; claseStatus = "status-presente"; }
+                else if(m.estatus === 'Entregado') { badgeClase = "badge-entregado"; claseStatus = "status-entregado"; }
+
+                let listaTutores = m.tutores.split(',');
+                let opcionesTutores = listaTutores.map(t => `<option value="${t.trim()}">${t.trim()}</option>`).join('');
+
+                let tarjetaHTML = `
+                    <div class="tarjeta-menor ${claseStatus}" data-busqueda="${m.nombre.toLowerCase()} ${m.tutores.toLowerCase()}">
+                        <span class="badge-status ${badgeClase}">${badgeTxt}</span>
+                        <h4 style="margin: 0 0 10px 0; color: white; max-width: 70%;">${m.nombre}</h4>
+                        <p class="info-data">🎯 <b>Grupo:</b> ${m.grupo}</p>
+                        <p class="info-data">👨‍👦 <b>Tutores:</b> ${m.tutores}</p>
+                        <p class="info-data">🚗 <b>Autos:</b> ${m.vehiculos}</p>
+                        
+                        <div class="op-panel">
+                            ${m.estatus === 'Ausente' ? `
+                                <button class="btn-action" style="background-color: var(--success);" onclick="registrarAsistencia('${id}', '${m.nombre}', '${m.grupo}')">🟢 Registrar Entrada Rápida</button>
+                            ` : ''}
+
+                            ${m.estatus === 'En Campamento' ? `
+                                <button class="btn-action" style="background-color: var(--warning); color: black; margin-bottom: 8px;" onclick="enviarAlertaWhatsApp('${m.nombre}', '${m.grupo}')">📣 Alerta Llegada Tutor (WA)</button>
+                                
+                                <div style="display:flex; flex-direction: column; gap: 5px;">
+                                    <select id="tutor_entrega_${id}" style="margin-bottom:0; padding: 8px; font-size:13px; width: 100%;">
+                                        ${opcionesTutores}
+                                    </select>
+                                    <button class="btn-action" style="background-color: var(--primary);" onclick="registrarEntrega('${id}', '${m.nombre}', '${m.grupo}')">🔵 Procesar Entrega Oficial</button>
+                                </div>
+                            ` : ''}
+
+                            ${m.estatus === 'Entregado' ? `
+                                <button class="btn-action" style="background-color: #475569;" onclick="reestablecerEstado('${id}')">🔄 Reestablecer a Ausente</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                contenedor.innerHTML += tarjetaHTML;
+            });
+        }
+
+        function filtrarTarjetas() {
+            let texto = document.getElementById('buscar_operativa').value.toLowerCase();
+            let tarjetas = document.getElementsByClassName('tarjeta-menor');
+            
+            for(let i=0; i < tarjetas.length; i++) {
+                let contenido = tarjetas[i].getAttribute('data-busqueda');
+                if(contenido.includes(texto)) {
+                    tarjetas[i].style.display = "block";
+                } else {
+                    tarjetas[i].style.display = "none";
+                }
+            }
+        }
+
+        // ====== ACCIONES OPERATIVAS ======
+        function registrarAsistencia(id, nombre, grupo) {
+            let hoy = new Date();
+            let fechaStr = hoy.toISOString().split('T')[0];
+            let horaStr = String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0');
+
+            db.collection("menores_campamento").doc(id).update({ estatus: "En Campamento" });
+
+            db.collection("bitacora_campamento").add({
+                timestamp: Date.now(),
+                fecha: fechaStr,
+                hora: horaStr,
+                tipo: "RECEPCIÓN",
+                menor: nombre,
+                grupo: grupo,
+                tutor_vehiculo: "N/A - Ingreso General",
+                detalles: "Acceso rápido ejecutado en puerta principal."
+            });
+        }
+
+        function enviarAlertaWhatsApp(nombre, grupo) {
+            // NÚMERO FIJO INTEGRADO POR INSTRUCCIÓN OPERATIVA
+            let telStaff = "526691975443"; 
+            let mensaje = `🌲 *CLUB CARDONES ALERT* 🌲\nEl padre/tutor de: *${nombre}* (${grupo}) se encuentra en la entrada general listo para la entrega. Por favor, llevar al menor a la zona de transferencia de seguridad.`;
+            
+            let urlWA = `https://api.whatsapp.com/send?phone=${telStaff}&text=${encodeURIComponent(mensaje)}`;
+            
+            let hoy = new Date();
+            db.collection("bitacora_campamento").add({
+                timestamp: Date.now(),
+                fecha: hoy.toISOString().split('T')[0],
+                hora: String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0'),
+                tipo: "ALERTA WA",
+                menor: nombre,
+                grupo: grupo,
+                tutor_vehiculo: "Staff Notificado",
+                detalles: "Notificación enviada al número central del staff."
+            });
+
+            window.open(urlWA, '_blank');
+        }
+
+        function registrarEntrega(id, nombre, grupo) {
+            let tutorSeleccionado = document.getElementById(`tutor_entrega_${id}`).value;
+            let hoy = new Date();
+            let fechaStr = hoy.toISOString().split('T')[0];
+            let horaStr = String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0');
+
+            db.collection("menores_campamento").doc(id).update({ estatus: "Entregado" });
+
+            db.collection("bitacora_campamento").add({
+                timestamp: Date.now(),
+                fecha: fechaStr,
+                hora: horaStr,
+                tipo: "ENTREGA",
+                menor: nombre,
+                grupo: grupo,
+                tutor_vehiculo: `Entregado a: ${tutorSeleccionado}`,
+                detalles: "Egreso seguro verificado."
+            });
+        }
+
+        function reestablecerEstado(id) {
+            if(confirm("¿Desea restablecer el estatus del menor a Ausente para un nuevo día?")) {
+                db.collection("menores_campamento").doc(id).update({ estatus: "Ausente" });
+            }
+        }
+
+        // ====== LÓGICA DE LA BITÁCORA ======
+        function cargarBitacora() {
+            let fechaSeleccionada = document.getElementById('bit_filtro_fecha').value;
+            const tbody = document.getElementById('tabla-bitacora');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Buscando registros...</td></tr>';
+
+            db.collection("bitacora_campamento")
+            .where("fecha", "==", fechaSeleccionada)
+            .get()
+            .then(snapshot => {
+                tbody.innerHTML = "";
+                if(snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Sin movimientos registrados en esta fecha.</td></tr>';
+                    return;
+                }
+
+                let registros = [];
+                snapshot.forEach(doc => registros.push(doc.data()));
+                registros.sort((a,b) => b.timestamp - a.timestamp);
+
+                registros.forEach(r => {
+                    let colorBadge = "var(--text-muted)";
+                    if(r.tipo === "RECEPCIÓN") colorBadge = "var(--success)";
+                    if(r.tipo === "ENTREGA") colorBadge = "var(--primary)";
+                    if(r.tipo === "ALERTA WA") colorBadge = "var(--warning)";
+
+                    tbody.innerHTML += `
+                        <tr class="fila-registro-bitacora" data-contenido="${r.menor.toLowerCase()} ${r.tutor_vehiculo.toLowerCase()}">
+                            <td><b>${r.fecha}</b><br><span style="color: var(--text-muted);">${r.hora} hrs</span></td>
+                            <td><span style="background-color: ${colorBadge}; color: black; padding: 3px 6px; font-weight:bold; border-radius:4px; font-size:11px;">${r.tipo}</span></td>
+                            <td><b>${r.menor}</b></td>
+                            <td>${r.grupo}</td>
+                            <td>${r.tutor_vehiculo}</td>
+                            <td style="color: var(--text-muted);">${r.detalles}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(err => { tbody.innerHTML = `<tr><td colspan="6">Error de sincronización: ${err.message}</td></tr>`; });
+        }
+
+        function filtrarTablaBitacora() {
+            let texto = document.getElementById('bit_filtro_texto').value.toLowerCase();
+            let filas = document.getElementsByClassName('fila-registro-bitacora');
+
+            for (let i = 0; i < filas.length; i++) {
+                let data = filas[i].getAttribute('data-contenido');
+                if (data.includes(texto)) { filas[i].style.display = ""; } 
+                else { filas[i].style.display = "none"; }
+            }
+        }
+    </script>
+</body>
+</html>
