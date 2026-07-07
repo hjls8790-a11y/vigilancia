@@ -87,7 +87,7 @@
 <body onload="inicializarApp()">
 
     <div class="header">
-        <h2 style="margin:0;">🌲 Control Operativo - Campamento de Verano</h2>
+        <h2 style="margin:0;">🌵 Control Operativo - Campamento de Verano</h2>
         <div class="nav-tabs">
             <button class="btn-tab active" id="tab-operaciones" onclick="cambiarVista('operaciones')">📱 Panel Operativo</button>
             <button class="btn-tab" id="tab-bitacora" onclick="cambiarVista('bitacora')">📑 Bitácora Digital</button>
@@ -284,7 +284,7 @@
                 let numLimpio = menorInfo.tel.replace(/\D/g, ''); 
                 let numWA = numLimpio.length === 10 ? '52' + numLimpio : numLimpio;
 
-                let mensajeFamilia = `🌲 *Campamento Club Cardones* 🌲\n\nHola. 👋 Queremos informarle que *${menorInfo.nombre}* ha terminado su día de actividades y ha sido entregado(a) de manera segura a: *${tutorSeleccionado}*.\n\n¡Esperamos que haya tenido un excelente día, nos vemos pronto!`;
+                let mensajeFamilia = `🌵 *Campamento de verano Club Cardones* 🌵\n\nHola. 👋 Queremos informarle que *${menorInfo.nombre}* ha terminado su día de actividades y ha sido entregado(a) de manera segura a: *${tutorSeleccionado}*.\n\n¡Esperamos que haya tenido un excelente día, gracias por su confianza cualquier aclaración al numero 6699328421!`;
                 
                 let urlNotificacion = `https://api.whatsapp.com/send?phone=${numWA}&text=${encodeURIComponent(mensajeFamilia)}`;
                 
@@ -295,7 +295,7 @@
 
         function enviarAlertaWhatsApp(nombre) {
             let telStaff = "526691975443"; 
-            let mensaje = `🌲 *CLUB CARDONES ALERT* 🌲\nEl padre o tutor autorizado de *${nombre}* se encuentra en la entrada general listo para la salida. Por favor, preparar al menor para su entrega.`;
+            let mensaje = `🌵 *CLUB CARDONES ALERT* 🌵\nEl padre o tutor autorizado de *${nombre}* se encuentra en la entrada general listo para la salida. Por favor, preparar al menor para su entrega.`;
             
             let urlWA = `https://api.whatsapp.com/send?phone=${telStaff}&text=${encodeURIComponent(mensaje)}`;
             
