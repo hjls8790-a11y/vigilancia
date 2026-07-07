@@ -176,7 +176,9 @@
         let estadosLocales = {};
 
         function inicializarApp() {
-            let hoy = new Date().toISOString().split('T')[0];
+            // SOLUCIÓN ZONA HORARIA 1
+            let d = new Date();
+            let hoy = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
             document.getElementById('bit_filtro_fecha').value = hoy;
 
             db.collection("estado_asistencia_camp").onSnapshot(snapshot => {
@@ -257,7 +259,8 @@
             let tutorSeleccionado = document.getElementById(`tutor_entrega_${id_menor}`).value;
             
             let hoy = new Date();
-            let fechaStr = hoy.toISOString().split('T')[0];
+            // SOLUCIÓN ZONA HORARIA 2
+            let fechaStr = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
             let horaStr = String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0');
 
             let nuevoEstado = tipoEvento === 'ENTRADA' ? "En Campamento" : "Entregado";
@@ -278,7 +281,7 @@
                 tel: menorInfo.tel
             });
 
-            // ====== NUEVO: ALERTA DE SALIDA A CONTACTO DEL MENOR ======
+            // ====== ALERTA DE SALIDA A CONTACTO DEL MENOR ======
             if (tipoEvento === 'SALIDA') {
                 // Limpiamos espacios del número y le agregamos prefijo 52 si es un celular de 10 dígitos
                 let numLimpio = menorInfo.tel.replace(/\D/g, ''); 
@@ -302,7 +305,8 @@
             let hoy = new Date();
             db.collection("bitacora_campamento").add({
                 timestamp: Date.now(),
-                fecha: hoy.toISOString().split('T')[0],
+                // SOLUCIÓN ZONA HORARIA 3
+                fecha: hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0'),
                 hora: String(hoy.getHours()).padStart(2, '0') + ':' + String(hoy.getMinutes()).padStart(2, '0'),
                 tipo: "ALERTA WA",
                 menor: nombre,
