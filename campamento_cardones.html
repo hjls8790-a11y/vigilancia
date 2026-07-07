@@ -151,7 +151,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // PADRÓN OFICIAL (Extraído fielmente de tu tabla)
+        // PADRÓN OFICIAL
         const padronOficial = [
             { id: "m01", nombre: "ALEX SANTIAGO ORTEGA RUIZ", tipo: "MIEMBRO", edad: "6", tutores: "YANUARIA MARGARITA RUIZ BONILLA/ BRITANY TOLEDO BONILLA / THOMAS DUNKER", tel: "6692502797" },
             { id: "m02", nombre: "ALVARO ASPEE PEÑA", tipo: "MIEMBRO", edad: "9", tutores: "NURIA PEÑA GARCIA/ALVARO ASPEE", tel: "6692614557" },
@@ -168,9 +168,10 @@
             { id: "m13", nombre: "ROMINA IRIZAR BAUTISTA", tipo: "MIEMBRO", edad: "6", tutores: "ANGELICA BAUTISTA VARELA/EDWIN IRAZAR LEYVA", tel: "8110343029" },
             { id: "m14", nombre: "ROMINA MIRLETH TIRADO CEBALLOS", tipo: "EXTERNO", edad: "6", tutores: "ROMINA MICHELLE CEBALLOS SANDOVAL/PAULINA AVILEZ CEBALLOS/ALEJANDRO TIRADO ARIAS", tel: "669 240 3288" },
             { id: "m15", nombre: "SANTIAGO CASTILLO LIZARRAGA", tipo: "EXTERNO", edad: "7", tutores: "PATRICIA LIZARRAGA/ALEJANDRO CASTILLO/ROSA ICELA BASTIDAS", tel: "6692404454" },
-            { id: "m16", nombre: "SANTINO CANALE PALAZUELOS", tipo: "EXTERNO", edad: "7", tutores: "PAULINA VEGA STAMATIS/NATALIA VAZQUEZ ESCOBEDO/YORELI PALAZUELOS STAMATIS", tel: "6691470438" },
+            { id: "m16", nombre: "SANTIAGO CANALE PALAZUELOS", tipo: "EXTERNO", edad: "7", tutores: "PAULINA VEGA STAMATIS/NATALIA VAZQUEZ ESCOBEDO/YORELI PALAZUELOS STAMATIS", tel: "6691470438" },
             { id: "m17", nombre: "SEBASTIAN PONCE DELGADILLO", tipo: "EXTERNO", edad: "11", tutores: "MARÍA RACHELLE DELGADILLO GASTELUM/MIREYA ISABEL DELGADILLO GASTELUM /MIREYA OLIVIA GASTELUM CAZÁREZ/JOSÉ IVÁN DELGADILLO GASTELUM/AIDA YANINE DELGADILLO GATELUM", tel: "3333793465" },
             { id: "m18", nombre: "VALERIA SOFIA LARA GOMEZ", tipo: "EXTERNO", edad: "7", tutores: "CARLOS ARTURO LARA BORBOA/CANDELARIA LEYVA PARDO/RAUL GOMEZ SAUCEDO/MARCELA GUADALUPE GOMEZ LEYVA", tel: "6691648004" }
+            { id: "m19", nombre: "hugo pruebas del sitema", tipo: "EXTERNO", edad: "7", tutores: "hugo cardones", tel: "6695931812" }
         ];
 
         let estadosLocales = {};
@@ -179,7 +180,6 @@
             let hoy = new Date().toISOString().split('T')[0];
             document.getElementById('bit_filtro_fecha').value = hoy;
 
-            // Escuchar el estado de asistencia desde Firestore
             db.collection("estado_asistencia_camp").onSnapshot(snapshot => {
                 estadosLocales = {};
                 snapshot.forEach(doc => { estadosLocales[doc.id] = doc.data().estatus; });
@@ -203,7 +203,6 @@
 
             padronOficial.forEach(m => {
                 let estatusActual = estadosLocales[m.id] || "Ausente"; 
-                
                 let claseStatus = "";
                 let badgeClase = "badge-ausente";
 
@@ -253,7 +252,7 @@
             }
         }
 
-        // ====== ACCIONES TÁCTICAS ======
+        // ====== ACCIONES TÁCTICAS Y NOTIFICACIONES ======
         function registrarEvento(id_menor, tipoEvento) {
             let menorInfo = padronOficial.find(m => m.id === id_menor);
             let tutorSeleccionado = document.getElementById(`tutor_entrega_${id_menor}`).value;
@@ -268,7 +267,7 @@
             // Actualizar estado en Firestore
             db.collection("estado_asistencia_camp").doc(id_menor).set({ estatus: nuevoEstado });
 
-            // Inyectar Registro Inmutable en Bitácora
+            // Inyectar Registro en Bitácora
             db.collection("bitacora_campamento").add({
                 timestamp: Date.now(),
                 fecha: fechaStr,
@@ -279,6 +278,20 @@
                 tutor_vehiculo: descTutor,
                 tel: menorInfo.tel
             });
+
+            // ====== NUEVO: ALERTA DE SALIDA A CONTACTO DEL MENOR ======
+            if (tipoEvento === 'SALIDA') {
+                // Limpiamos espacios del número y le agregamos prefijo 52 si es un celular de 10 dígitos
+                let numLimpio = menorInfo.tel.replace(/\D/g, ''); 
+                let numWA = numLimpio.length === 10 ? '52' + numLimpio : numLimpio;
+
+                let mensajeFamilia = `🌲 *Campamento Club Cardones* 🌲\n\nHola. 👋 Queremos informarle que *${menorInfo.nombre}* ha terminado su día de actividades y ha sido entregado(a) de manera segura a: *${tutorSeleccionado}*.\n\n¡Esperamos que haya tenido un excelente día, nos vemos pronto!`;
+                
+                let urlNotificacion = `https://api.whatsapp.com/send?phone=${numWA}&text=${encodeURIComponent(mensajeFamilia)}`;
+                
+                // Abre el WhatsApp para enviar el mensaje al familiar
+                window.open(urlNotificacion, '_blank');
+            }
         }
 
         function enviarAlertaWhatsApp(nombre) {
@@ -325,7 +338,7 @@
                 registros.forEach(r => {
                     let colorBadge = "var(--text-muted)";
                     if(r.tipo === "ENTRADA") colorBadge = "var(--success)";
-                    if(r.tipo === "SALIDA") colorBadge = "var(--danger)"; // Código visual rojo para salidas
+                    if(r.tipo === "SALIDA") colorBadge = "var(--danger)";
                     if(r.tipo === "ALERTA WA") colorBadge = "var(--warning)";
 
                     tbody.innerHTML += `
