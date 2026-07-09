@@ -1,4 +1,15 @@
-<div class="dato-label">Total de artículos</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora de Salidas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    </head>
+<body>
+
+<div class="dato-tarjeta">
+                    <div class="dato-label">Total de artículos</div>
                     <div class="dato-valor" id="m-total">—</div>
                 </div>
                 <div class="dato-tarjeta motivo">
@@ -10,21 +21,21 @@
             <div class="items-titulo">Artículos registrados</div>
 
             <table class="items-table">
-                <encabezado>
+                <thead>
                     <tr>
-                        <th style="width:60px; text-align:center;">NO PUEDO.</th>
+                        <th style="width:60px; text-align:center;">CANT.</th>
                         <th>DESCRIPCIÓN</th>
                         <th style="width:35%;">OBS. / SERIE</th>
                     </tr>
                 </thead>
                 <tbody id="m-items-body">
                 </tbody>
-            </tabla>
+            </table>
         </div>
 
         <div class="modal-footer">
             <button class="btn-accion outline" onclick="cerrarModal()">Cerrar</button>
-            <botón class="btn-accion primaria-btn" id="btn-modal-pdf" onclick="generarPDF()">
+            <button class="btn-accion primaria-btn" id="btn-modal-pdf" onclick="generarPDF()">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14,2 14,8 20,8"/>
@@ -37,10 +48,9 @@
     </div>
 </div>
 
-<!-- PLANTILLA PDF oculta -->
-<div id="pdf-template">
+<div id="pdf-template" style="display: none;">
     <div class="pdf-header">
-        <h2>COPIA DE AUDITORÃ A — GUÃ A DE SALIDA</h2>
+        <h2>COPIA DE AUDITORÍA — GUÍA DE SALIDA</h2>
         <p><strong>RESIDENCIAL EL CIELO PARQUE</strong></p>
     </div>
     <div class="pdf-folio">FOLIO: <span id="pdf-folio"></span></div>
@@ -53,9 +63,9 @@
         <div class="pdf-dato"><strong>Motivo:</strong> <span id="pdf-motivo"></span></div>
     </div>
     <table class="pdf-tabla">
-        <thead><tr><th style="width:10%">CANT.</th><th style="width:50%">DESCRIPCIÃ“N</th><th style="width:40%">OBS. / SERIE</th></tr></thead>
+        <thead><tr><th style="width:10%">CANT.</th><th style="width:50%">DESCRIPCIÓN</th><th style="width:40%">OBS. / SERIE</th></tr></thead>
         <tbody id="pdf-tabla-body"></tbody>
-    </tabla>
+    </table>
 </div>
 
 <script type="module">
@@ -73,40 +83,52 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    ventana.bitacoraDatos = [];
-    ventana.registroActivo = null;
+    window.bitacoraDatos = [];
+    window.registroActivo = null;
 
     onSnapshot(collection(db, "guias_salida"), (snapshot) => {
-        ventana.bitacoraDatos = [];
+        window.bitacoraDatos = [];
         snapshot.forEach(doc => window.bitacoraDatos.push(doc.data()));
         window.bitacoraDatos.sort((a, b) => b.timestamp - a.timestamp);
         actualizarStats();
         renderizarBitacora(window.bitacoraDatos);
     });
 
-    /* â”€â”€ ESTADÍSTICAS â”€â”€ */
-    función actualizarStats() {
+    /* ── ESTADÍSTICAS ── */
+    function actualizarStats() {
         const datos = window.bitacoraDatos;
-        si (!datos.length) regresar;
-        document.getElementById('stats-bar').style.display = 'flex';
-        document.getElementById('stat-total').textContent = datos.length;
+        if (!datos.length) return;
+        
+        // Verifica que existan estos IDs en tu HTML original
+        const statsBar = document.getElementById('stats-bar');
+        if (statsBar) statsBar.style.display = 'flex';
+        
+        const statTotal = document.getElementById('stat-total');
+        if (statTotal) statTotal.textContent = datos.length;
+        
         const totalItems = datos.reduce((acc, r) => acc + (r.totalArticulos || 0), 0);
-        document.getElementById('stat-items').textContent = totalItems;
-        document.getElementById('stat-ultima').textContent = datos[0]?.fecha || '—';
-        document.getElementById('lbl-total').textContent = ${datos.length} guías registradas · en tiempo real;
+        const statItems = document.getElementById('stat-items');
+        if (statItems) statItems.textContent = totalItems;
+        
+        const statUltima = document.getElementById('stat-ultima');
+        if (statUltima) statUltima.textContent = datos[0]?.fecha || '—';
+        
+        const lblTotal = document.getElementById('lbl-total');
+        if (lblTotal) lblTotal.textContent = `${datos.length} guías registradas · en tiempo real`;
     }
 
-    /* â”€â”€ RENDER TABLA â”€â”€ */
+    /* ── RENDER TABLA ── */
     function renderizarBitacora(lista) {
         const tbody = document.getElementById('body-bitacora');
+        if(!tbody) return;
         tbody.innerHTML = '';
 
-        si (!lista.length) {
+        if (!lista.length) {
             tbody.innerHTML = `<tr class="estado-fila"><td colspan="7">
-                <div style="font-size:1.4rem;margin-bottom:8px;">ðŸ“</div>
-                Sin registros que coinciden con la búsqueda.
+                <div style="font-size:1.4rem;margin-bottom:8px;">📁</div>
+                Sin registros que coincidan con la búsqueda.
             </td></tr>`;
-            devolver;
+            return;
         }
 
         lista.forEach(reg => {
@@ -118,7 +140,7 @@
                 <td data-label="Responsable">${reg.responsable}</td>
                 <td data-label="Portador" class="portador-info">
                     ${reg.portador}
-                    <small>${reg.vehiculo}</small>
+                    <br><small>${reg.vehiculo}</small>
                 </td>
                 <td data-label="Items"><span class="items-badge">${reg.totalArticulos} items</span></td>
                 <td data-label="Acción">
@@ -126,7 +148,7 @@
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                         </svg>
-                        Versión
+                        Ver
                     </button>
                     <button class="btn-pdf" onclick="window.descargarCopia('${reg.folio}')" title="Descargar PDF directo">
                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -140,31 +162,44 @@
         });
     }
 
-    /* â”€â”€ BUSCADOR â”€â”€ */
-    document.getElementById('buscador').addEventListener('input', function() {
-        const q = this.value.toLowerCase().trim();
-        if (!q) { renderizarBitacora(window.bitacoraDatos); return; }
-        const filtrados = window.bitacoraDatos.filter(r =>
-            [r.folio, r.origen, r.responsable, r.portador, r.vehiculo, r.motivo]
-                .some(v => (v||'').toLowerCase().includes(q))
-        );
-        renderizarBitacora(filtrados);
-    });
+    /* ── BUSCADOR ── */
+    const buscador = document.getElementById('buscador');
+    if (buscador) {
+        buscador.addEventListener('input', function() {
+            const q = this.value.toLowerCase().trim();
+            if (!q) { renderizarBitacora(window.bitacoraDatos); return; }
+            const filtrados = window.bitacoraDatos.filter(r =>
+                [r.folio, r.origen, r.responsable, r.portador, r.vehiculo, r.motivo]
+                    .some(v => (v||'').toLowerCase().includes(q))
+            );
+            renderizarBitacora(filtrados);
+        });
+    }
 
-    /* â”€â”€ MODAL â”€â”€ */
-    ventana.abrirModal = función(folio) {
+    /* ── MODAL ── */
+    window.abrirModal = function(folio) {
         const reg = window.bitacoraDatos.find(r => r.folio === folio);
-        si (!reg) regresar;
-        ventana.registroActivo = reg;
+        if (!reg) return;
+        window.registroActivo = reg;
 
-        document.getElementById('m-folio-lbl').textContent = GUÍA DE SALIDA · ${reg.folio};
-        document.getElementById('m-origen').textContent = Lote / Origen: ${reg.origen};
-        document.getElementById('m-fecha').textContent = reg.fecha;
-        document.getElementById('m-responsable').textContent = reg.responsable;
-        document.getElementById('m-portador').textContent = reg.portador;
-        document.getElementById('m-vehiculo').textContent = reg.vehiculo;
+        document.getElementById('m-folio-lbl').textContent = `GUÍA DE SALIDA · ${reg.folio}`;
+        document.getElementById('m-origen').textContent = `Lote / Origen: ${reg.origen}`;
+        
+        // Verifica que los IDs existan antes de asignar
+        const mFecha = document.getElementById('m-fecha');
+        if(mFecha) mFecha.textContent = reg.fecha;
+        
+        const mResponsable = document.getElementById('m-responsable');
+        if(mResponsable) mResponsable.textContent = reg.responsable;
+        
+        const mPortador = document.getElementById('m-portador');
+        if(mPortador) mPortador.textContent = reg.portador;
+        
+        const mVehiculo = document.getElementById('m-vehiculo');
+        if(mVehiculo) mVehiculo.textContent = reg.vehiculo;
+        
         document.getElementById('m-motivo').textContent = reg.motivo || '—';
-        document.getElementById('m-total').textContent = ${reg.totalArticulos} artículo(s);
+        document.getElementById('m-total').textContent = `${reg.totalArticulos} artículo(s)`;
 
         const tbody = document.getElementById('m-items-body');
         tbody.innerHTML = '';
@@ -172,7 +207,7 @@
             tbody.innerHTML += `<tr>
                 <td class="cant-cell">${it.cant}</td>
                 <td>${it.desc}</td>
-                <td class="obs-text">${it.obs || 'â€”'}</td>
+                <td class="obs-text">${it.obs || '—'}</td>
             </tr>`;
         });
 
@@ -180,39 +215,42 @@
         document.body.style.overflow = 'hidden';
     };
 
-    ventana.cerrarModal = función() {
+    window.cerrarModal = function() {
         document.getElementById('modal-overlay').classList.remove('open');
         document.body.style.overflow = '';
-        ventana.registroActivo = null;
+        window.registroActivo = null;
     };
 
     /* Cerrar con click fuera del modal */
-    document.getElementById('modal-overlay').addEventListener('click', function(e) {
-        if (e.target === this) window.cerrarModal();
-    });
+    const modalOverlay = document.getElementById('modal-overlay');
+    if(modalOverlay){
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) window.cerrarModal();
+        });
+    }
 
     /* Cerrar con Escape */
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') window.cerrarModal();
     });
 
-    /* â”€â”€ GENERAR PDF desde modal â”€â”€ */
-    ventana.generarPDF = función() {
+    /* ── GENERAR PDF desde modal ── */
+    window.generarPDF = function() {
         const reg = window.registroActivo;
-        si (!reg) regresar;
-        ventana.descargarCopia(reg.folio);
+        if (!reg) return;
+        window.descargarCopia(reg.folio);
     };
 
-    /* â”€â”€ PDF (solo cuando se necesita) â”€â”€ */
-    ventana.descargarCopia = función(folio) {
+    /* ── PDF ── */
+    window.descargarCopia = function(folio) {
         const reg = window.bitacoraDatos.find(r => r.folio === folio);
-        si (!reg) regresar;
+        if (!reg) return;
 
         document.getElementById('pdf-folio').innerText = reg.folio;
         document.getElementById('pdf-fecha').innerText = reg.fecha;
         document.getElementById('pdf-origen').innerText = reg.origen;
         document.getElementById('pdf-responsable').innerText = reg.responsable;
-        document.getElementById('portador-pdf').innerText = reg.portador;
+        document.getElementById('pdf-portador').innerText = reg.portador; // Corregido ID
         document.getElementById('pdf-vehiculo').innerText = reg.vehiculo;
         document.getElementById('pdf-motivo').innerText = reg.motivo;
 
@@ -222,19 +260,23 @@
             tbodyPDF.innerHTML += `<tr>
                 <td style="text-align:center"><strong>${it.cant}</strong></td>
                 <td>${it.desc}</td>
-                <td>${it.obs || 'â€—'}</td>
+                <td>${it.obs || '—'}</td>
             </tr>`;
         });
 
         const el = document.getElementById('pdf-template');
         el.style.display = 'block';
+        
+        // Corregido el objeto de configuración de español a inglés
         html2pdf().set({
-            margen: 0,5,
-            nombre de archivo: Copia_Auditoria_${reg.folio}.pdf,
-            imagen: { tipo: 'jpeg', calidad: 0.98 },
-            html2canvas: { escala: 2 },
-            jsPDF: { unidad: 'en', formato: 'carta', orientación: 'retrato' }
-        }).from(el).save().then(() => { el.style.display = 'none'; });
+            margin: 0.5,
+            filename: `Copia_Auditoria_${reg.folio}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        }).from(el).save().then(() => { 
+            el.style.display = 'none'; 
+        });
     };
 </script>
 </body>
