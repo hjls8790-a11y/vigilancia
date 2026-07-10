@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Integral - El Cielo Residencial</title>
+    <title>Plataforma Operativa - Control y Escoltas</title>
     
     <style>
         /* ================= VARIABLES Y RESET ================= */
@@ -11,176 +11,193 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        /* ================= PANTALLA DE INICIO (SELECCIÓN DE PERFIL) ================= */
+        /* ================= PANTALLAS DE INICIO ================= */
         #pantalla-inicio { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background-color: var(--p); color: var(--w); text-align: center; padding: 20px; }
         .inicio-card { background: var(--w); color: var(--text); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 500px; width: 100%; }
         .btn-perfil { width: 100%; padding: 20px; margin: 10px 0; font-size: 18px; font-weight: bold; color: var(--w); border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .btn-perfil.caseta { background-color: var(--s); }
         .btn-perfil.escolta { background-color: #0f766e; }
-        .btn-perfil:hover { transform: scale(0.98); opacity: 0.9; }
+        .btn-perfil:hover { opacity: 0.9; }
 
-        /* ================= MÓDULO: CENTRO DE COMANDO (ESCRITORIO) ================= */
+        /* ================= MÓDULO CASETA (ESCRITORIO) ================= */
         #pantalla-comando { display: none; height: 100vh; }
         .sidebar { width: 250px; background: var(--p); color: var(--w); display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
         .sidebar h2 { text-align: center; margin: 0 0 20px 0; font-size: 1.2em; padding: 0 15px; }
-        .menu-btn { background: transparent; color: #bdc3c7; border: none; padding: 15px 20px; text-align: left; font-size: 1em; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-weight: bold; }
+        .menu-btn { background: transparent; color: #bdc3c7; border: none; padding: 15px 20px; text-align: left; font-size: 1em; cursor: pointer; border-left: 4px solid transparent; font-weight: bold; }
         .menu-btn:hover, .menu-btn.active { background: #34495e; color: var(--w); border-left-color: var(--s); }
         
         .workspace { flex: 1; padding: 20px; overflow-y: auto; }
-        .panel { display: none; background: var(--w); padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
-        .panel.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .panel { display: none; background: var(--w); padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 1100px; margin: 0 auto; }
+        .panel.active { display: block; }
 
         h3.title { color: var(--p); border-bottom: 2px solid var(--s); padding-bottom: 10px; margin-top: 0; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         label { font-weight: bold; font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; margin-bottom: 15px;}
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; margin-bottom: 15px;}
         .btn-main { background: var(--g); color: var(--w); border: none; width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .btn-danger { background: var(--r); color: var(--w); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
-        /* CÁMARA */
-        .btn-camara { border: 2px dashed var(--s); background: #ebf5fb; color: var(--s); padding: 15px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; position: relative; margin-bottom: 15px; }
-        .btn-camara input[type=file] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        #preview-foto { max-width: 100%; height: 150px; border-radius: 6px; display: none; margin: 0 auto 15px auto; object-fit: cover; }
-
-        /* TABLAS Y KPIs */
         table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: var(--p); color: var(--w); position: sticky; top: 0; }
+        th { background: var(--p); color: var(--w); }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: var(--w); }
-        .bg-s { background: var(--s); } .bg-r { background: var(--r); }
-        
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .kpi-card { background: var(--w); border-left: 5px solid var(--s); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 1px solid #eee; border-top: 1px solid #eee; border-bottom: 1px solid #eee;}
-        .kpi-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
-        .kpi-card h1 { margin: 0; color: var(--p); font-size: 2.5em; }
+        .bg-s { background: var(--s); } .bg-y { background: #f39c12; } .bg-g { background: var(--g); } .bg-r { background: var(--r); }
 
-        /* ESCOLTAS - TABLERO */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .kpi-card { background: var(--w); border-left: 5px solid var(--s); padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .kpi-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
+        .kpi-card h1 { margin: 0; color: var(--p); font-size: 2em; }
+
         .escolta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
         .btn-esc { padding: 10px; font-weight: bold; color: var(--w); border: none; border-radius: 6px; cursor: pointer; }
         .esc-1 { background: #f1c40f; color: #000; } .esc-2 { background: #e67e22; } .esc-3 { background: var(--g); } .esc-4 { background: #95a5a6; }
 
-        /* ================= MÓDULO: ESCOLTAS (MÓVIL / GPS) ================= */
-        #pantalla-escolta-movil { display: none; min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; background-color: #f1f5f9; }
-        .card-movil { background-color: #ffffff; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; }
-        .btn-arribo { width: 100%; min-height: 60px; background-color: #0f766e; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3); }
-        .btn-arribo:disabled { background-color: #94a3b8; cursor: not-allowed; }
-        #status-mensaje { margin-top: 20px; font-size: 14px; padding: 12px; border-radius: 8px; display: none; text-align: left; }
-        .loading { color: #b45309; background-color: #fef3c7; }
-        .success { color: #15803d; background-color: #dcfce7; }
-        .error { color: #b91c1c; background-color: #fee2e2; }
+        /* ================= MÓDULO ESCOLTA (MÓVIL) ================= */
+        #pantalla-escolta-movil { display: none; flex-direction: column; min-height: 100vh; background-color: #f1f5f9; }
+        .header-movil { background: #0f766e; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .contenido-movil { padding: 20px; flex: 1; }
+        
+        .tarjeta-servicio { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid #0f766e; }
+        .tarjeta-servicio h4 { color: #1e293b; font-size: 1.1em; margin-bottom: 10px; }
+        .tarjeta-servicio p { color: #475569; font-size: 0.95em; margin-bottom: 5px; }
+        
+        .btn-arribo { width: 100%; padding: 15px; background-color: #0f766e; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-arribo:disabled { background-color: #94a3b8; }
     </style>
 </head>
 <body>
 
+    <!-- ================= 1. INICIO (SELECCIÓN DE PERFIL) ================= -->
     <div id="pantalla-inicio">
         <div class="inicio-card">
-            <h1 style="color: var(--p); margin-bottom: 10px;">🔐 Plataforma Operativa</h1>
-            <p style="color: #7f8c8d; margin-bottom: 30px;">Selecciona el módulo al que deseas ingresar:</p>
+            <h1 style="color: var(--p); margin-bottom: 10px;">🔐 Plataforma de Seguridad</h1>
+            <p style="color: #7f8c8d; margin-bottom: 30px;">Selecciona tu área de trabajo:</p>
             
             <button class="btn-perfil caseta" onclick="iniciarModulo('comando')">
-                🖥️ CENTRO DE COMANDO<br><small style="font-weight:normal;">(Caseta / Monitoristas)</small>
+                🖥️ MONITORISTA (Caseta)
             </button>
             <button class="btn-perfil escolta" onclick="iniciarModulo('escolta')">
-                📱 MÓDULO DE ESCOLTAS<br><small style="font-weight:normal;">(Agentes en Campo / GPS)</small>
+                📱 UNIDAD DE ESCOLTA (Campo)
             </button>
         </div>
     </div>
 
+    <!-- ================= 2. MÓDULO CASETA / MONITORISTA ================= -->
     <div id="pantalla-comando">
         <div class="sidebar">
-            <h2>🛡️ Control Central</h2>
+            <h2>🛡️ Central</h2>
             <button class="menu-btn active" onclick="cambiarPanel('panel-registro', this)">📍 Registro Entrada</button>
-            <button class="menu-btn" onclick="cambiarPanel('panel-salida', this)">👋 Confirmar Salida</button>
             <button class="menu-btn" onclick="cambiarPanel('panel-escoltas', this)">🚗 Asignar Escolta</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-salida', this)">👋 Confirmar Salida</button>
             <button class="menu-btn" onclick="cambiarPanel('panel-bitacora', this)">📋 Bitácora General</button>
-            <button class="menu-btn" onclick="cambiarPanel('panel-rendimiento', this)">📈 Rendimiento</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-rendimiento', this)">📈 Dashboard Tiempos</button>
             <button class="menu-btn" style="margin-top:auto; background:#c0392b;" onclick="location.reload()">Cerrar Sesión</button>
         </div>
 
         <div class="workspace">
+            <!-- PANEL: REGISTRO -->
             <div id="panel-registro" class="panel active">
-                <h3 class="title">NUEVO ACCESO (Visitantes y Proveedores)</h3>
+                <h3 class="title">PASO 1: REGISTRAR NUEVO ACCESO</h3>
                 <div class="grid-2">
-                    <div><label>Ubicación</label><select id="reg_ubicacion"><option>General</option><option>Cardones</option><option>Fotur</option></select></div>
-                    <div><label>Tipo Acceso</label><select id="reg_tipo"><option>Visita Particular</option><option>Proveedor de Obra</option><option>Paqueteria</option></select></div>
+                    <div><label>Tipo Acceso</label><select id="reg_tipo"><option>Proveedor de Obra</option><option>Paqueteria</option><option>Visita</option></select></div>
+                    <div><label>Nombre Visitante</label><input type="text" id="reg_nombre"></div>
                 </div>
                 <div class="grid-2">
-                    <div><label>Nombre Completo</label><input type="text" id="reg_nombre"></div>
-                    <div><label>Domicilio</label><input type="text" id="reg_domicilio"></div>
-                </div>
-                <div class="grid-3">
-                    <div><label>Vehículo</label><input type="text" id="reg_marca"></div>
-                    <div><label>Color</label><input type="text" id="reg_color"></div>
+                    <div><label>Vehículo (Marca y Color)</label><input type="text" id="reg_vehiculo"></div>
                     <div><label>Placas</label><input type="text" id="reg_placas" style="text-transform:uppercase;"></div>
                 </div>
-                <label>Evidencia Fotográfica (Se comprimirá automáticamente)</label>
-                <div class="btn-camara">📷 TOMAR FOTO O SUBIR IMAGEN <input type="file" id="foto_id" accept="image/*" capture="environment" onchange="procesarFoto(event)"></div>
-                <img id="preview-foto" src="">
+                <div><label>Domicilio / Lote Destino (Obligatorio para escolta)</label><input type="text" id="reg_domicilio" placeholder="Ej. Lote 45, Manzana 2"></div>
                 <button id="btnGuardarEntrada" class="btn-main" onclick="registrarEntrada()">REGISTRAR ENTRADA</button>
             </div>
 
+            <!-- PANEL: ASIGNAR ESCOLTA -->
+            <div id="panel-escoltas" class="panel">
+                <h3 class="title">PASO 2: ASIGNAR UNIDAD DE ESCOLTA</h3>
+                <label>Seleccionar vehículo en espera (Adentro sin escolta):</label>
+                <select id="esc_proveedor"></select>
+                <label style="margin-top:15px;">Asignar Unidad:</label>
+                <div class="escolta-grid">
+                    <button class="btn-esc esc-1" onclick="asignarEscolta('Amarilla')">U. Amarilla</button>
+                    <button class="btn-esc esc-2" onclick="asignarEscolta('Naranja')">U. Naranja</button>
+                    <button class="btn-esc esc-3" onclick="asignarEscolta('Verde')">U. Verde</button>
+                    <button class="btn-esc esc-4" onclick="asignarEscolta('Gris')">U. Gris</button>
+                </div>
+            </div>
+
+            <!-- PANEL: SALIDAS -->
             <div id="panel-salida" class="panel">
-                <h3 class="title">CONFIRMAR SALIDAS (Personas al interior)</h3>
+                <h3 class="title">PASO 4: CONFIRMAR SALIDAS</h3>
+                <p style="margin-bottom: 15px; color: #666;">Registra la salida del complejo de los vehículos que ya terminaron su visita.</p>
                 <table>
-                    <thead><tr><th>Hora Entrada</th><th>Visitante</th><th>Placas</th><th>Destino</th><th>Acción</th></tr></thead>
+                    <thead><tr><th>Estado Escolta</th><th>Visitante</th><th>Placas</th><th>Destino</th><th>Acción</th></tr></thead>
                     <tbody id="tabla-salidas"></tbody>
                 </table>
             </div>
 
-            <div id="panel-escoltas" class="panel">
-                <h3 class="title">ASIGNACIÓN DE ESCOLTAS</h3>
-                <label>1. Seleccionar Proveedor Adentro:</label>
-                <select id="esc_proveedor"></select>
-                <label>2. Asignar Unidad:</label>
-                <div class="escolta-grid">
-                    <button class="btn-esc esc-1" onclick="asignarEscolta('U-Amarilla')">Amarilla</button>
-                    <button class="btn-esc esc-2" onclick="asignarEscolta('U-Naranja')">Naranja</button>
-                    <button class="btn-esc esc-3" onclick="asignarEscolta('U-Verde')">Verde</button>
-                    <button class="btn-esc esc-4" onclick="asignarEscolta('U-Gris')">Gris</button>
-                </div>
-                <h4 style="margin-top:20px;">Escoltas Activas:</h4>
-                <table><thead><tr><th>Proveedor</th><th>Destino</th><th>Escolta</th></tr></thead><tbody id="tabla-escoltas-activas"></tbody></table>
-            </div>
-
+            <!-- PANEL: BITÁCORA -->
             <div id="panel-bitacora" class="panel">
-                <h3 class="title">BITÁCORA INMUTABLE</h3>
-                <div style="overflow-x: auto; max-height: 500px;">
-                    <table><thead><tr><th>Estado</th><th>Fecha/Hora</th><th>Visitante</th><th>Placas</th><th>Escolta</th><th>Duración</th></tr></thead><tbody id="tabla-bitacora"></tbody></table>
+                <h3 class="title">BITÁCORA DE MOVIMIENTOS (Entrada -> Arribo -> Salida)</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>Estatus Final</th><th>Visitante / Placas</th><th>Destino</th><th>Escolta</th><th>Hora Entrada</th><th>Hora Arribo (GPS)</th><th>Hora Salida</th></tr></thead>
+                        <tbody id="tabla-bitacora"></tbody>
+                    </table>
                 </div>
             </div>
 
+            <!-- PANEL: DASHBOARD -->
             <div id="panel-rendimiento" class="panel">
-                <h3 class="title">DASHBOARD DE RENDIMIENTO</h3>
+                <h3 class="title">DASHBOARD DE TIEMPOS Y PARÁMETROS</h3>
                 <div class="kpi-container">
-                    <div class="kpi-card"><h4>Visitantes Actuales</h4><h1 id="kpi-adentro">0</h1></div>
-                    <div class="kpi-card"><h4>Ingresos Hoy</h4><h1 id="kpi-hoy">0</h1></div>
-                    <div class="kpi-card"><h4>Escoltas Asignadas</h4><h1 id="kpi-escoltas">0</h1></div>
-                    <div class="kpi-card"><h4>Tiempo Promedio</h4><h1 id="kpi-tiempo">0 <small>min</small></h1></div>
+                    <div class="kpi-card"><h4>Vehículos Adentro</h4><h1 id="kpi-adentro">0</h1></div>
+                    <div class="kpi-card"><h4>Promedio Escoltaje (Entrada a Arribo)</h4><h1 id="kpi-tiempo-arribo">0 <small>min</small></h1></div>
+                    <div class="kpi-card"><h4>Promedio Estadía (Entrada a Salida)</h4><h1 id="kpi-tiempo-total">0 <small>min</small></h1></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="pantalla-escolta-movil" style="display:none;">
-        <div class="card-movil">
-            <div class="header-app">
-                <h2>📱 Módulo de Escoltas</h2>
-                <p>Confirmación de Arribo y Geolocalización</p>
+    <!-- ================= 3. MÓDULO ESCOLTA (MÓVIL) ================= -->
+    <div id="pantalla-escolta-movil">
+        
+        <!-- Pantalla Login Escolta -->
+        <div id="login-escolta" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; padding:20px;">
+            <div style="background:white; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
+                <h2 style="color:#0f766e; margin-bottom:20px;">Identificación de Unidad</h2>
+                <label style="text-align:left; display:block; margin-bottom:5px;">Selecciona tu unidad:</label>
+                <select id="select-unidad" style="font-size:18px; padding:15px; margin-bottom:20px; border:2px solid #0f766e;">
+                    <option value="Amarilla">Unidad Amarilla</option>
+                    <option value="Naranja">Unidad Naranja</option>
+                    <option value="Verde">Unidad Verde</option>
+                    <option value="Gris">Unidad Gris</option>
+                </select>
+                <button class="btn-arribo" onclick="entrarComoEscolta()">INGRESAR A RUTA</button>
+                <button style="margin-top:20px; background:transparent; border:none; color:#64748b; text-decoration:underline;" onclick="location.reload()">Volver</button>
             </div>
-            <label style="text-align: left; display: block; margin-bottom: 5px;">Tu Nombre / Unidad:</label>
-            <input type="text" id="nombre-escolta" placeholder="Ej. Unidad Amarilla" style="font-size: 16px; padding: 15px; text-align: center; border: 2px solid #0f766e;">
-            <button id="btn-arribo-gps" class="btn-arribo" onclick="procesarArriboGPS()">📍 CONFIRMAR ARRIBO</button>
-            <div id="status-mensaje"></div>
-            <button style="margin-top: 30px; background: transparent; border: none; color: #64748b; text-decoration: underline;" onclick="location.reload()">Volver al Inicio</button>
+        </div>
+
+        <!-- Pantalla Operativa Escolta -->
+        <div id="dashboard-escolta" style="display:none; flex-direction:column; height:100vh;">
+            <div class="header-movil">
+                <h2 id="titulo-unidad">UNIDAD</h2>
+                <p>Vehículos bajo tu custodia hacia destino.</p>
+            </div>
+            <div class="contenido-movil" id="lista-servicios">
+                <!-- Aquí aparecerán dinámicamente las tarjetas de los vehículos que escolta -->
+            </div>
+            <div style="padding:20px; text-align:center;">
+                <button style="background:#e2e8f0; border:none; padding:10px 20px; border-radius:6px; font-weight:bold; color:#475569;" onclick="location.reload()">Cambiar Unidad</button>
+            </div>
         </div>
     </div>
 
+    <!-- ================= LOGICA FIREBASE Y FUNCIONES ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Tu configuración
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -193,19 +210,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Variables Globales
-        let imagenBase64 = "NO";
-        let accesosActivos = [];
-        let historialCompleto = [];
+        // Variables
+        let todosLosAccesos = [];
+        let miUnidadEscolta = "";
 
-        // 1. NAVEGACIÓN Y PERFILES
+        // NAVEGACIÓN
         window.iniciarModulo = function(modulo) {
             document.getElementById('pantalla-inicio').style.display = 'none';
-            if(modulo === 'comando') {
-                document.getElementById('pantalla-comando').style.display = 'flex';
-            } else {
-                document.getElementById('pantalla-escolta-movil').style.display = 'flex';
-            }
+            if(modulo === 'comando') { document.getElementById('pantalla-comando').style.display = 'flex'; } 
+            else { document.getElementById('pantalla-escolta-movil').style.display = 'flex'; }
         };
 
         window.cambiarPanel = function(idPanel, btn) {
@@ -215,151 +228,189 @@
             btn.classList.add('active');
         };
 
-        // 2. CENTRO DE COMANDO: FOTO Y ENTRADA
-        window.procesarFoto = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    let width = img.width; let height = img.height;
-                    if (width > 600) { height = Math.round((height * 600) / width); width = 600; }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    imagenBase64 = canvas.toDataURL('image/jpeg', 0.6); 
-                    const preview = document.getElementById('preview-foto');
-                    preview.src = imagenBase64; preview.style.display = "block";
-                }
-            }
-        };
-
+        // ====== CASETA: REGISTRAR ENTRADA ======
         window.registrarEntrada = async function() {
             const btn = document.getElementById('btnGuardarEntrada');
-            btn.disabled = true; btn.innerText = "Sincronizando...";
+            btn.disabled = true; btn.innerText = "Guardando...";
+            
             const data = {
-                ubicacion: document.getElementById('reg_ubicacion').value,
                 tipo_acceso: document.getElementById('reg_tipo').value,
-                visitante: document.getElementById('reg_nombre').value || "Desconocido",
-                domicilio: document.getElementById('reg_domicilio').value,
-                vehiculo: `${document.getElementById('reg_marca').value} ${document.getElementById('reg_color').value}`,
+                visitante: document.getElementById('reg_nombre').value || "S/N",
+                vehiculo: document.getElementById('reg_vehiculo').value,
                 placas: document.getElementById('reg_placas').value,
-                foto_evidencia: imagenBase64,
+                domicilio: document.getElementById('reg_domicilio').value || "No especificado",
+                estado_general: "ADENTRO",       // ADENTRO o AFUERA
+                estado_escolta: "SIN_ASIGNAR",   // SIN_ASIGNAR, ASIGNADA, ARRIBO_CONFIRMADO
+                escolta_asignada: "Ninguna",
                 timestamp_entrada: new Date().getTime(),
                 fecha_str: new Date().toLocaleDateString('es-MX'),
                 hora_entrada: new Date().toLocaleTimeString('es-MX'),
-                estado: "ADENTRO",
-                escolta: "Ninguna"
+                hora_arribo: "--:--",
+                hora_salida: "--:--"
             };
+
             try {
                 await addDoc(collection(db, "control_maestro_accesos"), data);
-                alert("✅ Entrada registrada.");
+                alert("✅ Entrada registrada exitosamente.");
                 document.querySelectorAll('#panel-registro input').forEach(i => i.value = '');
-                document.getElementById('preview-foto').style.display = 'none';
-                imagenBase64 = "NO";
-            } catch (e) { alert("❌ Error."); }
+            } catch (e) { alert("❌ Error al guardar."); }
             btn.disabled = false; btn.innerText = "REGISTRAR ENTRADA";
         };
 
-        // 3. CENTRO DE COMANDO: LECTURA EN TIEMPO REAL Y KPIS
+        // ====== LECTURA MAESTRA (Sincroniza Caseta y Escoltas) ======
         onSnapshot(query(collection(db, "control_maestro_accesos"), orderBy("timestamp_entrada", "desc")), (snapshot) => {
-            accesosActivos = []; historialCompleto = [];
-            let hoyStr = new Date().toLocaleDateString('es-MX');
-            let ingresosHoy = 0, escoltasHoy = 0, sumaMinutos = 0, salidasRealizadas = 0;
+            todosLosAccesos = [];
+            let sumaMinutosArribo = 0, cuentaArribos = 0;
+            let sumaMinutosTotal = 0, cuentaSalidas = 0;
+            let adentro = 0;
 
             snapshot.forEach(d => {
                 let data = d.data(); data.id = d.id;
-                historialCompleto.push(data);
-                if (data.estado === "ADENTRO") accesosActivos.push(data);
-                if (data.fecha_str === hoyStr) {
-                    ingresosHoy++;
-                    if(data.escolta !== "Ninguna") escoltasHoy++;
+                todosLosAccesos.push(data);
+                
+                // Métricas Dashboard
+                if(data.estado_general === "ADENTRO") adentro++;
+                if(data.timestamp_arribo) {
+                    sumaMinutosArribo += (data.timestamp_arribo - data.timestamp_entrada) / 60000;
+                    cuentaArribos++;
                 }
-                if (data.estado === "AFUERA" && data.fecha_str === hoyStr) {
-                    let min = Math.round((data.timestamp_salida - data.timestamp_entrada) / 60000);
-                    if(min > 0) { sumaMinutos += min; salidasRealizadas++; }
+                if(data.timestamp_salida) {
+                    sumaMinutosTotal += (data.timestamp_salida - data.timestamp_entrada) / 60000;
+                    cuentaSalidas++;
                 }
             });
 
-            document.getElementById('kpi-adentro').innerText = accesosActivos.length;
-            document.getElementById('kpi-hoy').innerText = ingresosHoy;
-            document.getElementById('kpi-escoltas').innerText = escoltasHoy;
-            document.getElementById('kpi-tiempo').innerHTML = salidasRealizadas > 0 ? `${Math.round(sumaMinutos/salidasRealizadas)} <small>min</small>` : `0 <small>min</small>`;
+            // Actualizar KPIs Caseta
+            document.getElementById('kpi-adentro').innerText = adentro;
+            document.getElementById('kpi-tiempo-arribo').innerHTML = cuentaArribos > 0 ? `${Math.round(sumaMinutosArribo/cuentaArribos)} <small>min</small>` : `0 <small>min</small>`;
+            document.getElementById('kpi-tiempo-total').innerHTML = cuentaSalidas > 0 ? `${Math.round(sumaMinutosTotal/cuentaSalidas)} <small>min</small>` : `0 <small>min</small>`;
 
-            actualizarTablas();
+            actualizarInterfazCaseta();
+            if(miUnidadEscolta !== "") { actualizarInterfazEscolta(); }
         });
 
-        function actualizarTablas() {
-            const tSalidas = document.getElementById('tabla-salidas');
+        // ====== CASETA: ACTUALIZAR TABLAS ======
+        function actualizarInterfazCaseta() {
             const selProveedor = document.getElementById('esc_proveedor');
-            const tEscActivas = document.getElementById('tabla-escoltas-activas');
+            const tSalidas = document.getElementById('tabla-salidas');
             const tBitacora = document.getElementById('tabla-bitacora');
             
-            tSalidas.innerHTML = ""; selProveedor.innerHTML = "<option value=''>- Selecciona un vehículo -</option>";
-            tEscActivas.innerHTML = ""; tBitacora.innerHTML = "";
+            selProveedor.innerHTML = "<option value=''>- Selecciona un vehículo de la lista -</option>";
+            tSalidas.innerHTML = ""; tBitacora.innerHTML = "";
 
-            accesosActivos.forEach(a => {
-                tSalidas.innerHTML += `<tr><td>${a.hora_entrada}</td><td><b>${a.visitante}</b></td><td><span class="badge bg-s">${a.placas}</span></td><td>${a.domicilio}</td><td><button class="btn-danger" onclick="registrarSalida('${a.id}')">Dar Salida</button></td></tr>`;
-                if(a.escolta === "Ninguna") { selProveedor.innerHTML += `<option value="${a.id}">${a.placas} - ${a.visitante}</option>`; } 
-                else { tEscActivas.innerHTML += `<tr><td>${a.visitante}</td><td>${a.domicilio}</td><td><b>${a.escolta}</b></td></tr>`; }
-            });
+            todosLosAccesos.forEach(a => {
+                // Llenar Select de Asignación (Solo los que no tienen escolta)
+                if(a.estado_general === "ADENTRO" && a.estado_escolta === "SIN_ASIGNAR") {
+                    selProveedor.innerHTML += `<option value="${a.id}">${a.placas} - ${a.domicilio} (${a.visitante})</option>`;
+                }
 
-            historialCompleto.forEach(h => {
-                let status = h.estado === "ADENTRO" ? '<span class="badge bg-s">ADENTRO</span>' : '<span class="badge bg-r">AFUERA</span>';
-                let dur = h.estado === "AFUERA" ? Math.round((h.timestamp_salida - h.timestamp_entrada) / 60000) + " min" : "En curso...";
-                tBitacora.innerHTML += `<tr><td>${status}</td><td>${h.fecha_str} ${h.hora_entrada}</td><td>${h.visitante}</td><td>${h.placas}</td><td>${h.escolta}</td><td><b>${dur}</b></td></tr>`;
+                // Llenar Tabla de Salidas (Los que están adentro)
+                if(a.estado_general === "ADENTRO") {
+                    let badge = a.estado_escolta === 'ARRIBO_CONFIRMADO' ? '<span class="badge bg-g">EN DESTINO (Confirmado)</span>' : 
+                               (a.estado_escolta === 'ASIGNADA' ? '<span class="badge bg-y">EN TRAYECTO</span>' : '<span class="badge bg-r">SIN ESCOLTA</span>');
+                    tSalidas.innerHTML += `<tr><td>${badge}</td><td><b>${a.visitante}</b></td><td>${a.placas}</td><td>${a.domicilio}</td><td><button class="btn-danger" onclick="registrarSalida('${a.id}')">Dar Salida</button></td></tr>`;
+                }
+
+                // Llenar Bitácora Histórica Completa
+                let estatusFin = a.estado_general === "ADENTRO" ? '<span class="badge bg-s">ADENTRO</span>' : '<span class="badge bg-r">FINALIZADO</span>';
+                let gpsLink = a.arribo_lat ? `<br><a href="https://maps.google.com/?q=${a.arribo_lat},${a.arribo_lon}" target="_blank" style="font-size:0.8em;">Ver Mapa GPS</a>` : '';
+                
+                tBitacora.innerHTML += `<tr>
+                    <td>${estatusFin}</td>
+                    <td><b>${a.visitante}</b><br><small>${a.placas}</small></td>
+                    <td>${a.domicilio}</td>
+                    <td>${a.escolta_asignada}</td>
+                    <td>${a.hora_entrada}</td>
+                    <td>${a.hora_arribo} ${gpsLink}</td>
+                    <td>${a.hora_salida}</td>
+                </tr>`;
             });
         }
 
-        window.registrarSalida = async function(id) {
-            if(!confirm("¿Confirmar salida?")) return;
-            await updateDoc(doc(db, "control_maestro_accesos", id), { estado: "AFUERA", timestamp_salida: new Date().getTime(), hora_salida: new Date().toLocaleTimeString('es-MX') });
-        };
-        
         window.asignarEscolta = async function(unidad) {
             const id = document.getElementById('esc_proveedor').value;
-            if(!id) return alert("Selecciona un proveedor.");
-            await updateDoc(doc(db, "control_maestro_accesos", id), { escolta: unidad });
+            if(!id) return alert("Selecciona un vehículo de la lista primero.");
+            await updateDoc(doc(db, "control_maestro_accesos", id), { estado_escolta: "ASIGNADA", escolta_asignada: unidad });
+            alert(`✅ Unidad ${unidad} asignada correctamente.`);
         };
 
-        // 4. MÓDULO MÓVIL: GEOLOCALIZACIÓN APPEND-ONLY
-        window.procesarArriboGPS = function() {
-            const nombre = document.getElementById('nombre-escolta').value.trim();
-            const btn = document.getElementById('btn-arribo-gps');
-            const statusDiv = document.getElementById('status-mensaje');
-            
-            if(!nombre) return alert("Escribe tu nombre/unidad primero.");
-            
-            btn.disabled = true; btn.innerText = "OBTENIENDO GPS...";
-            statusDiv.style.display = "block"; statusDiv.className = "loading"; statusDiv.innerText = "Ubicando satélite...";
+        window.registrarSalida = async function(id) {
+            if(!confirm("¿Confirmar que este vehículo va de salida y abandona el complejo?")) return;
+            await updateDoc(doc(db, "control_maestro_accesos", id), { estado_general: "AFUERA", timestamp_salida: new Date().getTime(), hora_salida: new Date().toLocaleTimeString('es-MX') });
+        };
 
-            if(!navigator.geolocation) { statusDiv.innerText = "GPS no soportado."; return; }
+        // =========================================================
+        // ====== MÓDULO ESCOLTAS (MÓVIL) ==========================
+        // =========================================================
+        
+        window.entrarComoEscolta = function() {
+            miUnidadEscolta = document.getElementById('select-unidad').value;
+            document.getElementById('login-escolta').style.display = 'none';
+            document.getElementById('dashboard-escolta').style.display = 'flex';
+            document.getElementById('titulo-unidad').innerText = "UNIDAD " + miUnidadEscolta.toUpperCase();
+            actualizarInterfazEscolta();
+        };
+
+        function actualizarInterfazEscolta() {
+            const contenedor = document.getElementById('lista-servicios');
+            contenedor.innerHTML = "";
+            let hayServicios = false;
+
+            // Filtramos localmente los vehículos que tienen asignada esta unidad y no han llegado al destino
+            todosLosAccesos.forEach(a => {
+                if(a.estado_general === "ADENTRO" && a.escolta_asignada === miUnidadEscolta && a.estado_escolta === "ASIGNADA") {
+                    hayServicios = true;
+                    contenedor.innerHTML += `
+                        <div class="tarjeta-servicio">
+                            <span class="badge bg-y" style="margin-bottom:10px; display:inline-block;">EN TRAYECTO</span>
+                            <h4>📍 Destino: ${a.domicilio}</h4>
+                            <p><b>Vehículo:</b> ${a.vehiculo}</p>
+                            <p><b>Placas:</b> <span style="text-transform:uppercase; font-weight:bold;">${a.placas}</span></p>
+                            <p><b>Visitante:</b> ${a.visitante}</p>
+                            <button id="btn-arr-${a.id}" class="btn-arribo" onclick="marcarArriboGPS('${a.id}')">📍 MARCAR LLEGADA AL DESTINO</button>
+                        </div>
+                    `;
+                }
+            });
+
+            if(!hayServicios) {
+                contenedor.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#64748b;">
+                    <h3 style="margin-bottom:10px;">Sin servicios activos</h3>
+                    <p>Caseta no te ha asignado ningún vehículo o ya confirmaste todos tus arribos.</p>
+                </div>`;
+            }
+        }
+
+        window.marcarArriboGPS = function(idDocumento) {
+            const btn = document.getElementById(`btn-arr-${idDocumento}`);
+            btn.disabled = true; btn.innerText = "OBTENIENDO GPS...";
+
+            if(!navigator.geolocation) { alert("GPS no soportado en tu móvil."); return; }
 
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                statusDiv.innerText = "Guardando en historial inmutable...";
-                const logData = {
-                    id_escolta: nombre.toUpperCase(),
-                    tipo_evento: "ARRIBO_CONFIRMADO",
-                    fecha: new Date().toLocaleDateString('es-MX'),
-                    hora: new Date().toLocaleTimeString('es-MX'),
-                    timestamp: new Date().getTime(),
-                    latitud: pos.coords.latitude,
-                    longitud: pos.coords.longitude
-                };
-                
+                btn.innerText = "GUARDANDO EN BASE DE DATOS...";
                 try {
-                    await addDoc(collection(db, "historial_escoltas_gps"), logData);
-                    statusDiv.className = "success";
-                    statusDiv.innerHTML = `<b>✓ Arribo Guardado</b><br>Lat: ${pos.coords.latitude.toFixed(4)}, Lon: ${pos.coords.longitude.toFixed(4)}`;
-                    btn.innerText = "REGISTRADO";
-                    setTimeout(() => { btn.disabled = false; btn.innerText = "📍 CONFIRMAR ARRIBO"; statusDiv.style.display = "none"; }, 4000);
-                } catch(e) { statusDiv.className = "error"; statusDiv.innerText = "Error de red."; btn.disabled = false; }
+                    // Actualizamos el registro maestro para que caseta vea el tiempo de llegada y las coordenadas
+                    await updateDoc(doc(db, "control_maestro_accesos", idDocumento), { 
+                        estado_escolta: "ARRIBO_CONFIRMADO",
+                        timestamp_arribo: new Date().getTime(),
+                        hora_arribo: new Date().toLocaleTimeString('es-MX'),
+                        arribo_lat: pos.coords.latitude,
+                        arribo_lon: pos.coords.longitude
+                    });
+                    
+                    // Opcional: Generamos un log extra por seguridad (Append-only)
+                    await addDoc(collection(db, "historial_escoltas_gps"), {
+                        id_visita: idDocumento, unidad: miUnidadEscolta, evento: "ARRIBO", hora: new Date().toLocaleTimeString('es-MX'), lat: pos.coords.latitude, lon: pos.coords.longitude
+                    });
+                    
+                } catch(e) { 
+                    alert("Error de conexión al guardar el arribo."); 
+                    btn.disabled = false; btn.innerText = "📍 REINTENTAR ARRIBO";
+                }
             }, (err) => {
-                statusDiv.className = "error"; statusDiv.innerText = "Error al obtener GPS. Activa la ubicación."; btn.disabled = false; btn.innerText = "📍 CONFIRMAR ARRIBO";
+                alert("Error: Debes permitir el uso del GPS en tu navegador para confirmar el arribo.");
+                btn.disabled = false; btn.innerText = "📍 MARCAR LLEGADA AL DESTINO";
             }, { enableHighAccuracy: true, timeout: 15000 });
         };
     </script>
