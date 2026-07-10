@@ -3,12 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitácora de Salidas</title>
+    <title>Bitácora de Salidas - Auditoría</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    </head>
+    
+    <style>
+        /* === ESTILOS GENERALES === */
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary: #2563eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* === BARRA DE ESTADO Y BUSCADOR === */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #stats-bar {
+            display: flex;
+            gap: 20px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .stat-item strong { color: var(--primary); font-size: 16px; }
+
+        input#buscador {
+            padding: 10px 15px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* === TABLA PRINCIPAL === */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: #f8fafc; font-weight: 600; color: var(--text-muted); }
+        .folio-badge { background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .items-badge { background: #d1fae5; color: #047857; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+
+        /* === BOTONES === */
+        button { cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; }
+        .btn-ver, .btn-pdf { padding: 6px 10px; border: none; border-radius: 4px; font-weight: 500; font-size: 12px; }
+        .btn-ver { background: #eff6ff; color: #1d4ed8; }
+        .btn-pdf { background: #fef2f2; color: #b91c1c; margin-left: 5px;}
+        .btn-ver:hover { background: #dbeafe; }
+        .btn-pdf:hover { background: #fee2e2; }
+
+        .btn-accion { padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .primaria-btn { background-color: var(--primary); color: white; border: none; }
+        .primaria-btn:hover { background-color: #1d4ed8; }
+        .outline { background-color: white; border: 1px solid var(--border); color: var(--text-main); }
+        .outline:hover { background-color: #f9fafb; }
+
+        /* === MODAL (VENTANA EMERGENTE) === */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.open { display: flex; }
+        
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 700px; max-height: 90vh;
+            border-radius: 8px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); }
+        .modal-header h3 { margin: 0; color: var(--primary); }
+        
+        .modal-body { padding: 20px; }
+        .grid-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .dato-tarjeta { background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .dato-tarjeta.motivo { grid-column: span 2; }
+        .dato-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+        .dato-valor { font-size: 14px; font-weight: 500; }
+
+        .items-titulo { font-weight: bold; margin: 15px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--primary); display: inline-block; }
+        
+        .modal-footer { padding: 15px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* === PLANTILLA PDF === */
+        #pdf-template { display: none; padding: 40px; font-family: 'Helvetica', sans-serif; color: black; background: white; }
+        .pdf-header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+        .pdf-header h2 { margin: 0 0 5px 0; font-size: 18px; }
+        .pdf-folio { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: right; color: red; }
+        .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; font-size: 12px; }
+        .pdf-dato { border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        .pdf-tabla { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        .pdf-tabla th, .pdf-tabla td { border: 1px solid black; padding: 8px; text-align: left; }
+        .pdf-tabla th { background-color: #f0f0f0; }
+    </style>
+</head>
 <body>
 
-<div class="dato-tarjeta">
+<div class="container">
+    <div class="header-section">
+        <div>
+            <h2 style="margin: 0 0 5px 0;">📋 Bitácora de Guías de Salida</h2>
+            <p id="lbl-total" style="margin: 0; color: var(--text-muted); font-size: 14px;">Cargando datos...</p>
+        </div>
+        <input type="text" id="buscador" placeholder="🔍 Buscar por folio, nombre, lote...">
+    </div>
+
+    <div id="stats-bar" style="display: none;">
+        <div class="stat-item">Guías Totales: <strong id="stat-total">0</strong></div>
+        <div class="stat-item">Artículos Retirados: <strong id="stat-total">0</strong><strong id="stat-items">0</strong></div>
+        <div class="stat-item">Último Registro: <strong id="stat-ultima">—</strong></div>
+    </div>
+
+    <div style="overflow-x: auto; margin-top: 20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Lote</th>
+                    <th>Responsable</th>
+                    <th>Portador</th>
+                    <th>Items</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="body-bitacora">
+                <tr><td colspan="7" style="text-align: center;">Conectando con la base de datos...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="m-folio-lbl">GUÍA DE SALIDA · FOLIO</h3>
+        </div>
+        
+        <div class="modal-body">
+            <div class="grid-datos">
+                <div class="dato-tarjeta">
+                    <div class="dato-label" id="m-origen">Lote / Origen</div>
+                    <div class="dato-valor" id="m-fecha">—</div>
+                </div>
+                <div class="dato-tarjeta">
+                    <div class="dato-label">Responsable / Autoriza</div>
+                    <div class="dato-valor" id="m-responsable">—</div>
+                </div>
+                <div class="dato-tarjeta">
+                    <div class="dato-label">Portador que Retira</div>
+                    <div class="dato-valor" id="m-portador">—</div>
+                </div>
+                <div class="dato-tarjeta">
+                    <div class="dato-label">Vehículo</div>
+                    <div class="dato-valor" id="m-vehiculo">—</div>
+                </div>
+                <div class="dato-tarjeta">
                     <div class="dato-label">Total de artículos</div>
                     <div class="dato-valor" id="m-total">—</div>
                 </div>
@@ -19,7 +196,6 @@
             </div>
 
             <div class="items-titulo">Artículos registrados</div>
-
             <table class="items-table">
                 <thead>
                     <tr>
@@ -34,9 +210,9 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn-accion outline" onclick="cerrarModal()">Cerrar</button>
-            <button class="btn-accion primaria-btn" id="btn-modal-pdf" onclick="generarPDF()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <button class="btn-accion outline" onclick="window.cerrarModal()">Cerrar</button>
+            <button class="btn-accion primaria-btn" id="btn-modal-pdf" onclick="window.generarPDF()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14,2 14,8 20,8"/>
                     <line x1="16" y1="13" x2="8" y2="13"/>
@@ -48,7 +224,7 @@
     </div>
 </div>
 
-<div id="pdf-template" style="display: none;">
+<div id="pdf-template">
     <div class="pdf-header">
         <h2>COPIA DE AUDITORÍA — GUÍA DE SALIDA</h2>
         <p><strong>RESIDENCIAL EL CIELO PARQUE</strong></p>
@@ -94,39 +270,26 @@
         renderizarBitacora(window.bitacoraDatos);
     });
 
-    /* ── ESTADÍSTICAS ── */
     function actualizarStats() {
         const datos = window.bitacoraDatos;
         if (!datos.length) return;
         
-        // Verifica que existan estos IDs en tu HTML original
-        const statsBar = document.getElementById('stats-bar');
-        if (statsBar) statsBar.style.display = 'flex';
-        
-        const statTotal = document.getElementById('stat-total');
-        if (statTotal) statTotal.textContent = datos.length;
+        document.getElementById('stats-bar').style.display = 'flex';
+        document.getElementById('stat-total').textContent = datos.length;
         
         const totalItems = datos.reduce((acc, r) => acc + (r.totalArticulos || 0), 0);
-        const statItems = document.getElementById('stat-items');
-        if (statItems) statItems.textContent = totalItems;
-        
-        const statUltima = document.getElementById('stat-ultima');
-        if (statUltima) statUltima.textContent = datos[0]?.fecha || '—';
-        
-        const lblTotal = document.getElementById('lbl-total');
-        if (lblTotal) lblTotal.textContent = `${datos.length} guías registradas · en tiempo real`;
+        document.getElementById('stat-items').textContent = totalItems;
+        document.getElementById('stat-ultima').textContent = datos[0]?.fecha || '—';
+        document.getElementById('lbl-total').textContent = `${datos.length} guías registradas · en tiempo real`;
     }
 
-    /* ── RENDER TABLA ── */
     function renderizarBitacora(lista) {
         const tbody = document.getElementById('body-bitacora');
-        if(!tbody) return;
         tbody.innerHTML = '';
 
         if (!lista.length) {
-            tbody.innerHTML = `<tr class="estado-fila"><td colspan="7">
-                <div style="font-size:1.4rem;margin-bottom:8px;">📁</div>
-                Sin registros que coincidan con la búsqueda.
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: gray;">
+                No hay registros que coincidan con la búsqueda.
             </td></tr>`;
             return;
         }
@@ -138,45 +301,28 @@
                 <td data-label="Fecha">${reg.fecha}</td>
                 <td data-label="Lote">${reg.origen}</td>
                 <td data-label="Responsable">${reg.responsable}</td>
-                <td data-label="Portador" class="portador-info">
-                    ${reg.portador}
-                    <br><small>${reg.vehiculo}</small>
+                <td data-label="Portador">
+                    ${reg.portador} <br><small style="color:gray;">${reg.vehiculo}</small>
                 </td>
                 <td data-label="Items"><span class="items-badge">${reg.totalArticulos} items</span></td>
                 <td data-label="Acción">
-                    <button class="btn-ver" onclick="window.abrirModal('${reg.folio}')">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        Ver
-                    </button>
-                    <button class="btn-pdf" onclick="window.descargarCopia('${reg.folio}')" title="Descargar PDF directo">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        PDF
-                    </button>
+                    <button class="btn-ver" onclick="window.abrirModal('${reg.folio}')">Ver</button>
+                    <button class="btn-pdf" onclick="window.descargarCopia('${reg.folio}')">PDF</button>
                 </td>`;
             tbody.appendChild(tr);
         });
     }
 
-    /* ── BUSCADOR ── */
-    const buscador = document.getElementById('buscador');
-    if (buscador) {
-        buscador.addEventListener('input', function() {
-            const q = this.value.toLowerCase().trim();
-            if (!q) { renderizarBitacora(window.bitacoraDatos); return; }
-            const filtrados = window.bitacoraDatos.filter(r =>
-                [r.folio, r.origen, r.responsable, r.portador, r.vehiculo, r.motivo]
-                    .some(v => (v||'').toLowerCase().includes(q))
-            );
-            renderizarBitacora(filtrados);
-        });
-    }
+    document.getElementById('buscador').addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { renderizarBitacora(window.bitacoraDatos); return; }
+        const filtrados = window.bitacoraDatos.filter(r =>
+            [r.folio, r.origen, r.responsable, r.portador, r.vehiculo, r.motivo]
+                .some(v => (v||'').toLowerCase().includes(q))
+        );
+        renderizarBitacora(filtrados);
+    });
 
-    /* ── MODAL ── */
     window.abrirModal = function(folio) {
         const reg = window.bitacoraDatos.find(r => r.folio === folio);
         if (!reg) return;
@@ -184,20 +330,10 @@
 
         document.getElementById('m-folio-lbl').textContent = `GUÍA DE SALIDA · ${reg.folio}`;
         document.getElementById('m-origen').textContent = `Lote / Origen: ${reg.origen}`;
-        
-        // Verifica que los IDs existan antes de asignar
-        const mFecha = document.getElementById('m-fecha');
-        if(mFecha) mFecha.textContent = reg.fecha;
-        
-        const mResponsable = document.getElementById('m-responsable');
-        if(mResponsable) mResponsable.textContent = reg.responsable;
-        
-        const mPortador = document.getElementById('m-portador');
-        if(mPortador) mPortador.textContent = reg.portador;
-        
-        const mVehiculo = document.getElementById('m-vehiculo');
-        if(mVehiculo) mVehiculo.textContent = reg.vehiculo;
-        
+        document.getElementById('m-fecha').textContent = reg.fecha;
+        document.getElementById('m-responsable').textContent = reg.responsable;
+        document.getElementById('m-portador').textContent = reg.portador;
+        document.getElementById('m-vehiculo').textContent = reg.vehiculo;
         document.getElementById('m-motivo').textContent = reg.motivo || '—';
         document.getElementById('m-total').textContent = `${reg.totalArticulos} artículo(s)`;
 
@@ -205,9 +341,9 @@
         tbody.innerHTML = '';
         (reg.items || []).forEach(it => {
             tbody.innerHTML += `<tr>
-                <td class="cant-cell">${it.cant}</td>
+                <td style="text-align:center; font-weight:bold;">${it.cant}</td>
                 <td>${it.desc}</td>
-                <td class="obs-text">${it.obs || '—'}</td>
+                <td style="color:gray;">${it.obs || '—'}</td>
             </tr>`;
         });
 
@@ -221,27 +357,14 @@
         window.registroActivo = null;
     };
 
-    /* Cerrar con click fuera del modal */
-    const modalOverlay = document.getElementById('modal-overlay');
-    if(modalOverlay){
-        modalOverlay.addEventListener('click', function(e) {
-            if (e.target === this) window.cerrarModal();
-        });
-    }
-
-    /* Cerrar con Escape */
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') window.cerrarModal();
+    document.getElementById('modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) window.cerrarModal();
     });
 
-    /* ── GENERAR PDF desde modal ── */
     window.generarPDF = function() {
-        const reg = window.registroActivo;
-        if (!reg) return;
-        window.descargarCopia(reg.folio);
+        if (window.registroActivo) window.descargarCopia(window.registroActivo.folio);
     };
 
-    /* ── PDF ── */
     window.descargarCopia = function(folio) {
         const reg = window.bitacoraDatos.find(r => r.folio === folio);
         if (!reg) return;
@@ -250,7 +373,7 @@
         document.getElementById('pdf-fecha').innerText = reg.fecha;
         document.getElementById('pdf-origen').innerText = reg.origen;
         document.getElementById('pdf-responsable').innerText = reg.responsable;
-        document.getElementById('pdf-portador').innerText = reg.portador; // Corregido ID
+        document.getElementById('pdf-portador').innerText = reg.portador;
         document.getElementById('pdf-vehiculo').innerText = reg.vehiculo;
         document.getElementById('pdf-motivo').innerText = reg.motivo;
 
@@ -267,10 +390,9 @@
         const el = document.getElementById('pdf-template');
         el.style.display = 'block';
         
-        // Corregido el objeto de configuración de español a inglés
         html2pdf().set({
             margin: 0.5,
-            filename: `Copia_Auditoria_${reg.folio}.pdf`,
+            filename: `Guia_Salida_${reg.folio}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
