@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Comando CCTV - El Cielo</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root { --bg: #111418; --panel: #1e242b; --text: #e0e6ed; --p: #3498DB; --active: #2980B9; --border: #2c3e50; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Barra lateral (Menú) */
+        .sidebar { width: 260px; background-color: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; box-sizing: border-box; z-index: 10; }
+        .logo-area { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .logo-area h2 { margin: 0; color: #fff; font-size: 1.2em; }
+        .logo-area p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .menu-label { font-size: 0.75em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
+        .menu-btn { background: transparent; color: var(--text); border: 1px solid transparent; width: 100%; text-align: left; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 0.95em; transition: 0.2s; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .menu-btn:hover { background: rgba(52, 152, 219, 0.1); border-color: var(--p); }
+        .menu-btn.active { background: var(--p); color: white; border-color: var(--active); font-weight: bold; }
+        
+        /* Área principal de trabajo */
+        .workspace { flex: 1; padding: 20px; overflow-y: auto; background-color: #0b0d0f; box-sizing: border-box; }
+        .workspace-title { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 15px; color: #fff; display: flex; justify-content: space-between; align-items: center;}
+        
+        /* Cuadrículas para los iframes */
+        .grid-container { display: none; gap: 20px; width: 100%; height: calc(100% - 60px); }
+        .grid-container.active { display: grid; }
+        
+        .grid-7 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); } 
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); } 
+        .grid-1 { grid-template-columns: 1fr; height: 100%; display: flex; flex-direction: column; gap: 20px;}
+        
+        iframe { width: 100%; height: 800px; border: 2px solid var(--border); border-radius: 12px; background: white; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        .iframe-wrapper { position: relative; }
+        .iframe-label { position: absolute; top: -12px; left: 15px; background: var(--p); color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.8em; font-weight: bold; z-index: 5; }
+        
+        .full-height-iframe { height: calc(100vh - 120px); }
+
+        /* NATIVO: DASHBOARD DE PRODUCTIVIDAD */
+        .kpi-row { display: flex; gap: 20px; width: 100%; }
+        .kpi-card { flex: 1; background-color: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .kpi-card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
+        .kpi-card .valor { font-size: 2.5em; font-weight: bold; color: #fff; margin: 0; }
+        .kpi-card.highlight .valor { color: var(--p); }
+        .kpi-card.danger .valor { color: var(--danger); }
+
+        .table-container { background-color: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; flex: 1; overflow-y: auto; }
+        .table-container h3 { margin-top: 0; color: var(--p); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: #7f8c8d; text-transform: uppercase; font-size: 0.85em; }
+        tr:hover { background-color: rgba(255,255,255,0.02); }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .badge-excelente { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-regular { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .badge-bajo { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    </style>
+</head>
+<body onload="inicializarDashboard()">
+
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>🛡️ Monitorista CCTV</h2>
+            <p>Parque Residencial</p>
+        </div>
+
+        <div class="menu-label">Operación en Vivo</div>
+        <button class="menu-btn active" onclick="cambiarVista('vista-manana', this)">☀️ Turno Mañana (7 Agentes)</button>
+        <button class="menu-btn" onclick="cambiarVista('vista-tarde', this)">🌙 Turno Tarde/Noche (3 Ag.)</button>
+
+        <div class="menu-label" style="margin-top: 25px;">Gerencia y Evaluación</div>
+        <button class="menu-btn" onclick="cambiarVista('vista-dashboard', this)">📊 Productividad de Elementos</button>
+        <button class="menu-btn" onclick="cambiarVista('vista-auditoria', this)">📋 Auditoría Detallada</button>
+
+        <div class="menu-label" style="margin-top: 25px;">Herramientas Auxiliares</div>
+        <button class="menu-btn" onclick="window.open('encuesta_agentes.html', '_blank')">🔗 Abrir Encuesta Agentes</button>
+    </div>
+
+    <div class="workspace">
+        <h2 class="workspace-title" id="titulo-vista">☀️ Control Operativo: Turno Mañana (7 Ventanas)</h2>
+        
+        <div id="vista-manana" class="grid-container grid-7 active">
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 1</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 2</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 3</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 4</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 5</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 6</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 7</div><iframe src="terminal_agentes.html"></iframe></div>
+        </div>
+
+        <div id="vista-tarde" class="grid-container grid-3">
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 1</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 2</div><iframe src="terminal_agentes.html"></iframe></div>
+            <div class="iframe-wrapper"><div class="iframe-label">Terminal 3</div><iframe src="terminal_agentes.html"></iframe></div>
+        </div>
+
+        <div id="vista-dashboard" class="grid-container grid-1" style="display: none;">
+            <div class="kpi-row">
+                <div class="kpi-card highlight">
+                    <h3>Registros Totales (Hoy)</h3>
+                    <p class="valor" id="kpi-total">0</p>
+                </div>
+                <div class="kpi-card danger">
+                    <h3>Incidencias Reportadas</h3>
+                    <p class="valor" id="kpi-incidencias">0</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Elementos Activos</h3>
+                    <p class="valor" id="kpi-elementos">0</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>📊 Ranking de Productividad por Elemento</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre del Agente</th>
+                            <th>Total de Reportes</th>
+                            <th>Incidencias Detectadas</th>
+                            <th>Nivel de Productividad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-productividad">
+                        <tr><td colspan="4" style="text-align:center;">Sincronizando con la base de datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="vista-auditoria" class="grid-container grid-1">
+            <iframe class="full-height-iframe" src="auditoria_encuestas.html"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // 1. CONFIGURACIÓN CENTRAL DE FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        // 2. CONTROL DE VISTAS (Pestañas)
+        function cambiarVista(idVista, boton) {
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(grid => {
+                grid.classList.remove('active');
+                grid.style.display = 'none'; // Forzar ocultamiento
+            });
+            
+            boton.classList.add('active');
+            let vistaActiva = document.getElementById(idVista);
+            vistaActiva.classList.add('active');
+            
+            // Lógica para que el Grid del Dashboard nativo se muestre como flex
+            if(idVista === 'vista-dashboard') {
+                vistaActiva.style.display = 'flex';
+            } else {
+                vistaActiva.style.display = 'grid';
+            }
+
+            document.getElementById('titulo-vista').innerText = boton.innerText;
+
+            if(idVista === 'vista-auditoria') {
+                const iframe = document.querySelector(`#${idVista} iframe`);
+                iframe.src = iframe.src; 
+            }
+        }
+
+        // 3. MOTOR DE PRODUCTIVIDAD (Lee Firebase en Tiempo Real)
+        function inicializarDashboard() {
+            let d = new Date();
+            // Formato YYYY-MM-DD ajustado a la zona horaria local
+            let fechaHoy = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+
+            // Conexión a tu colección de registros (Asegúrate de que tus terminales guarden en 'registros_operativos')
+            db.collection("registros_operativos").where("fecha", "==", fechaHoy).onSnapshot(snapshot => {
+                let totalRegistros = 0;
+                let totalIncidencias = 0;
+                let elementos = {};
+
+                snapshot.forEach(doc => {
+                    let data = doc.data();
+                    totalRegistros++;
+                    
+                    // Asumimos que guardas un campo "tipo" o "es_incidencia"
+                    let esIncidencia = data.tipo === 'Incidencia' || data.novedad === true;
+                    if(esIncidencia) totalIncidencias++;
+
+                    let nombreAgente = data.agente || "Sin Identificar";
+                    
+                    if(!elementos[nombreAgente]) {
+                        elementos[nombreAgente] = { reportes: 0, incidencias: 0 };
+                    }
+                    
+                    elementos[nombreAgente].reportes++;
+                    if(esIncidencia) elementos[nombreAgente].incidencias++;
+                });
+
+                // Actualizar Tarjetas KPI
+                document.getElementById('kpi-total').innerText = totalRegistros;
+                document.getElementById('kpi-incidencias').innerText = totalIncidencias;
+                document.getElementById('kpi-elementos').innerText = Object.keys(elementos).length;
+
+                // Actualizar Tabla de Ranking
+                renderizarTablaProductividad(elementos);
+            });
+        }
+
+        function renderizarTablaProductividad(elementos) {
+            const tbody = document.getElementById('tabla-productividad');
+            tbody.innerHTML = "";
+
+            // Convertir objeto a Array para poder ordenarlo (del más productivo al menor)
+            let arrayElementos = Object.keys(elementos).map(nombre => {
+                return { nombre: nombre, data: elementos[nombre] };
+            });
+
+            arrayElementos.sort((a, b) => b.data.reportes - a.data.reportes);
+
+            if(arrayElementos.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color: var(--text-muted);'>Aún no hay registros en la base de datos el día de hoy.</td></tr>";
+                return;
+            }
+
+            arrayElementos.forEach(agente => {
+                // Lógica de calificación de productividad
+                let badgeClass = "badge-bajo";
+                let textoProductividad = "Baja";
+
+                if(agente.data.reportes >= 10) {
+                    badgeClass = "badge-excelente";
+                    textoProductividad = "Alta / Óptima";
+                } else if(agente.data.reportes >= 5) {
+                    badgeClass = "badge-regular";
+                    textoProductividad = "Promedio";
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: bold; color: #fff;">👤 ${agente.nombre}</td>
+                        <td>${agente.data.reportes}</td>
+                        <td style="color: var(--danger);">${agente.data.incidencias}</td>
+                        <td><span class="badge ${badgeClass}">${textoProductividad}</span></td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
