@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminal de Operaciones - El Cielo</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
         :root { --p: #2C3E50; --s: #3498DB; --g: #27AE60; --r: #E74C3C; --o: #F39C12; --w: #fff; --t: #f4f7f6; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--t); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh;}
@@ -19,10 +23,12 @@
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
         button { padding: 18px; font-size: 1em; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--w); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
         button:active { transform: scale(0.96); opacity: 0.9; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
         
         .btn-check { background: var(--g); grid-column: span 1;}
         .btn-out { background: #95a5a6; grid-column: span 1;}
         .btn-arribo { background: var(--s); grid-column: span 2;}
+        .btn-incidencia { background: var(--r); grid-column: span 2;}
         .btn-rondin { background: var(--o); grid-column: span 1; padding: 12px;}
 
         .rating-box { background: var(--t); padding: 15px; border-radius: 8px; margin-bottom: 20px;}
@@ -40,8 +46,8 @@
 
     <div class="panel">
         <div class="header">
-            <h2>🛡️ Terminal Operativa Gerencial</h2>
-            <p>Residencial El Cielo - Registro Rápido de Jornada</p>
+            <h2>🛡️ Terminal Operativa</h2>
+            <p>Residencial El Cielo - Sincronizado en la Nube ☁️</p>
         </div>
 
         <div class="grid-2">
@@ -71,23 +77,25 @@
             <option value="AGENTE SOTELO">Sotelo</option>
             <option value="AGENTE PIZARRO">Pizarro</option>
             <option value="AGENTE MARIO IBARRA">Mario Ibarra</option>
+            <option value="AGENTE LEONARDO">Leonardo</option>
         </datalist>
 
         <div class="seccion-label">Entrada y Salida</div>
         <div class="btn-grid">
-            <button class="btn-check" onclick="registrarPuntualidad('ENTRADA')">📍 Entrar</button>
-            <button class="btn-out" onclick="registrarPuntualidad('SALIDA')">👋 Salir</button>
+            <button class="btn-check" onclick="registrarPuntualidad('ENTRADA', this)">📍 Entrar</button>
+            <button class="btn-out" onclick="registrarPuntualidad('SALIDA', this)">👋 Salir</button>
         </div>
 
-        <div class="seccion-label">Confirmación de Operaciones</div>
+        <div class="seccion-label">Registro de Novedades</div>
         <div class="btn-grid">
-            <button class="btn-arribo" onclick="registrarOperacion('ARRIBO CONFIRMADO')">✅ Confirmar Arribo (Visita/Prov)</button>
+            <button class="btn-arribo" onclick="registrarOperacion('ARRIBO CONFIRMADO', this)">✅ Confirmar Arribo (Visita/Prov)</button>
+            <button class="btn-incidencia" onclick="registrarIncidencia(this)">🚨 Reportar Incidencia / Alerta</button>
         </div>
 
         <div class="seccion-label">Rondines de Patrullaje</div>
         <div class="btn-grid" style="grid-template-columns: 1fr 1fr;">
-            <button class="btn-rondin" onclick="registrarRondin('INICIO')">🔦 Iniciar Rondín</button>
-            <button class="btn-rondin" style="background:#2980B9;" onclick="registrarRondin('FIN')">🛑 Finalizar Rondín</button>
+            <button class="btn-rondin" onclick="registrarRondin('INICIO', this)">🔦 Iniciar Rondín</button>
+            <button class="btn-rondin" style="background:#2980B9;" onclick="registrarRondin('FIN', this)">🛑 Finalizar Rondín</button>
         </div>
 
         <div class="rating-box">
@@ -103,6 +111,19 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+            projectId: "sistema-vigilancia-6851e", 
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+            messagingSenderId: "714792023462", 
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
         let ratingGlobal = "EXCELENTE"; 
 
         window.onload = function() {
@@ -115,7 +136,7 @@
 
         function obtenerAgente() {
             const val = document.getElementById('agente_busca').value.trim();
-            if (!val) { alert("🚨 Por favor, escribe y selecciona tu nombre."); return null; }
+            if (!val) { alert("🚨 Por favor, escribe y selecciona tu nombre de la lista."); return null; }
             return val;
         }
         
@@ -123,7 +144,25 @@
             return document.getElementById('fecha_registro').value;
         }
 
-        function registrarPuntualidad(tipo) {
+        // FUNCIONES DE GUARDADO EN LA NUBE
+        function guardarEnFirebase(datos, boton, mensajeExito) {
+            boton.disabled = true; // Prevenir doble clic
+            const textoOriginal = boton.innerText;
+            boton.innerText = "⏳ Guardando...";
+
+            db.collection("registros_operativos").add(datos).then(() => {
+                mostrarStatusBar(mensajeExito);
+                boton.innerText = textoOriginal;
+                boton.disabled = false;
+            }).catch((error) => {
+                console.error("Error:", error);
+                alert("Hubo un error al guardar. Verifica el internet.");
+                boton.innerText = textoOriginal;
+                boton.disabled = false;
+            });
+        }
+
+        function registrarPuntualidad(tipo, boton) {
             const agente = obtenerAgente(); if (!agente) return;
             const fechaVal = obtenerFecha();
             const ahora = new Date();
@@ -137,63 +176,70 @@
                 }
             }
 
-            const registro = {
-                id: Date.now(),
+            const datos = {
                 agente: agente,
-                tipo: tipo,
+                tipo: "Asistencia", // Identificador para el dashboard
+                accion: tipo,
                 fecha: fechaVal,
                 hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 estatus: estatus,
-                rating: (tipo === 'SALIDA') ? ratingGlobal : 'N/A'
+                rating: (tipo === 'SALIDA') ? ratingGlobal : 'N/A',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            let db = JSON.parse(localStorage.getItem('bd_asistencia')) || [];
-            db.push(registro);
-            localStorage.setItem('bd_asistencia', JSON.stringify(db));
-
+            guardarEnFirebase(datos, boton, `✅ ${tipo} registrada en la nube: ${agente}`);
             if(tipo === 'SALIDA') document.getElementById('agente_busca').value = '';
-
-            mostrarStatusBar(`✅ ${tipo} registrada: ${agente} (${estatus}) para la fecha ${fechaVal}`);
         }
 
-        function registrarOperacion(accion) {
+        function registrarOperacion(accion, boton) {
             const agente = obtenerAgente(); if (!agente) return;
             const fechaVal = obtenerFecha();
             const ahora = new Date();
 
-            const registro = {
-                id: Date.now(),
+            const datos = {
                 agente: agente,
+                tipo: "Operacion",
                 accion: accion, 
                 fecha: fechaVal,
-                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            let db = JSON.parse(localStorage.getItem('bd_operaciones')) || [];
-            db.push(registro);
-            localStorage.setItem('bd_operaciones', JSON.stringify(db));
-
-            mostrarStatusBar(`📍 ${accion} por ${agente}`);
+            guardarEnFirebase(datos, boton, `📍 Arribo sincronizado por ${agente}`);
         }
 
-        function registrarRondin(estado) {
+        function registrarIncidencia(boton) {
             const agente = obtenerAgente(); if (!agente) return;
             const fechaVal = obtenerFecha();
             const ahora = new Date();
 
-            const registro = {
-                id: Date.now(),
+            const datos = {
                 agente: agente,
-                estado: estado,
+                tipo: "Incidencia", // ¡Crucial para que el Dashboard lo cuente en rojo!
+                accion: "REPORTE DE INCIDENCIA", 
                 fecha: fechaVal,
-                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            let db = JSON.parse(localStorage.getItem('bd_recorridos')) || [];
-            db.push(registro);
-            localStorage.setItem('bd_recorridos', JSON.stringify(db));
+            guardarEnFirebase(datos, boton, `🚨 Alerta de incidencia enviada por ${agente}`);
+        }
 
-            mostrarStatusBar(`🔦 Rondín ${estado}: ${agente}`);
+        function registrarRondin(estado, boton) {
+            const agente = obtenerAgente(); if (!agente) return;
+            const fechaVal = obtenerFecha();
+            const ahora = new Date();
+
+            const datos = {
+                agente: agente,
+                tipo: "Rondin",
+                accion: `RONDIN ${estado}`,
+                fecha: fechaVal,
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            guardarEnFirebase(datos, boton, `🔦 Rondín ${estado} registrado en la nube`);
         }
 
         function seleccionarRating(btn, valor) {
