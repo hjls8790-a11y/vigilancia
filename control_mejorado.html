@@ -3,419 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Comando - Accesos y Escoltas</title>
+    <title>Control de Escoltas - Confirmación de Arribo</title>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, query, orderBy, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
-            messagingSenderId: "714792023462",
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        window.db = db;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.updateDoc = updateDoc;
-        window.doc = doc;
-        window.getDocs = getDocs;
-        window.query = query;
-        window.orderBy = orderBy;
-        window.where = where;
-        window.onSnapshot = onSnapshot;
-    </script>
-
     <style>
-        :root { --bg: #f4f7f6; --p: #2c3e50; --s: #3498db; --g: #27ae60; --r: #e74c3c; --w: #fff; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--text); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         
-        /* SIDEBAR */
-        .sidebar { width: 250px; background: var(--p); color: var(--w); display: flex; flex-direction: column; padding: 20px 0; }
-        .sidebar h2 { text-align: center; margin: 0 0 20px 0; font-size: 1.2em; padding: 0 15px; }
-        .menu-btn { background: transparent; color: #bdc3c7; border: none; padding: 15px 20px; text-align: left; font-size: 1em; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-weight: bold; }
-        .menu-btn:hover { background: #34495e; color: var(--w); }
-        .menu-btn.active { background: #34495e; color: var(--s); border-left-color: var(--s); }
-
-        /* WORKSPACE */
-        .workspace { flex: 1; padding: 20px; overflow-y: auto; }
-        .panel { display: none; background: var(--w); padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
-        .panel.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h3.title { color: var(--p); border-bottom: 2px solid var(--s); padding-bottom: 10px; margin-top: 0; }
-
-        /* FORMULARIOS */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        label { font-weight: bold; font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1em; }
-        textarea { resize: vertical; height: 60px; }
+        .card-movil { background-color: #ffffff; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; }
+        .header-app { margin-bottom: 30px; }
+        .header-app h2 { font-size: 22px; color: #1e293b; margin-bottom: 8px; }
+        .header-app p { font-size: 14px; color: #64748b; }
         
-        .btn-main { background: var(--g); color: var(--w); border: none; width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .btn-main:hover { background: #219653; }
-        .btn-main:disabled { background: #95a5a6; cursor: not-allowed; }
-        .btn-danger { background: var(--r); color: var(--w); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-        /* CÁMARA */
-        .btn-camara { border: 2px dashed var(--s); background: #ebf5fb; color: var(--s); padding: 15px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; position: relative; margin-bottom: 15px; }
-        .btn-camara input[type=file] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        #preview-foto { max-width: 100%; height: 150px; border-radius: 6px; display: none; margin: 0 auto 15px auto; object-fit: cover; border: 1px solid #ccc; }
-
-        /* TABLAS Y LISTAS */
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: var(--p); color: var(--w); position: sticky; top: 0; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: var(--w); }
-        .bg-g { background: var(--g); } .bg-r { background: var(--r); } .bg-s { background: var(--s); }
-
-        /* KPI RENDIMIENTO */
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .kpi-card { background: var(--w); border-left: 5px solid var(--s); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .kpi-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
-        .kpi-card h1 { margin: 0; color: var(--p); font-size: 2.5em; }
-
-        /* ESCOLTAS */
-        .escolta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .btn-esc { padding: 10px; font-weight: bold; color: var(--w); border: 2px solid transparent; border-radius: 6px; cursor: pointer; }
-        .esc-1 { background: #f1c40f; color: #000; } .esc-2 { background: #e67e22; } .esc-3 { background: var(--g); } .esc-4 { background: #95a5a6; }
+        /* Botón Arribo */
+        .btn-arribo { width: 100%; min-height: 60px; background-color: #0f766e; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3); }
+        .btn-arribo:active { background-color: #115e59; transform: scale(0.98); }
+        .btn-arribo:disabled { background-color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        
+        /* Cajas de mensajes */
+        #status-mensaje { margin-top: 20px; font-size: 14px; line-height: 1.5; padding: 12px; border-radius: 8px; display: none; text-align: left; }
+        .loading { color: #b45309; background-color: #fef3c7; border: 1px solid #fde68a; }
+        .success { color: #15803d; background-color: #dcfce7; border: 1px solid #bbf7d0; }
+        .error { color: #b91c1c; background-color: #fee2e2; border: 1px solid #fecaca; }
+        
+        .input-nombre { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 16px; text-align: center; outline: none; }
+        .input-nombre:focus { border-color: #0f766e; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>🛡️ Control Central</h2>
-        <button class="menu-btn active" onclick="cambiarPanel('panel-registro', this)">📍 Registro de Entrada</button>
-        <button class="menu-btn" onclick="cambiarPanel('panel-salida', this)">👋 Confirmar Salida</button>
-        <button class="menu-btn" onclick="cambiarPanel('panel-escoltas', this)">🚗 Asignar Escolta</button>
-        <button class="menu-btn" onclick="verificarAuditoria(this)">📋 Bitácora General</button>
-        <button class="menu-btn" onclick="cambiarPanel('panel-rendimiento', this)">📈 Medir Rendimiento</button>
+<div class="card-movil">
+    <div class="header-app">
+        <h2>Módulo de Escoltas</h2>
+        <p>Confirmación de Arribo y Geolocalización</p>
     </div>
 
-    <div class="workspace">
+    <input type="text" id="nombre-escolta" class="input-nombre" placeholder="Escribe tu Nombre / Unidad" required>
+
+    <button id="btn-confirmar" class="btn-arribo" onclick="procesarArribo()">
+        CONFIRMAR ARRIBO
+    </button>
+
+    <div id="status-mensaje"></div>
+</div>
+
+<script type="module">
+    // Importamos las herramientas de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Tu configuración exacta
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
+        projectId: "sistema-vigilancia-6851e", 
+        storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
+        messagingSenderId: "714792023462", 
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
+    };
+
+    // Inicializamos la base de datos
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Hacemos la función accesible para el botón HTML
+    window.procesarArribo = function() {
+        const nombreEscolta = document.getElementById('nombre-escolta').value.trim();
+        const statusDiv = document.getElementById('status-mensaje');
+        const btnConfirmar = document.getElementById('btn-confirmar');
         
-        <div id="panel-registro" class="panel active">
-            <h3 class="title">NUEVO ACCESO (Visitantes y Proveedores)</h3>
-            
-            <div class="grid-2">
-                <div>
-                    <label>📍 Ubicación de Caseta</label>
-                    <select id="reg_ubicacion">
-                        <option value="General">General</option>
-                        <option value="Cardones">Cardones</option>
-                        <option value="Fotur">Fotur</option>
-                    </select>
-                </div>
-                <div>
-                    <label>👷 Tipo de Acceso</label>
-                    <select id="reg_tipo">
-                        <option value="Visita Particular">Visita Particular</option>
-                        <option value="Proveedor de Obra">Proveedor de Obra</option>
-                        <option value="Proveedor de Gas">Proveedor de Gas / Agua</option>
-                        <option value="Paqueteria">Paquetería</option>
-                    </select>
-                </div>
-            </div>
+        if (!nombreEscolta) {
+            mostrarError("Por favor, ingresa tu Nombre o Unidad antes de confirmar.");
+            return;
+        }
 
-            <div class="grid-2">
-                <div><label>👤 Nombre Completo</label><input type="text" id="reg_nombre" placeholder="Nombre del conductor"></div>
-                <div><label>🏠 Domicilio a Visitar</label><input type="text" id="reg_domicilio" placeholder="Ej. Lote 45"></div>
-            </div>
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerText = "OBTENIENDO GPS...";
+        statusDiv.style.display = "block";
+        statusDiv.className = "loading";
+        statusDiv.innerHTML = "Ubicando dispositivo. Por favor, espera...";
 
-            <div class="grid-3">
-                <div><label>🚗 Marca Vehículo</label><input type="text" id="reg_marca" placeholder="Ej. Nissan"></div>
-                <div><label>🎨 Color</label><input type="text" id="reg_color" placeholder="Ej. Blanco"></div>
-                <div><label>🔢 Placas</label><input type="text" id="reg_placas" placeholder="ABC-123" style="text-transform: uppercase;"></div>
-            </div>
+        if (!navigator.geolocation) {
+            mostrarError("Tu teléfono no soporta la geolocalización.");
+            restaurarBoton();
+            return;
+        }
 
-            <label>📝 Comentarios / Novedades</label>
-            <textarea id="reg_comentarios" placeholder="Materiales, daños en vehículo, etc."></textarea>
+        const opcionesGps = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
 
-            <label>📸 Evidencia Fotográfica (ID o Placas)</label>
-            <div class="btn-camara">
-                📷 CLIC PARA TOMAR FOTO O SUBIR IMAGEN
-                <input type="file" id="foto_id" accept="image/*" capture="environment" onchange="procesarFoto(event)">
-            </div>
-            <img id="preview-foto" src="">
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
 
-            <button id="btnGuardar" class="btn-main" onclick="registrarEntrada()">REGISTRAR ENTRADA EN SISTEMA</button>
-        </div>
+                statusDiv.innerHTML = "GPS capturado. Sincronizando con base de datos...";
 
-        <div id="panel-salida" class="panel">
-            <h3 class="title">CONFIRMAR SALIDAS (Personas al interior)</h3>
-            <input type="text" id="buscadorSalida" placeholder="🔍 Buscar por nombre o placa..." oninput="renderizarSalidas()" style="margin-bottom: 15px;">
-            <table>
-                <thead><tr><th>Hora Entrada</th><th>Visitante / Proveedor</th><th>Placas</th><th>Destino</th><th>Acción</th></tr></thead>
-                <tbody id="tabla-salidas"></tbody>
-            </table>
-        </div>
+                // Estructura del registro
+                const nuevoRegistroLog = {
+                    id_escolta: nombreEscolta.toUpperCase(),
+                    tipo_evento: "ARRIBO_CONFIRMADO",
+                    fecha_str: new Date().toLocaleDateString('es-MX'),
+                    hora_str: new Date().toLocaleTimeString('es-MX'),
+                    timestamp: new Date().getTime(),
+                    latitud: lat,
+                    longitud: lon,
+                    dispositivo: navigator.userAgent
+                };
 
-        <div id="panel-escoltas" class="panel">
-            <h3 class="title">ASIGNACIÓN TÁCTICA DE ESCOLTAS</h3>
-            <p style="font-size: 0.9em; color: #7f8c8d;">Selecciona un proveedor activo y asígnale una unidad de escolta para monitorear su recorrido.</p>
-            
-            <label>1. Seleccionar Proveedor Activo:</label>
-            <select id="esc_proveedor" style="margin-bottom: 20px;"></select>
-
-            <label>2. Asignar Unidad de Escolta:</label>
-            <div class="escolta-grid">
-                <button class="btn-esc esc-1" onclick="asignarEscolta('Unidad Amarilla')">Unidad Amarilla</button>
-                <button class="btn-esc esc-2" onclick="asignarEscolta('Unidad Naranja')">Unidad Naranja</button>
-                <button class="btn-esc esc-3" onclick="asignarEscolta('Unidad Verde')">Unidad Verde</button>
-                <button class="btn-esc esc-4" onclick="asignarEscolta('Unidad Gris')">Unidad Gris</button>
-            </div>
-            
-            <h4 style="margin-top: 30px;">Escoltas en Curso:</h4>
-            <table>
-                <thead><tr><th>Proveedor</th><th>Destino</th><th>Escolta Asignada</th></tr></thead>
-                <tbody id="tabla-escoltas-activas"></tbody>
-            </table>
-        </div>
-
-        <div id="panel-bitacora" class="panel">
-            <h3 class="title">AUDITORÍA: BITÁCORA INMUTABLE</h3>
-            <input type="text" id="buscadorBitacora" placeholder="🔍 Buscar historial completo..." oninput="renderizarBitacora()" style="margin-bottom: 15px;">
-            <div style="overflow-x: auto; max-height: 600px;">
-                <table>
-                    <thead><tr><th>Movimiento</th><th>Fecha/Hora</th><th>Visitante</th><th>Vehículo</th><th>Escolta</th><th>Duración Visita</th></tr></thead>
-                    <tbody id="tabla-bitacora"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="panel-rendimiento" class="panel">
-            <h3 class="title">DASHBOARD DE RENDIMIENTO Y MÉTRICAS</h3>
-            
-            <div class="kpi-container">
-                <div class="kpi-card">
-                    <h4>Visitantes Actuales</h4>
-                    <h1 id="kpi-adentro">0</h1>
-                </div>
-                <div class="kpi-card">
-                    <h4>Ingresos Totales (Hoy)</h4>
-                    <h1 id="kpi-hoy">0</h1>
-                </div>
-                <div class="kpi-card" style="border-left-color: var(--g);">
-                    <h4>Escoltas Realizadas</h4>
-                    <h1 id="kpi-escoltas">0</h1>
-                </div>
-                <div class="kpi-card" style="border-left-color: var(--r);">
-                    <h4>Tiempo Promedio Adentro</h4>
-                    <h1 id="kpi-tiempo">0 <span style="font-size: 14px;">min</span></h1>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <script type="module">
-        let imagenBase64 = "NO";
-        let accesosActivos = [];
-        let historialCompleto = [];
-
-        // 1. MANEJO DE VISTAS (Pestañas)
-        window.cambiarPanel = function(idPanel, btnElement) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(idPanel).classList.add('active');
-            btnElement.classList.add('active');
-        };
-
-        window.verificarAuditoria = function(btnElement) {
-            const clave = "Accesos2026";
-            let intento = prompt("🔒 ACCESO RESTRINGIDO\nIngrese la contraseña para Auditoría:");
-            if (intento === clave) {
-                cambiarPanel('panel-bitacora', btnElement);
-            } else {
-                alert("❌ Contraseña incorrecta.");
-            }
-        };
-
-        // 2. COMPRESIÓN DE FOTOGRAFÍA
-        window.procesarFoto = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 600; 
-                    let width = img.width; let height = img.height;
-
-                    if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    imagenBase64 = canvas.toDataURL('image/jpeg', 0.6); 
-                    const preview = document.getElementById('preview-foto');
-                    preview.src = imagenBase64;
-                    preview.style.display = "block";
+                // Enviamos los datos a Firebase
+                enviarALaBaseDeDatos(nuevoRegistroLog, statusDiv, btnConfirmar);
+            },
+            (error) => {
+                restaurarBoton();
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        mostrarError("Acceso denegado. Debes permitir el uso del GPS.");
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        mostrarError("Ubicación no disponible. Verifica tu señal GPS.");
+                        break;
+                    case error.TIMEOUT:
+                        mostrarError("Tiempo agotado. Intenta de nuevo.");
+                        break;
+                    default:
+                        mostrarError("Ocurrió un error desconocido al ubicar.");
                 }
-            }
-        };
+            },
+            opcionesGps
+        );
+    }
 
-        // 3. REGISTRAR ENTRADA
-        window.registrarEntrada = async function() {
-            const btn = document.getElementById('btnGuardar');
-            const data = {
-                ubicacion: document.getElementById('reg_ubicacion').value,
-                tipo_acceso: document.getElementById('reg_tipo').value,
-                visitante: document.getElementById('reg_nombre').value || "Desconocido",
-                domicilio: document.getElementById('reg_domicilio').value || "N/A",
-                vehiculo: `${document.getElementById('reg_marca').value} ${document.getElementById('reg_color').value}`,
-                placas: document.getElementById('reg_placas').value || "S/N",
-                comentarios: document.getElementById('reg_comentarios').value || "",
-                foto_evidencia: imagenBase64,
-                timestamp_entrada: new Date().getTime(),
-                fecha_str: new Date().toLocaleDateString('es-MX'),
-                hora_entrada: new Date().toLocaleTimeString('es-MX'),
-                estado: "ADENTRO", // Clave para medir rendimiento
-                escolta: "Ninguna"
-            };
-
-            btn.innerText = "⏳ Sincronizando..."; btn.disabled = true;
-            try {
-                await window.addDoc(window.collection(window.db, "control_maestro_accesos"), data);
-                alert("✅ Entrada registrada exitosamente.");
-                // Limpiar form
-                document.querySelectorAll('input[type=text], textarea').forEach(i => i.value = '');
-                document.getElementById('preview-foto').style.display = 'none';
-                imagenBase64 = "NO";
-            } catch (e) {
-                console.error(e); alert("❌ Error de conexión.");
-            }
-            btn.innerText = "REGISTRAR ENTRADA EN SISTEMA"; btn.disabled = false;
-        };
-
-        // 4. LECTURA EN TIEMPO REAL (Rendimiento, Salidas y Escoltas)
-        window.onSnapshot(window.query(window.collection(window.db, "control_maestro_accesos"), window.orderBy("timestamp_entrada", "desc")), (snapshot) => {
-            accesosActivos = [];
-            historialCompleto = [];
-            let ingresosHoy = 0;
-            let escoltasHoy = 0;
-            let sumaTiempos = 0;
-            let salidasCompletadas = 0;
+    async function enviarALaBaseDeDatos(datos, statusDiv, btnConfirmar) {
+        try {
+            // Guardamos en una colección nueva llamada 'historial_escoltas'
+            await addDoc(collection(db, "historial_escoltas"), datos);
             
-            let hoyStr = new Date().toLocaleDateString('es-MX');
-
-            snapshot.forEach(doc => {
-                let data = doc.data();
-                data.id = doc.id;
-                historialCompleto.push(data);
-
-                if (data.estado === "ADENTRO") { accesosActivos.push(data); }
-                if (data.fecha_str === hoyStr) { 
-                    ingresosHoy++; 
-                    if(data.escolta !== "Ninguna") escoltasHoy++;
-                }
-                
-                // Calcular Rendimiento (Tiempo Promedio)
-                if (data.estado === "AFUERA" && data.fecha_str === hoyStr) {
-                    let minutos = Math.round((data.timestamp_salida - data.timestamp_entrada) / 60000);
-                    if(minutos > 0) { sumaTiempos += minutos; salidasCompletadas++; }
-                }
-            });
-
-            // Actualizar KPIs de Rendimiento
-            document.getElementById('kpi-adentro').innerText = accesosActivos.length;
-            document.getElementById('kpi-hoy').innerText = ingresosHoy;
-            document.getElementById('kpi-escoltas').innerText = escoltasHoy;
-            document.getElementById('kpi-tiempo').innerHTML = salidasCompletadas > 0 ? Math.round(sumaTiempos / salidasCompletadas) + ' <span style="font-size: 14px;">min</span>' : '0 <span style="font-size: 14px;">min</span>';
-
-            renderizarSalidas();
-            renderizarEscoltas();
-            renderizarBitacora();
-        });
-
-        // 5. RENDERIZAR Y CONFIRMAR SALIDAS
-        window.renderizarSalidas = function() {
-            const tbody = document.getElementById('tabla-salidas');
-            const txt = document.getElementById('buscadorSalida').value.toLowerCase();
-            tbody.innerHTML = "";
-
-            accesosActivos.filter(a => a.visitante.toLowerCase().includes(txt) || a.placas.toLowerCase().includes(txt)).forEach(a => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${a.hora_entrada}</td>
-                        <td><b>${a.visitante}</b><br><small>${a.tipo_acceso}</small></td>
-                        <td><span class="badge bg-s">${a.placas}</span></td>
-                        <td>${a.domicilio}</td>
-                        <td><button class="btn-danger" onclick="registrarSalida('${a.id}')">Confirmar Salida</button></td>
-                    </tr>
-                `;
-            });
-        };
-
-        window.registrarSalida = async function(id) {
-            if(!confirm("¿Confirmar salida definitiva del parque?")) return;
-            const refDoc = window.doc(window.db, "control_maestro_accesos", id);
-            await window.updateDoc(refDoc, {
-                estado: "AFUERA",
-                timestamp_salida: new Date().getTime(),
-                hora_salida: new Date().toLocaleTimeString('es-MX')
-            });
-        };
-
-        // 6. RENDERIZAR Y ASIGNAR ESCOLTAS
-        window.renderizarEscoltas = function() {
-            const select = document.getElementById('esc_proveedor');
-            const tbody = document.getElementById('tabla-escoltas-activas');
-            select.innerHTML = "<option value=''>-- Seleccionar Proveedor --</option>";
-            tbody.innerHTML = "";
-
-            accesosActivos.forEach(a => {
-                if (a.escolta === "Ninguna") {
-                    select.innerHTML += `<option value="${a.id}">${a.placas} - ${a.visitante} (${a.domicilio})</option>`;
-                } else {
-                    tbody.innerHTML += `<tr><td>${a.visitante}</td><td>${a.domicilio}</td><td><b>${a.escolta}</b></td></tr>`;
-                }
-            });
-        };
-
-        window.asignarEscolta = async function(nombreEscolta) {
-            const id = document.getElementById('esc_proveedor').value;
-            if(!id) { alert("🚨 Selecciona un proveedor primero."); return; }
+            statusDiv.className = "success";
+            statusDiv.innerHTML = `<strong>✓ ¡Arribo Confirmado!</strong><br>
+                                   Ubicación guardada en la base de datos.<br>
+                                   <small>Lat: ${datos.latitud.toFixed(4)}, Lon: ${datos.longitud.toFixed(4)}</small>`;
             
-            const refDoc = window.doc(window.db, "control_maestro_accesos", id);
-            await window.updateDoc(refDoc, { escolta: nombreEscolta });
-            alert(`✅ ${nombreEscolta} asignada correctamente.`);
-        };
+            btnConfirmar.innerText = "REGISTRADO";
+            
+            // Limpiamos el campo de nombre después de 3 segundos para el próximo escolta
+            setTimeout(() => {
+                document.getElementById('nombre-escolta').value = "";
+                restaurarBoton();
+                statusDiv.style.display = "none";
+            }, 5000);
 
-        // 7. RENDERIZAR BITÁCORA INMUTABLE
-        window.renderizarBitacora = function() {
-            const tbody = document.getElementById('tabla-bitacora');
-            const txt = document.getElementById('buscadorBitacora').value.toLowerCase();
-            tbody.innerHTML = "";
+        } catch (error) {
+            console.error("Error al guardar:", error);
+            mostrarError("Hubo un problema de conexión. Intenta de nuevo.");
+            restaurarBoton();
+        }
+    }
 
-            historialCompleto.filter(h => h.visitante.toLowerCase().includes(txt) || h.placas.toLowerCase().includes(txt)).forEach(h => {
-                let badgeEstado = h.estado === "ADENTRO" ? '<span class="badge bg-s">ENTRADA (ACTIVO)</span>' : '<span class="badge bg-r">SALIDA CONCLUIDA</span>';
-                let duracion = "En curso...";
-                if (h.estado === "AFUERA") {
-                    duracion = Math.round((h.timestamp_salida - h.timestamp_entrada) / 60000) + " min";
-                }
+    function mostrarError(mensaje) {
+        const statusDiv = document.getElementById('status-mensaje');
+        statusDiv.className = "error";
+        statusDiv.style.display = "block";
+        statusDiv.innerHTML = `<strong>⚠ Error:</strong> ${mensaje}`;
+    }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${badgeEstado}</td>
-                        <td>${h.fecha_str}<br><small>${h.hora_entrada}</small></td>
-                        <td><b>${h.visitante}</b><br><small>${h.tipo_acceso}</small></td>
-                        <td>${h.vehiculo} <br> <b>${h.placas}</b></td>
-                        <td>${h.escolta}</td>
-                        <td style="font-weight:bold; color:var(--p);">${duracion}</td>
-                    </tr>
-                `;
-            });
-        };
-    </script>
+    function restaurarBoton() {
+        const btnConfirmar = document.getElementById('btn-confirmar');
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerText = "CONFIRMAR ARRIBO";
+    }
+</script>
+
 </body>
 </html>
