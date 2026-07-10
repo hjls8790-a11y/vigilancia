@@ -3,174 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Escoltas - Confirmación de Arribo</title>
+    <title>Plataforma Integral - El Cielo Residencial</title>
     
     <style>
+        /* ================= VARIABLES Y RESET ================= */
+        :root { --bg: #f4f7f6; --p: #2c3e50; --s: #3498db; --g: #27ae60; --r: #e74c3c; --w: #fff; --text: #333; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* ================= PANTALLA DE INICIO (SELECCIÓN DE PERFIL) ================= */
+        #pantalla-inicio { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background-color: var(--p); color: var(--w); text-align: center; padding: 20px; }
+        .inicio-card { background: var(--w); color: var(--text); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 500px; width: 100%; }
+        .btn-perfil { width: 100%; padding: 20px; margin: 10px 0; font-size: 18px; font-weight: bold; color: var(--w); border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-perfil.caseta { background-color: var(--s); }
+        .btn-perfil.escolta { background-color: #0f766e; }
+        .btn-perfil:hover { transform: scale(0.98); opacity: 0.9; }
+
+        /* ================= MÓDULO: CENTRO DE COMANDO (ESCRITORIO) ================= */
+        #pantalla-comando { display: none; height: 100vh; }
+        .sidebar { width: 250px; background: var(--p); color: var(--w); display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; }
+        .sidebar h2 { text-align: center; margin: 0 0 20px 0; font-size: 1.2em; padding: 0 15px; }
+        .menu-btn { background: transparent; color: #bdc3c7; border: none; padding: 15px 20px; text-align: left; font-size: 1em; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent; font-weight: bold; }
+        .menu-btn:hover, .menu-btn.active { background: #34495e; color: var(--w); border-left-color: var(--s); }
         
+        .workspace { flex: 1; padding: 20px; overflow-y: auto; }
+        .panel { display: none; background: var(--w); padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto; }
+        .panel.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h3.title { color: var(--p); border-bottom: 2px solid var(--s); padding-bottom: 10px; margin-top: 0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        label { font-weight: bold; font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; margin-bottom: 15px;}
+        .btn-main { background: var(--g); color: var(--w); border: none; width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-danger { background: var(--r); color: var(--w); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* CÁMARA */
+        .btn-camara { border: 2px dashed var(--s); background: #ebf5fb; color: var(--s); padding: 15px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; position: relative; margin-bottom: 15px; }
+        .btn-camara input[type=file] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        #preview-foto { max-width: 100%; height: 150px; border-radius: 6px; display: none; margin: 0 auto 15px auto; object-fit: cover; }
+
+        /* TABLAS Y KPIs */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--p); color: var(--w); position: sticky; top: 0; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: var(--w); }
+        .bg-s { background: var(--s); } .bg-r { background: var(--r); }
+        
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .kpi-card { background: var(--w); border-left: 5px solid var(--s); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 1px solid #eee; border-top: 1px solid #eee; border-bottom: 1px solid #eee;}
+        .kpi-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
+        .kpi-card h1 { margin: 0; color: var(--p); font-size: 2.5em; }
+
+        /* ESCOLTAS - TABLERO */
+        .escolta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .btn-esc { padding: 10px; font-weight: bold; color: var(--w); border: none; border-radius: 6px; cursor: pointer; }
+        .esc-1 { background: #f1c40f; color: #000; } .esc-2 { background: #e67e22; } .esc-3 { background: var(--g); } .esc-4 { background: #95a5a6; }
+
+        /* ================= MÓDULO: ESCOLTAS (MÓVIL / GPS) ================= */
+        #pantalla-escolta-movil { display: none; min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; background-color: #f1f5f9; }
         .card-movil { background-color: #ffffff; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; }
-        .header-app { margin-bottom: 30px; }
-        .header-app h2 { font-size: 22px; color: #1e293b; margin-bottom: 8px; }
-        .header-app p { font-size: 14px; color: #64748b; }
-        
-        /* Botón Arribo */
-        .btn-arribo { width: 100%; min-height: 60px; background-color: #0f766e; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3); }
-        .btn-arribo:active { background-color: #115e59; transform: scale(0.98); }
-        .btn-arribo:disabled { background-color: #94a3b8; cursor: not-allowed; box-shadow: none; }
-        
-        /* Cajas de mensajes */
-        #status-mensaje { margin-top: 20px; font-size: 14px; line-height: 1.5; padding: 12px; border-radius: 8px; display: none; text-align: left; }
-        .loading { color: #b45309; background-color: #fef3c7; border: 1px solid #fde68a; }
-        .success { color: #15803d; background-color: #dcfce7; border: 1px solid #bbf7d0; }
-        .error { color: #b91c1c; background-color: #fee2e2; border: 1px solid #fecaca; }
-        
-        .input-nombre { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 16px; text-align: center; outline: none; }
-        .input-nombre:focus { border-color: #0f766e; }
+        .btn-arribo { width: 100%; min-height: 60px; background-color: #0f766e; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3); }
+        .btn-arribo:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        #status-mensaje { margin-top: 20px; font-size: 14px; padding: 12px; border-radius: 8px; display: none; text-align: left; }
+        .loading { color: #b45309; background-color: #fef3c7; }
+        .success { color: #15803d; background-color: #dcfce7; }
+        .error { color: #b91c1c; background-color: #fee2e2; }
     </style>
 </head>
 <body>
 
-<div class="card-movil">
-    <div class="header-app">
-        <h2>Módulo de Escoltas</h2>
-        <p>Confirmación de Arribo y Geolocalización</p>
+    <div id="pantalla-inicio">
+        <div class="inicio-card">
+            <h1 style="color: var(--p); margin-bottom: 10px;">🔐 Plataforma Operativa</h1>
+            <p style="color: #7f8c8d; margin-bottom: 30px;">Selecciona el módulo al que deseas ingresar:</p>
+            
+            <button class="btn-perfil caseta" onclick="iniciarModulo('comando')">
+                🖥️ CENTRO DE COMANDO<br><small style="font-weight:normal;">(Caseta / Monitoristas)</small>
+            </button>
+            <button class="btn-perfil escolta" onclick="iniciarModulo('escolta')">
+                📱 MÓDULO DE ESCOLTAS<br><small style="font-weight:normal;">(Agentes en Campo / GPS)</small>
+            </button>
+        </div>
     </div>
 
-    <input type="text" id="nombre-escolta" class="input-nombre" placeholder="Escribe tu Nombre / Unidad" required>
+    <div id="pantalla-comando">
+        <div class="sidebar">
+            <h2>🛡️ Control Central</h2>
+            <button class="menu-btn active" onclick="cambiarPanel('panel-registro', this)">📍 Registro Entrada</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-salida', this)">👋 Confirmar Salida</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-escoltas', this)">🚗 Asignar Escolta</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-bitacora', this)">📋 Bitácora General</button>
+            <button class="menu-btn" onclick="cambiarPanel('panel-rendimiento', this)">📈 Rendimiento</button>
+            <button class="menu-btn" style="margin-top:auto; background:#c0392b;" onclick="location.reload()">Cerrar Sesión</button>
+        </div>
 
-    <button id="btn-confirmar" class="btn-arribo" onclick="procesarArribo()">
-        CONFIRMAR ARRIBO
-    </button>
+        <div class="workspace">
+            <div id="panel-registro" class="panel active">
+                <h3 class="title">NUEVO ACCESO (Visitantes y Proveedores)</h3>
+                <div class="grid-2">
+                    <div><label>Ubicación</label><select id="reg_ubicacion"><option>General</option><option>Cardones</option><option>Fotur</option></select></div>
+                    <div><label>Tipo Acceso</label><select id="reg_tipo"><option>Visita Particular</option><option>Proveedor de Obra</option><option>Paqueteria</option></select></div>
+                </div>
+                <div class="grid-2">
+                    <div><label>Nombre Completo</label><input type="text" id="reg_nombre"></div>
+                    <div><label>Domicilio</label><input type="text" id="reg_domicilio"></div>
+                </div>
+                <div class="grid-3">
+                    <div><label>Vehículo</label><input type="text" id="reg_marca"></div>
+                    <div><label>Color</label><input type="text" id="reg_color"></div>
+                    <div><label>Placas</label><input type="text" id="reg_placas" style="text-transform:uppercase;"></div>
+                </div>
+                <label>Evidencia Fotográfica (Se comprimirá automáticamente)</label>
+                <div class="btn-camara">📷 TOMAR FOTO O SUBIR IMAGEN <input type="file" id="foto_id" accept="image/*" capture="environment" onchange="procesarFoto(event)"></div>
+                <img id="preview-foto" src="">
+                <button id="btnGuardarEntrada" class="btn-main" onclick="registrarEntrada()">REGISTRAR ENTRADA</button>
+            </div>
 
-    <div id="status-mensaje"></div>
-</div>
+            <div id="panel-salida" class="panel">
+                <h3 class="title">CONFIRMAR SALIDAS (Personas al interior)</h3>
+                <table>
+                    <thead><tr><th>Hora Entrada</th><th>Visitante</th><th>Placas</th><th>Destino</th><th>Acción</th></tr></thead>
+                    <tbody id="tabla-salidas"></tbody>
+                </table>
+            </div>
 
-<script type="module">
-    // Importamos las herramientas de Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+            <div id="panel-escoltas" class="panel">
+                <h3 class="title">ASIGNACIÓN DE ESCOLTAS</h3>
+                <label>1. Seleccionar Proveedor Adentro:</label>
+                <select id="esc_proveedor"></select>
+                <label>2. Asignar Unidad:</label>
+                <div class="escolta-grid">
+                    <button class="btn-esc esc-1" onclick="asignarEscolta('U-Amarilla')">Amarilla</button>
+                    <button class="btn-esc esc-2" onclick="asignarEscolta('U-Naranja')">Naranja</button>
+                    <button class="btn-esc esc-3" onclick="asignarEscolta('U-Verde')">Verde</button>
+                    <button class="btn-esc esc-4" onclick="asignarEscolta('U-Gris')">Gris</button>
+                </div>
+                <h4 style="margin-top:20px;">Escoltas Activas:</h4>
+                <table><thead><tr><th>Proveedor</th><th>Destino</th><th>Escolta</th></tr></thead><tbody id="tabla-escoltas-activas"></tbody></table>
+            </div>
 
-    // Tu configuración exacta
-    const firebaseConfig = { 
-        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s", 
-        authDomain: "sistema-vigilancia-6851e.firebaseapp.com", 
-        projectId: "sistema-vigilancia-6851e", 
-        storageBucket: "sistema-vigilancia-6851e.firebasestorage.app", 
-        messagingSenderId: "714792023462", 
-        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67" 
-    };
+            <div id="panel-bitacora" class="panel">
+                <h3 class="title">BITÁCORA INMUTABLE</h3>
+                <div style="overflow-x: auto; max-height: 500px;">
+                    <table><thead><tr><th>Estado</th><th>Fecha/Hora</th><th>Visitante</th><th>Placas</th><th>Escolta</th><th>Duración</th></tr></thead><tbody id="tabla-bitacora"></tbody></table>
+                </div>
+            </div>
 
-    // Inicializamos la base de datos
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+            <div id="panel-rendimiento" class="panel">
+                <h3 class="title">DASHBOARD DE RENDIMIENTO</h3>
+                <div class="kpi-container">
+                    <div class="kpi-card"><h4>Visitantes Actuales</h4><h1 id="kpi-adentro">0</h1></div>
+                    <div class="kpi-card"><h4>Ingresos Hoy</h4><h1 id="kpi-hoy">0</h1></div>
+                    <div class="kpi-card"><h4>Escoltas Asignadas</h4><h1 id="kpi-escoltas">0</h1></div>
+                    <div class="kpi-card"><h4>Tiempo Promedio</h4><h1 id="kpi-tiempo">0 <small>min</small></h1></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    // Hacemos la función accesible para el botón HTML
-    window.procesarArribo = function() {
-        const nombreEscolta = document.getElementById('nombre-escolta').value.trim();
-        const statusDiv = document.getElementById('status-mensaje');
-        const btnConfirmar = document.getElementById('btn-confirmar');
-        
-        if (!nombreEscolta) {
-            mostrarError("Por favor, ingresa tu Nombre o Unidad antes de confirmar.");
-            return;
-        }
+    <div id="pantalla-escolta-movil" style="display:none;">
+        <div class="card-movil">
+            <div class="header-app">
+                <h2>📱 Módulo de Escoltas</h2>
+                <p>Confirmación de Arribo y Geolocalización</p>
+            </div>
+            <label style="text-align: left; display: block; margin-bottom: 5px;">Tu Nombre / Unidad:</label>
+            <input type="text" id="nombre-escolta" placeholder="Ej. Unidad Amarilla" style="font-size: 16px; padding: 15px; text-align: center; border: 2px solid #0f766e;">
+            <button id="btn-arribo-gps" class="btn-arribo" onclick="procesarArriboGPS()">📍 CONFIRMAR ARRIBO</button>
+            <div id="status-mensaje"></div>
+            <button style="margin-top: 30px; background: transparent; border: none; color: #64748b; text-decoration: underline;" onclick="location.reload()">Volver al Inicio</button>
+        </div>
+    </div>
 
-        btnConfirmar.disabled = true;
-        btnConfirmar.innerText = "OBTENIENDO GPS...";
-        statusDiv.style.display = "block";
-        statusDiv.className = "loading";
-        statusDiv.innerHTML = "Ubicando dispositivo. Por favor, espera...";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        if (!navigator.geolocation) {
-            mostrarError("Tu teléfono no soporta la geolocalización.");
-            restaurarBoton();
-            return;
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
 
-        const opcionesGps = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+        // Variables Globales
+        let imagenBase64 = "NO";
+        let accesosActivos = [];
+        let historialCompleto = [];
 
-                statusDiv.innerHTML = "GPS capturado. Sincronizando con base de datos...";
+        // 1. NAVEGACIÓN Y PERFILES
+        window.iniciarModulo = function(modulo) {
+            document.getElementById('pantalla-inicio').style.display = 'none';
+            if(modulo === 'comando') {
+                document.getElementById('pantalla-comando').style.display = 'flex';
+            } else {
+                document.getElementById('pantalla-escolta-movil').style.display = 'flex';
+            }
+        };
 
-                // Estructura del registro
-                const nuevoRegistroLog = {
-                    id_escolta: nombreEscolta.toUpperCase(),
-                    tipo_evento: "ARRIBO_CONFIRMADO",
-                    fecha_str: new Date().toLocaleDateString('es-MX'),
-                    hora_str: new Date().toLocaleTimeString('es-MX'),
-                    timestamp: new Date().getTime(),
-                    latitud: lat,
-                    longitud: lon,
-                    dispositivo: navigator.userAgent
-                };
+        window.cambiarPanel = function(idPanel, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(idPanel).classList.add('active');
+            btn.classList.add('active');
+        };
 
-                // Enviamos los datos a Firebase
-                enviarALaBaseDeDatos(nuevoRegistroLog, statusDiv, btnConfirmar);
-            },
-            (error) => {
-                restaurarBoton();
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        mostrarError("Acceso denegado. Debes permitir el uso del GPS.");
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        mostrarError("Ubicación no disponible. Verifica tu señal GPS.");
-                        break;
-                    case error.TIMEOUT:
-                        mostrarError("Tiempo agotado. Intenta de nuevo.");
-                        break;
-                    default:
-                        mostrarError("Ocurrió un error desconocido al ubicar.");
+        // 2. CENTRO DE COMANDO: FOTO Y ENTRADA
+        window.procesarFoto = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    let width = img.width; let height = img.height;
+                    if (width > 600) { height = Math.round((height * 600) / width); width = 600; }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    imagenBase64 = canvas.toDataURL('image/jpeg', 0.6); 
+                    const preview = document.getElementById('preview-foto');
+                    preview.src = imagenBase64; preview.style.display = "block";
                 }
-            },
-            opcionesGps
-        );
-    }
+            }
+        };
 
-    async function enviarALaBaseDeDatos(datos, statusDiv, btnConfirmar) {
-        try {
-            // Guardamos en una colección nueva llamada 'historial_escoltas'
-            await addDoc(collection(db, "historial_escoltas"), datos);
-            
-            statusDiv.className = "success";
-            statusDiv.innerHTML = `<strong>✓ ¡Arribo Confirmado!</strong><br>
-                                   Ubicación guardada en la base de datos.<br>
-                                   <small>Lat: ${datos.latitud.toFixed(4)}, Lon: ${datos.longitud.toFixed(4)}</small>`;
-            
-            btnConfirmar.innerText = "REGISTRADO";
-            
-            // Limpiamos el campo de nombre después de 3 segundos para el próximo escolta
-            setTimeout(() => {
-                document.getElementById('nombre-escolta').value = "";
-                restaurarBoton();
-                statusDiv.style.display = "none";
-            }, 5000);
+        window.registrarEntrada = async function() {
+            const btn = document.getElementById('btnGuardarEntrada');
+            btn.disabled = true; btn.innerText = "Sincronizando...";
+            const data = {
+                ubicacion: document.getElementById('reg_ubicacion').value,
+                tipo_acceso: document.getElementById('reg_tipo').value,
+                visitante: document.getElementById('reg_nombre').value || "Desconocido",
+                domicilio: document.getElementById('reg_domicilio').value,
+                vehiculo: `${document.getElementById('reg_marca').value} ${document.getElementById('reg_color').value}`,
+                placas: document.getElementById('reg_placas').value,
+                foto_evidencia: imagenBase64,
+                timestamp_entrada: new Date().getTime(),
+                fecha_str: new Date().toLocaleDateString('es-MX'),
+                hora_entrada: new Date().toLocaleTimeString('es-MX'),
+                estado: "ADENTRO",
+                escolta: "Ninguna"
+            };
+            try {
+                await addDoc(collection(db, "control_maestro_accesos"), data);
+                alert("✅ Entrada registrada.");
+                document.querySelectorAll('#panel-registro input').forEach(i => i.value = '');
+                document.getElementById('preview-foto').style.display = 'none';
+                imagenBase64 = "NO";
+            } catch (e) { alert("❌ Error."); }
+            btn.disabled = false; btn.innerText = "REGISTRAR ENTRADA";
+        };
 
-        } catch (error) {
-            console.error("Error al guardar:", error);
-            mostrarError("Hubo un problema de conexión. Intenta de nuevo.");
-            restaurarBoton();
+        // 3. CENTRO DE COMANDO: LECTURA EN TIEMPO REAL Y KPIS
+        onSnapshot(query(collection(db, "control_maestro_accesos"), orderBy("timestamp_entrada", "desc")), (snapshot) => {
+            accesosActivos = []; historialCompleto = [];
+            let hoyStr = new Date().toLocaleDateString('es-MX');
+            let ingresosHoy = 0, escoltasHoy = 0, sumaMinutos = 0, salidasRealizadas = 0;
+
+            snapshot.forEach(d => {
+                let data = d.data(); data.id = d.id;
+                historialCompleto.push(data);
+                if (data.estado === "ADENTRO") accesosActivos.push(data);
+                if (data.fecha_str === hoyStr) {
+                    ingresosHoy++;
+                    if(data.escolta !== "Ninguna") escoltasHoy++;
+                }
+                if (data.estado === "AFUERA" && data.fecha_str === hoyStr) {
+                    let min = Math.round((data.timestamp_salida - data.timestamp_entrada) / 60000);
+                    if(min > 0) { sumaMinutos += min; salidasRealizadas++; }
+                }
+            });
+
+            document.getElementById('kpi-adentro').innerText = accesosActivos.length;
+            document.getElementById('kpi-hoy').innerText = ingresosHoy;
+            document.getElementById('kpi-escoltas').innerText = escoltasHoy;
+            document.getElementById('kpi-tiempo').innerHTML = salidasRealizadas > 0 ? `${Math.round(sumaMinutos/salidasRealizadas)} <small>min</small>` : `0 <small>min</small>`;
+
+            actualizarTablas();
+        });
+
+        function actualizarTablas() {
+            const tSalidas = document.getElementById('tabla-salidas');
+            const selProveedor = document.getElementById('esc_proveedor');
+            const tEscActivas = document.getElementById('tabla-escoltas-activas');
+            const tBitacora = document.getElementById('tabla-bitacora');
+            
+            tSalidas.innerHTML = ""; selProveedor.innerHTML = "<option value=''>- Selecciona un vehículo -</option>";
+            tEscActivas.innerHTML = ""; tBitacora.innerHTML = "";
+
+            accesosActivos.forEach(a => {
+                tSalidas.innerHTML += `<tr><td>${a.hora_entrada}</td><td><b>${a.visitante}</b></td><td><span class="badge bg-s">${a.placas}</span></td><td>${a.domicilio}</td><td><button class="btn-danger" onclick="registrarSalida('${a.id}')">Dar Salida</button></td></tr>`;
+                if(a.escolta === "Ninguna") { selProveedor.innerHTML += `<option value="${a.id}">${a.placas} - ${a.visitante}</option>`; } 
+                else { tEscActivas.innerHTML += `<tr><td>${a.visitante}</td><td>${a.domicilio}</td><td><b>${a.escolta}</b></td></tr>`; }
+            });
+
+            historialCompleto.forEach(h => {
+                let status = h.estado === "ADENTRO" ? '<span class="badge bg-s">ADENTRO</span>' : '<span class="badge bg-r">AFUERA</span>';
+                let dur = h.estado === "AFUERA" ? Math.round((h.timestamp_salida - h.timestamp_entrada) / 60000) + " min" : "En curso...";
+                tBitacora.innerHTML += `<tr><td>${status}</td><td>${h.fecha_str} ${h.hora_entrada}</td><td>${h.visitante}</td><td>${h.placas}</td><td>${h.escolta}</td><td><b>${dur}</b></td></tr>`;
+            });
         }
-    }
 
-    function mostrarError(mensaje) {
-        const statusDiv = document.getElementById('status-mensaje');
-        statusDiv.className = "error";
-        statusDiv.style.display = "block";
-        statusDiv.innerHTML = `<strong>⚠ Error:</strong> ${mensaje}`;
-    }
+        window.registrarSalida = async function(id) {
+            if(!confirm("¿Confirmar salida?")) return;
+            await updateDoc(doc(db, "control_maestro_accesos", id), { estado: "AFUERA", timestamp_salida: new Date().getTime(), hora_salida: new Date().toLocaleTimeString('es-MX') });
+        };
+        
+        window.asignarEscolta = async function(unidad) {
+            const id = document.getElementById('esc_proveedor').value;
+            if(!id) return alert("Selecciona un proveedor.");
+            await updateDoc(doc(db, "control_maestro_accesos", id), { escolta: unidad });
+        };
 
-    function restaurarBoton() {
-        const btnConfirmar = document.getElementById('btn-confirmar');
-        btnConfirmar.disabled = false;
-        btnConfirmar.innerText = "CONFIRMAR ARRIBO";
-    }
-</script>
+        // 4. MÓDULO MÓVIL: GEOLOCALIZACIÓN APPEND-ONLY
+        window.procesarArriboGPS = function() {
+            const nombre = document.getElementById('nombre-escolta').value.trim();
+            const btn = document.getElementById('btn-arribo-gps');
+            const statusDiv = document.getElementById('status-mensaje');
+            
+            if(!nombre) return alert("Escribe tu nombre/unidad primero.");
+            
+            btn.disabled = true; btn.innerText = "OBTENIENDO GPS...";
+            statusDiv.style.display = "block"; statusDiv.className = "loading"; statusDiv.innerText = "Ubicando satélite...";
 
+            if(!navigator.geolocation) { statusDiv.innerText = "GPS no soportado."; return; }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                statusDiv.innerText = "Guardando en historial inmutable...";
+                const logData = {
+                    id_escolta: nombre.toUpperCase(),
+                    tipo_evento: "ARRIBO_CONFIRMADO",
+                    fecha: new Date().toLocaleDateString('es-MX'),
+                    hora: new Date().toLocaleTimeString('es-MX'),
+                    timestamp: new Date().getTime(),
+                    latitud: pos.coords.latitude,
+                    longitud: pos.coords.longitude
+                };
+                
+                try {
+                    await addDoc(collection(db, "historial_escoltas_gps"), logData);
+                    statusDiv.className = "success";
+                    statusDiv.innerHTML = `<b>✓ Arribo Guardado</b><br>Lat: ${pos.coords.latitude.toFixed(4)}, Lon: ${pos.coords.longitude.toFixed(4)}`;
+                    btn.innerText = "REGISTRADO";
+                    setTimeout(() => { btn.disabled = false; btn.innerText = "📍 CONFIRMAR ARRIBO"; statusDiv.style.display = "none"; }, 4000);
+                } catch(e) { statusDiv.className = "error"; statusDiv.innerText = "Error de red."; btn.disabled = false; }
+            }, (err) => {
+                statusDiv.className = "error"; statusDiv.innerText = "Error al obtener GPS. Activa la ubicación."; btn.disabled = false; btn.innerText = "📍 CONFIRMAR ARRIBO";
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        };
+    </script>
 </body>
 </html>
