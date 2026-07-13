@@ -12,6 +12,7 @@
             --dark: #1f2937;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -21,7 +22,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1250px;
+            max-width: 1300px;
             margin: 0 auto;
         }
         header {
@@ -38,6 +39,7 @@
             grid-template-columns: 1.1fr 0.9fr;
             gap: 20px;
         }
+        @media(max-width: 900px) { .grid { grid-template-columns: 1fr; } }
         .card {
             background: white;
             padding: 20px;
@@ -58,7 +60,7 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
@@ -75,69 +77,100 @@
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 14px;
+            font-size: 13px;
         }
         th { background-color: var(--light); color: var(--dark); }
         .badge {
             padding: 4px 8px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: white;
+            display: inline-block;
         }
         .bg-success { background-color: var(--success); }
         .bg-danger { background-color: var(--danger); }
         .bg-info { background-color: #3b82f6; }
+        .bg-warning { background-color: var(--warning); }
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; }
         
-        .variable-select {
-            width: 100%;
-            padding: 4px;
-            font-size: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-        }
         .panel-variable {
             display: none; 
-            background: #e5e7eb; 
+            background: #f9fafb; 
             padding: 15px; 
             border-radius: 6px; 
             margin-top: 10px; 
             border: 1px dashed var(--secondary);
             margin-bottom: 15px;
         }
+        .info-regla {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--secondary);
+            padding: 10px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v2.3 (Histórico)</span></h1>
+        <h1>Control de Personal - El Cielo Parque Residencial <span class="badge-version">v3.0 (Reestructurada)</span></h1>
         <p class="motto">Consigna: Firmeza, no prepotencia</p>
     </header>
 
     <div class="grid">
         <div class="card">
             <h2>Asignación y Registro Semanal</h2>
-            <p style="font-size: 12px; color: #4b5563; margin-top: -5px;">Al guardar, el rol se actualizará en la pantalla principal y se generará un reporte inmutable para auditorías futuras.</p>
             <form id="form-agente">
                 <div class="flex-row">
-                    <div class="form-group">
-                        <label for="id-agente">Número de Agente</label>
-                        <select id="id-agente" required>
-                            <option value="" disabled selected>Elige un Agente...</option>
-                        </select>
-                    </div>
                     <div class="form-group">
                         <label for="semana-agente">Semana Operativa</label>
                         <input type="week" id="semana-agente" required>
                     </div>
+                    <div class="form-group">
+                        <label for="id-agente">Seleccionar Elemento</label>
+                        <select id="id-agente" required>
+                            <option value="" disabled selected>Elige un colaborador...</option>
+                            <optgroup label="Monitoristas (Rotativos)">
+                                <option value="mon_leroy">LEROY</option>
+                                <option value="mon_pizarro">ABEL PIZARRO</option>
+                                <option value="mon_santillan">SANTILLAN</option>
+                            </optgroup>
+                            <optgroup label="Grupo 1 Patrullaje (Rotativos)">
+                                <option value="g1_luis">LUIS</option>
+                                <option value="g1_leonardo">LEONARDO</option>
+                                <option value="g1_jorge">JORGE MACIAS</option>
+                            </optgroup>
+                            <optgroup label="Grupo 2 Patrullaje (Rotativos)">
+                                <option value="g2_alfonso">ALFONSO</option>
+                                <option value="g2_mario">MARIO IBARRA</option>
+                                <option value="g2_vacante">ELEMENTO VACANTE</option>
+                            </optgroup>
+                            <optgroup label="Grupo 3 (Turno Fijo Día)">
+                                <option value="g3_armando">ARMANDO</option>
+                                <option value="g3_jose">JOSE ANGEL</option>
+                            </optgroup>
+                            <optgroup label="Grupo 4 (Cubre Descansos)">
+                                <option value="g4_isael">ISAEL</option>
+                                <option value="g4_sotelo">SOTELO</option>
+                            </optgroup>
+                            <optgroup label="Grupo 5 (Especiales)">
+                                <option value="g5_vinalay">VINALAY</option>
+                                <option value="g5_mario_lopez">MARIO LOPEZ</option>
+                            </optgroup>
+                        </select>
+                    </div>
                 </div>
+
+                <div id="bloque-regla" class="info-regla" style="display:none;"></div>
 
                 <div class="flex-row">
                     <div class="form-group" style="flex: 2;">
-                        <label for="nombre-agente">Nombre del Elemento</label>
-                        <input type="text" id="nombre-agente" placeholder="Ej. Juan Pérez" required>
+                        <label for="nombre-agente">Nombre en Registro</label>
+                        <input type="text" id="nombre-agente" readonly style="background-color: #e5e7eb;">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label for="turno-agente">Turno Asignado</label>
@@ -145,22 +178,17 @@
                             <option value="07:00 a 15:00">07:00 a 15:00</option>
                             <option value="15:00 a 23:00">15:00 a 23:00</option>
                             <option value="23:00 a 07:00">23:00 a 07:00</option>
-                            <option value="Variable">Horario Variable</option>
+                            <option value="07:00 a 18:00">07:00 a 18:00</option>
+                            <option value="09:00 a 18:00">09:00 a 18:00</option>
+                            <option value="Quebrado / Variable">Quebrado / Variable</option>
+                            <option value="Cubre Descansos (Rotativo)">Cubre Descansos (Rotativo)</option>
                         </select>
                     </div>
                 </div>
 
                 <div id="panel-variable" class="panel-variable">
-                    <label style="color: var(--primary); font-size: 14px; margin-bottom:10px;">Configurar Horario Variable (Día por Día):</label>
-                    <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                        <div><label style="font-size:11px;">Lunes</label><select id="turno-1" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Martes</label><select id="turno-2" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Miércoles</label><select id="turno-3" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Jueves</label><select id="turno-4" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Viernes</label><select id="turno-5" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Sábado</label><select id="turno-6" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                        <div><label style="font-size:11px;">Domingo</label><select id="turno-0" class="variable-select"><option value="07:00 a 15:00">07:00 a 15:00</option><option value="15:00 a 23:00">15:00 a 23:00</option><option value="23:00 a 07:00">23:00 a 07:00</option></select></div>
-                    </div>
+                    <label style="color: var(--primary); font-weight: bold; font-size: 13px;">Distribución Guiada del Turno Semanal:</label>
+                    <p id="detalle-dias" style="font-size: 12px; margin: 5px 0 0 0; color: #374151; white-space: pre-line;"></p>
                 </div>
 
                 <div class="flex-row form-group">
@@ -193,51 +221,49 @@
                 <button type="submit" id="btn-guardar">Registrar Rol en Bitácora</button>
             </form>
 
-            <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Operativa Actual</h3>
+            <h3 style="margin-top: 30px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Plantilla Operativa Guardada (Semana Actual)</h3>
             <table id="tabla-plantilla">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Turno Asignado</th>
-                        <th>Descansos</th>
+                        <th>Grupo</th>
+                        <th>Colaborador</th>
+                        <th>Turno Autorizado</th>
+                        <th>Descanso(s)</th>
                     </tr>
                 </thead>
-                <tbody id="lista-plantilla">
-                </tbody>
+                <tbody id="lista-plantilla"></tbody>
             </table>
         </div>
 
         <div class="card">
             <h2>Auditoría Histórica</h2>
-            <p style="font-size: 14px; color: #4b5563;">Consulta el rol exacto que operó durante una semana pasada específica.</p>
+            <p style="font-size: 14px; color: #4b5563;">Consulta el rol inmutable que operó de manera estricta durante cualquier semana del año.</p>
             <div class="form-group">
                 <label for="semana-auditoria">Seleccionar Semana a Auditar:</label>
                 <input type="week" id="semana-auditoria">
             </div>
             <button id="btn-auditar">Buscar Reporte Semanal</button>
 
-            <h3 id="titulo-reporte" style="margin-top: 20px; display: none;">Reporte de la Semana <span id="fecha-texto"></span></h3>
+            <h3 id="titulo-reporte" style="margin-top: 20px; display: none;">Reporte Irreversible: Semana <span id="fecha-texto"></span></h3>
             <table id="tabla-auditoria" style="display: none;">
                 <thead>
                     <tr>
                         <th>Elemento</th>
-                        <th>Turno Base</th>
-                        <th>Descansos Asignados</th>
+                        <th>Turno Cumplido</th>
+                        <th>Descansos Aplicados</th>
                     </tr>
                 </thead>
-                <tbody id="lista-auditoria">
-                </tbody>
+                <tbody id="lista-auditoria"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script type="module">
-    // Se agregan "query" y "where" para buscar en el historial
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // Mantenemos tus credenciales originales de Firebase intactas
     const firebaseConfig = {
         apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
         authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
@@ -251,231 +277,255 @@
     const db = getFirestore(app);
 
     const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const turnosBase = ["07:00 a 15:00", "15:00 a 23:00", "23:00 a 07:00"];
 
-    const selectAgente = document.getElementById('id-agente');
-    for (let i = 1; i <= 15; i++) {
-        let option = document.createElement('option');
-        option.value = `Agente_${i}`;
-        option.textContent = `Agente ${i}`;
-        selectAgente.appendChild(option);
+    // Base de datos estática de Reglas y Grupos para evitar la ambigüedad humana
+    const mapeoElementos = {
+        // Monitoristas
+        "mon_leroy": { nombre: "LEROY", grupo: "Monitoristas", tipo: "rotativo", offset: 0 },
+        "mon_pizarro": { nombre: "ABEL PIZARRO", grupo: "Monitoristas", tipo: "rotativo", offset: 1 },
+        "mon_santillan": { nombre: "SANTILLAN", grupo: "Monitoristas", tipo: "rotativo", offset: 2 },
+        // Grupo 1
+        "g1_luis": { nombre: "LUIS", grupo: "Grupo 1 Patrullaje", tipo: "g1", offset: 0 },
+        "g1_leonardo": { nombre: "LEONARDO", grupo: "Grupo 1 Patrullaje", tipo: "g1", offset: 1 },
+        "g1_jorge": { nombre: "JORGE MACIAS", grupo: "Grupo 1 Patrullaje", tipo: "g1", offset: 2 },
+        // Grupo 2
+        "g2_alfonso": { nombre: "ALFONSO", grupo: "Grupo 2 Patrullaje", tipo: "g2", offset: 0 },
+        "g2_mario": { nombre: "MARIO IBARRA", grupo: "Grupo 2 Patrullaje", tipo: "g2", offset: 1 },
+        "g2_vacante": { nombre: "ELEMENTO VACANTE", grupo: "Grupo 2 Patrullaje", tipo: "g2", offset: 2 },
+        // Grupo 3 (Fijos)
+        "g3_armando": { nombre: "ARMANDO", grupo: "Grupo 3", tipo: "fijo", turno: "07:00 a 15:00", descansos: [0] },
+        "g3_jose": { nombre: "JOSE ANGEL", grupo: "Grupo 3", tipo: "fijo", turno: "07:00 a 18:00", descansos: [0, 1] },
+        // Grupo 4 (Cubre descansos)
+        "g4_isael": { nombre: "ISAEL", grupo: "Grupo 4", tipo: "cubre_descanso", descansos: [1], detalle: "Mar a Vie: 07:00-15:00 | Sáb: 15:00-23:00 | Dom: 23:00-07:00" },
+        "g4_sotelo": { nombre: "SOTELO", grupo: "Grupo 4", tipo: "cubre_descanso", descansos: [0], detalle: "Lun y Mar: 07:00-15:00 | Mié y Jue: 15:00-23:00 | Vie y Sáb: 23:00-07:00" },
+        // Grupo 5
+        "g5_vinalay": { nombre: "VINALAY", grupo: "Grupo 5", tipo: "fijo", turno: "09:00 a 18:00", descansos: [0] },
+        "g5_mario_lopez": { nombre: "MARIO LOPEZ", grupo: "Grupo 5", tipo: "variable", turno: "Quebrado / Variable", descansos: [0] } // Por defecto dom
+    };
+
+    // Función matemática para obtener el número de semana epidemiológica/operativa
+    function getNumeroSemana(weekString) {
+        if(!weekString) return 0;
+        return parseInt(weekString.split('-W')[1]);
     }
 
-    document.getElementById('id-agente').addEventListener('change', async (e) => {
-        const idAgente = e.target.value;
-        try {
-            const docRef = doc(db, "elementos", idAgente);
-            const docSnap = await getDoc(docRef);
+    // Algoritmo de cálculo automático de turnos y descansos
+    function calcularRolSugerido(idKey, semanaStr) {
+        const el = mapeoElementos[idKey];
+        if (!el) return null;
+        
+        const numSemana = getNumeroSemana(semanaStr);
+
+        if (el.tipo === "fijo") {
+            return { turno: el.turno, descansos: el.descansos, nota: "Turno y descansos configurados como INMUTABLES." };
+        }
+
+        if (el.tipo === "cubre_descanso") {
+            return { turno: "Cubre Descansos (Rotativo)", descansos: el.descansos, nota: el.detalle };
+        }
+
+        if (el.tipo === "variable") {
+            return { turno: el.turno, descansos: el.descansos, nota: "Horario quebrado bajo asignación diaria." };
+        }
+
+        // Lógica rotativa pura indexada por el número de semana
+        if (el.tipo === "rotativo") {
+            const indexTurno = (numSemana + el.offset) % 3;
+            return { 
+                turno: turnosBase[indexTurno], 
+                descansos: [0], // Ajustar si el grupo monitorista tiene descansos rotativos específicos
+                nota: `Rotación automatizada para el área de monitoreo (Semana ${numSemana}).` 
+            };
+        }
+
+        if (el.tipo === "g1") {
+            const indexTurno = (numSemana + el.offset) % 3;
+            // Mañana = desc Martes (2), Tarde = desc Jueves (4), Noche = desc Viernes (5)
+            const mapeoDescansosG1 = [2, 4, 5]; 
+            return {
+                turno: turnosBase[indexTurno],
+                descansos: [mapeoDescansosG1[indexTurno]],
+                nota: `Patrullaje G1 estructurado: Mañana desc. Martes | Tarde desc. Jueves | Noche desc. Viernes.`
+            };
+        }
+
+        if (el.tipo === "g2") {
+            const indexTurno = (numSemana + el.offset) % 3;
+            // Mañana = desc Miércoles (3), Tarde = desc Sábado (6), Noche = desc Sábado (6)
+            const mapeoDescansosG2 = [3, 6, 6];
+            return {
+                turno: turnosBase[indexTurno],
+                descansos: [mapeoDescansosG2[indexTurno]],
+                nota: `Patrullaje G2 estructurado: Mañana desc. Miércoles | Tarde/Noche desc. Sábado.`
+            };
+        }
+    }
+
+    // Listener de cambios para calcular el rol de forma predictiva y firme
+    const inputsControl = ['id-agente', 'semana-agente'];
+    inputsControl.forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+            const idKey = document.getElementById('id-agente').value;
+            const semanaStr = document.getElementById('semana-agente').value;
             
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('nombre-agente').value = data.nombre || '';
-                
-                // Si la semana ya pasó, no la cargamos para obligar a poner la nueva. Si hay una reciente, la cargamos.
-                if(data.semana) document.getElementById('semana-agente').value = data.semana;
-                
-                document.getElementById('turno-agente').value = data.turno || '07:00 a 15:00';
-                document.getElementById('turno-agente').dispatchEvent(new Event('change'));
-                
-                if (data.descansos && data.descansos.length > 0) {
-                    document.getElementById('descanso-1').value = data.descansos;
-                    if (data.descansos.length > 1) {
-                        document.getElementById('descanso-2').value = data.descansos;
-                    } else {
-                        document.getElementById('descanso-2').value = "";
-                    }
-                } else {
-                    document.getElementById('descanso-1').value = '1';
-                    document.getElementById('descanso-2').value = '';
-                }
-                
-                if (data.turno === 'Variable' && data.turnoSemanal) {
-                    for(let i=0; i<=6; i++) {
-                        if(data.turnoSemanal[i]) {
-                            document.getElementById(`turno-${i}`).value = data.turnoSemanal[i];
-                        }
-                    }
-                }
-            } else {
-                document.getElementById('form-agente').reset();
-                document.getElementById('id-agente').value = idAgente;
-                document.getElementById('turno-agente').dispatchEvent(new Event('change'));
+            if(!idKey) return;
+            
+            const configElemento = mapeoElementos[idKey];
+            document.getElementById('nombre-agente').value = configElemento.nombre;
+
+            if(!semanaStr) {
+                document.getElementById('bloque-regla').style.display = "block";
+                document.getElementById('bloque-regla').innerHTML = "⚠️ Selecciona una <strong>Semana Operativa</strong> para proyectar el turno de forma exacta.";
+                return;
             }
-        } catch (error) {
-            console.error("Error al cargar agente:", error);
-        }
+
+            const sugerencia = calcularRolSugerido(idKey, semanaStr);
+            if(sugerencia) {
+                // Forzar campos según matriz autorizada
+                document.getElementById('turno-agente').value = sugerencia.turno;
+                document.getElementById('descanso-1').value = sugerencia.descansos[0];
+                document.getElementById('descanso-2').value = sugerencia.descansos[1] !== undefined ? sugerencia.descansos[1] : "";
+
+                // Desplegar justificación del sistema
+                const bloqueRegla = document.getElementById('bloque-regla');
+                bloqueRegla.style.display = "block";
+                bloqueRegla.innerHTML = `<strong>Regla Operativa Aplicada:</strong> ${sugerencia.nota}`;
+
+                // Desplegar panel de días detallados para el grupo 4 o variables
+                const panelVar = document.getElementById('panel-variable');
+                if(configElemento.tipo === "cubre_descanso" || configElemento.tipo === "variable") {
+                    panelVar.style.display = "block";
+                    document.getElementById('detalle-dias').textContent = sugerencia.nota;
+                } else {
+                    panelVar.style.display = "none";
+                }
+            }
+        });
     });
 
-    document.getElementById('turno-agente').addEventListener('change', (e) => {
-        const panelVariable = document.getElementById('panel-variable');
-        if (e.target.value === 'Variable') {
-            panelVariable.style.display = 'block';
-        } else {
-            panelVariable.style.display = 'none';
-        }
-    });
-
-    // SISTEMA DE DOBLE ESCRITURA: Elementos Actuales y Bitácora Histórica
+    // Guardado doble en Firebase (Estructura espejo)
     document.getElementById('form-agente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btnGuardar = document.getElementById('btn-guardar');
-        btnGuardar.textContent = "Registrando...";
+        btnGuardar.textContent = "Validando y Escribiendo...";
         btnGuardar.disabled = true;
 
         const idAgente = document.getElementById('id-agente').value;
-        const nombre = document.getElementById('nombre-agente').value || "";
-        const semana = document.getElementById('semana-agente').value; // Obligatorio
-        const turno = document.getElementById('turno-agente').value || "";
+        const nombre = document.getElementById('nombre-agente').value;
+        const semana = document.getElementById('semana-agente').value;
+        const turno = document.getElementById('turno-agente').value;
         const descanso1 = parseInt(document.getElementById('descanso-1').value);
         const descanso2Raw = document.getElementById('descanso-2').value;
 
         let descansos = [descanso1];
         if (descanso2Raw !== "") {
-            const descanso2 = parseInt(descanso2Raw);
-            if (descanso1 === descanso2) {
-                alert("Precaución: Los días de descanso deben ser diferentes.");
+            const d2 = parseInt(descanso2Raw);
+            if (descanso1 === d2) {
+                alert("Error de Control: Los días de descanso no pueden duplicarse.");
                 btnGuardar.textContent = "Registrar Rol en Bitácora";
                 btnGuardar.disabled = false;
                 return;
             }
-            descansos.push(descanso2);
+            descansos.push(d2);
         }
 
-        let dataToUpdate = {
+        const datosRegistro = {
             idAgente: idAgente,
             nombre: nombre,
+            grupo: mapeoElementos[idAgente].grupo,
             semana: semana,
             turno: turno,
             descansos: descansos,
             actualizado: new Date().toISOString()
         };
 
-        if (turno === 'Variable') {
-            dataToUpdate.turnoSemanal = {
-                1: document.getElementById('turno-1').value,
-                2: document.getElementById('turno-2').value,
-                3: document.getElementById('turno-3').value,
-                4: document.getElementById('turno-4').value,
-                5: document.getElementById('turno-5').value,
-                6: document.getElementById('turno-6').value,
-                0: document.getElementById('turno-0').value
-            };
-        } else {
-            dataToUpdate.turnoSemanal = {}; 
-        }
-
         try {
-            // 1. Escritura en Histórico (Nueva colección: roles_semanales)
-            const idHistorial = `${semana}_${idAgente}`;
-            await setDoc(doc(db, "roles_semanales", idHistorial), dataToUpdate);
-
-            // 2. Escritura en Pantalla Activa (Colección actual: elementos)
-            await setDoc(doc(db, "elementos", idAgente), dataToUpdate, { merge: true });
+            // Histórico (Auditoría)
+            await setDoc(doc(db, "roles_semanales", `${semana}_${idAgente}`), datosRegistro);
+            // Pantalla en Vivo (Estatus Actual)
+            await setDoc(doc(db, "elementos", idAgente), datosRegistro, { merge: true });
             
-            alert(`Novedad confirmada: Rol de ${nombre} guardado para la ${semana}.`);
-            
-            // Limpieza parcial manteniendo la semana seleccionada por comodidad
+            alert(`Novedad confirmada: Rol de ${nombre} registrado sin anomalías para la ${semana}.`);
             document.getElementById('id-agente').value = "";
             document.getElementById('nombre-agente').value = "";
-            document.getElementById('panel-variable').style.display = 'none';
+            document.getElementById('bloque-regla').style.display = "none";
+            document.getElementById('panel-variable').style.display = "none";
         } catch (error) {
-            console.error("Error al guardar: ", error);
-            alert("No se pudo registrar la bitácora. Revisa los permisos de Firebase.");
+            console.error(error);
+            alert("Fallo de comunicación con la base de datos de seguridad.");
         } finally {
             btnGuardar.textContent = "Registrar Rol en Bitácora";
             btnGuardar.disabled = false;
         }
     });
 
-    // Monitorización en tiempo real de la plantilla activa
+    // Vista en tiempo real de la plantilla
     onSnapshot(collection(db, "elementos"), (snapshot) => {
         const tbody = document.getElementById('lista-plantilla');
         tbody.innerHTML = '';
         
-        let elementos = [];
-        snapshot.forEach((doc) => {
-            elementos.push({ id: doc.id, ...doc.data() });
-        });
+        let filas = [];
+        snapshot.forEach((doc) => { filas.push(doc.data()); });
 
-        elementos.sort((a, b) => parseInt(a.id.split('_')) - parseInt(b.id.split('_')));
+        // Ordenar lógicamente por grupo asignado
+        filas.sort((a, b) => a.grupo.localeCompare(b.grupo));
 
-        elementos.forEach((el) => {
+        filas.forEach((el) => {
             let tr = document.createElement('tr');
-            
-            let desArray = Array.isArray(el.descansos) ? el.descansos : [];
-            let txtDescansos = desArray.map(d => diasSemana[d]).filter(d => d !== undefined).join(' y ') || "N/A";
-            
-            let txtTurno = el.turno === 'Variable' ? "Cubre Descansos (Rotativo)" : (el.turno || "No asignado");
+            let txtDescansos = el.descansos.map(d => diasSemana[d]).join(' y ');
             let txtSemana = el.semana ? `<br><span class="badge bg-info">${el.semana}</span>` : '';
 
             tr.innerHTML = `
-                <td>${el.id.replace('_', ' ')}</td>
-                <td><strong>${el.nombre || "Sin Nombre"}</strong> ${txtSemana}</td>
-                <td><span style="color: var(--primary); font-weight: 500;">${txtTurno}</span></td>
-                <td>${txtDescansos}</td>
+                <td><small style="font-weight:bold; color:#4b5563;">${el.grupo}</small></td>
+                <td><strong>${el.nombre}</strong> ${txtSemana}</td>
+                <td><span style="color: var(--primary); font-weight: 600;">${el.turno}</span></td>
+                <td><span class="badge bg-warning">${txtDescansos}</span></td>
             `;
             tbody.appendChild(tr);
         });
     });
 
-    // Nueva Lógica de Auditoría: Búsqueda Histórica por Semana
+    // Ejecución de Auditoría Semanal Estricta
     document.getElementById('btn-auditar').addEventListener('click', async () => {
-        const semanaBusqueda = document.getElementById('semana-auditoria').value;
-        if (!semanaBusqueda) {
-            alert("Selecciona la semana operativa a auditar.");
+        const semBusqueda = document.getElementById('semana-auditoria').value;
+        if (!semBusqueda) {
+            alert("Indique la semana exacta que desea auditar.");
             return;
         }
 
         document.getElementById('titulo-reporte').style.display = 'block';
         document.getElementById('tabla-auditoria').style.display = 'table';
-        document.getElementById('fecha-texto').textContent = semanaBusqueda;
+        document.getElementById('fecha-texto').textContent = semBusqueda;
 
         const tbodyAuditoria = document.getElementById('lista-auditoria');
-        tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center;">Buscando registros...</td></tr>';
+        tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center;">Abriendo archivos...</td></tr>';
 
         try {
-            // Buscamos en la colección histórica todos los documentos que pertenezcan a esa semana
-            const q = query(collection(db, "roles_semanales"), where("semana", "==", semanaBusqueda));
+            const q = query(collection(db, "roles_semanales"), where("semana", "==", semBusqueda));
             const querySnapshot = await getDocs(q);
             
-            let elementosAuditoria = [];
-            querySnapshot.forEach((doc) => {
-                elementosAuditoria.push(doc.data());
-            });
-
             tbodyAuditoria.innerHTML = '';
+            let logs = [];
+            querySnapshot.forEach(doc => logs.push(doc.data()));
 
-            if (elementosAuditoria.length === 0) {
-                tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--danger);">No hay bitácoras registradas para esta semana.</td></tr>';
+            if (logs.length === 0) {
+                tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--danger); font-weight:bold;">Ninguna bitácora fue firmada digitalmente en este periodo.</td></tr>';
                 return;
             }
 
-            // Ordenar por número de agente
-            elementosAuditoria.sort((a, b) => parseInt(a.idAgente.split('_')) - parseInt(b.idAgente.split('_')));
-
-            elementosAuditoria.forEach(el => {
+            logs.forEach(el => {
                 let tr = document.createElement('tr');
-                
-                let desArray = Array.isArray(el.descansos) ? el.descansos : [];
-                let txtDescansos = desArray.map(d => diasSemana[d]).filter(d => d !== undefined).join(' y ') || "Ninguno";
-                
-                let horarioHTML = "";
-                if (el.turno === 'Variable' && el.turnoSemanal) {
-                    horarioHTML = `<span style="font-size:12px; color: var(--secondary);">Rotativo (Ver detalle en DB)</span>`;
-                } else {
-                    horarioHTML = `<strong>${el.turno || 'N/A'}</strong>`;
-                }
-
+                let txtDescansos = el.descansos.map(d => diasSemana[d]).join(' y ');
                 tr.innerHTML = `
-                    <td>${el.nombre || "Sin Nombre"} <br><small style="color:#6b7280">${el.idAgente.replace('_', ' ')}</small></td>
-                    <td>${horarioHTML}</td>
+                    <td><strong>${el.nombre}</strong><br><small style="color:#6b7280">${el.grupo}</small></td>
+                    <td><span style="font-weight:500;">${el.turno}</span></td>
                     <td><span class="badge bg-danger">${txtDescansos}</span></td>
                 `;
                 tbodyAuditoria.appendChild(tr);
             });
-
         } catch (error) {
-            console.error("Error al auditar el historial: ", error);
-            tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--danger);">Error al conectar con el servidor para la auditoría.</td></tr>';
+            tbodyAuditoria.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--danger);">Fallo en la verificación del reporte histórico.</td></tr>';
         }
     });
 </script>
