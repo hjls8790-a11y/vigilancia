@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Directorio Vehicular - Control de Accesos</title>
+    <style>
+        :root {
+            --bg-dark: #1e293b;
+            --bg-card: #ffffff;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --text-main: #334155;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
+            padding-bottom: 80px;
+        }
+
+        /* Encabezado */
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 { margin: 0; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { margin: 5px 0 0; font-size: 0.85rem; color: #cbd5e1; }
+
+        /* Buscador */
+        .search-container {
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 65px;
+            z-index: 99;
+        }
+        .search-box {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .search-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Contenedor de Resultados */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+
+        /* Tarjeta de Vehículo */
+        .vehicle-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: row; /* Diseño horizontal para ahorrar espacio vertical */
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Imagen comprimida */
+        .vehicle-img-container {
+            width: 110px;
+            min-width: 110px;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .vehicle-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ajusta la foto sin deformarla */
+        }
+
+        /* Información */
+        .vehicle-info {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .plate {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .house {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .details {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Mensajes vacíos */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+        .empty-state h3 { color: var(--primary); margin-bottom: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚗 Directorio Vehicular</h1>
+        <p>Consulta rápida por Placa o Domicilio</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Ingresa placa (ej. VSR942) o casa (ej. Retorno 4)" onkeyup="filtrarVehiculos()">
+    </div>
+
+    <div class="results-grid" id="resultsArea">
+        <!-- Los resultados se inyectarán aquí mediante JavaScript -->
+    </div>
+
+    <script>
+        // Base de Datos Simulada (Para conectar luego a Firebase)
+        // NOTA: Se recomienda usar imágenes .webp pequeñas (ej. 300x300px) para ahorrar espacio
+        const vehiculosDB = [
+            {
+                placa: "VSR-942-A",
+                casa: "Retorno 4, Lote 12",
+                marca: "Nissan Sentra",
+                color: "Blanco",
+                // Imagen placeholder (reemplazar con URL de Firebase Storage en formato .webp)
+                foto: "https://via.placeholder.com/150/cbd5e1/64748b?text=Foto+WebP"
+            },
+            {
+                placa: "JKM-112-B",
+                casa: "Retorno 4, Lote 12", // Misma casa, segundo vehículo
+                marca: "Toyota Hilux",
+                color: "Gris Plata",
+                foto: "https://via.placeholder.com/150/cbd5e1/64748b?text=Foto+WebP"
+            },
+            {
+                placa: "XYZ-999-C",
+                casa: "Avenida Principal, Lote 8",
+                marca: "Honda Civic",
+                color: "Negro",
+                foto: "https://via.placeholder.com/150/cbd5e1/64748b?text=Foto+WebP"
+            },
+            {
+                placa: "ABC-123-D",
+                casa: "Privada Las Palmas, Lote 1",
+                marca: "Kia Rio",
+                color: "Rojo",
+                foto: "https://via.placeholder.com/150/cbd5e1/64748b?text=Foto+WebP"
+            }
+        ];
+
+        // Función para normalizar texto (quita acentos, guiones y mayúsculas para búsquedas flexibles)
+        function normalizarTexto(texto) {
+            return texto.normalize("NFD").replace(/[\u0300-\u036f\- ]/g, "").toLowerCase();
+        }
+
+        // Función principal de filtrado
+        function filtrarVehiculos() {
+            let inputBruto = document.getElementById('searchInput').value;
+            let inputLimpio = normalizarTexto(inputBruto);
+            let areaResultados = document.getElementById('resultsArea');
+            
+            // Limpiar resultados anteriores
+            areaResultados.innerHTML = "";
+
+            // Mostrar estado inicial si está vacío
+            if (inputLimpio === "") {
+                areaResultados.innerHTML = `
+                <div class="empty-state">
+                    <h3>Directorio Activo</h3>
+                    <p>Escribe la placa del vehículo o el domicilio para verificar el acceso.</p>
+                </div>`;
+                return;
+            }
+
+            // Filtrar coincidencia en placa o casa
+            let resultados = vehiculosDB.filter(vehiculo => {
+                let placaLimpia = normalizarTexto(vehiculo.placa);
+                let casaLimpia = normalizarTexto(vehiculo.casa);
+                
+                return placaLimpia.includes(inputLimpio) || casaLimpia.includes(inputLimpio);
+            });
+
+            // Renderizar resultados
+            if (resultados.length > 0) {
+                resultados.forEach(vehiculo => {
+                    let tarjeta = document.createElement('div');
+                    tarjeta.className = 'vehicle-card';
+                    tarjeta.innerHTML = `
+                        <div class="vehicle-img-container">
+                            <!-- Se usa loading="lazy" para que las fotos solo carguen si están en pantalla, ahorrando datos -->
+                            <img src="${vehiculo.foto}" alt="Foto de ${vehiculo.marca}" loading="lazy">
+                        </div>
+                        <div class="vehicle-info">
+                            <div class="plate">${vehiculo.placa}</div>
+                            <div class="house">🏠 ${vehiculo.casa}</div>
+                            <p class="details">${vehiculo.marca} - Color: ${vehiculo.color}</p>
+                        </div>
+                    `;
+                    areaResultados.appendChild(tarjeta);
+                });
+            } else {
+                areaResultados.innerHTML = `
+                <div class="empty-state">
+                    <h3>Sin coincidencias</h3>
+                    <p>No se encontró ningún vehículo registrado con "${inputBruto}".</p>
+                </div>`;
+            }
+        }
+
+        // Inicializar pantalla vacía al cargar
+        window.onload = filtrarVehiculos;
+
+    </script>
+</body>
+</html>
