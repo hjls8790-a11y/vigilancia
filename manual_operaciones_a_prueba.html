@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Manual de Operaciones - El Cielo</title>
+    <style>
+        :root {
+            --primary: #1A252F;
+            --secondary: #2C3E50;
+            --accent: #3498DB;
+            --danger: #E74C3C;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --light: #ECF0F1;
+            --text: #333333;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: var(--text); padding-bottom: 60px;}
+        
+        /* Encabezado */
+        .header { background-color: var(--primary); color: white; padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+        .header h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px;}
+        .header p { margin: 5px 0 0; font-size: 0.8rem; color: #BDC3C7; }
+
+        /* Buscador Central */
+        .search-container { padding: 15px; background: white; border-bottom: 1px solid #ddd; }
+        .search-box { width: 100%; padding: 15px; font-size: 1rem; border: 2px solid var(--accent); border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);}
+        .search-box:focus { border-color: var(--secondary); box-shadow: 0 2px 8px rgba(44, 62, 80, 0.3);}
+        
+        /* Sugerencias Rápidas */
+        .quick-tags { display: flex; overflow-x: auto; gap: 10px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #eee; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .quick-tags::-webkit-scrollbar { display: none; }
+        .tag { background: var(--light); color: var(--secondary); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid #ddd;}
+        .tag.alarma { border-color: var(--danger); color: var(--danger); }
+        .tag.amarillo { border-color: var(--warning); color: #d68910; }
+        .tag.obra { border-color: var(--accent); color: var(--accent); }
+
+        /* Contenedor de Resultados */
+        .results-container { padding: 15px; }
+        .result-card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .result-category { font-size: 0.75rem; font-weight: bold; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; display: block;}
+        .result-title { font-size: 1.1rem; color: var(--primary); margin: 0 0 10px 0; }
+        .result-content { font-size: 0.95rem; line-height: 1.5; color: #555; }
+        .result-content ul { padding-left: 20px; margin-top: 5px; }
+        .result-content li { margin-bottom: 8px; }
+        
+        .no-results { text-align: center; padding: 40px 20px; color: #7f8c8d; }
+        .no-results h3 { margin: 0; color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ Manual Operativo</h1>
+        <p>Residencial El Cielo - Consulta para Agentes</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Ej. ¿Qué hacer en código amarillo?" onkeyup="ejecutarBusqueda()">
+    </div>
+
+    <div class="quick-tags">
+        <div class="tag alarma" onclick="busquedaRapida('alarma')">🚨 Alarma</div>
+        <div class="tag alarma" onclick="busquedaRapida('accidente')">🚑 Accidente</div>
+        <div class="tag amarillo" onclick="busquedaRapida('amarillo')">🚗 Código Amarillo</div>
+        <div class="tag obra" onclick="busquedaRapida('revisión')">👷 Revisión a Obra</div>
+        <div class="tag" onclick="busquedaRapida('allanamiento')">🛑 Allanamiento</div>
+        <div class="tag" onclick="busquedaRapida('jumapam')">💧 Autoridades</div>
+    </div>
+
+    <div class="results-container" id="resultsArea">
+        <div class="no-results">
+            <h3>Bienvenido al Manual Digital</h3>
+            <p>Escribe tu duda en el buscador o selecciona una etiqueta rápida para encontrar el protocolo.</p>
+        </div>
+    </div>
+
+    <script>
+        // Base de Datos del Manual (Actualizada con las normativas del archivo PDF adjunto)
+        const manualDB = [
+            {
+                categoria: "General",
+                titulo: "Objetivo General y Específicos",
+                tags: "objetivo, mision, prevencion, proteger, residentes, general",
+                contenido: `<strong>Objetivo General:</strong> Proteger la integridad física y patrimonial de los residentes, así como garantizar un entorno seguro y tranquilo dentro del Residencial como comunidad.[span_0](start_span)[span_0](end_span)<br>
+                <strong>Específicos:</strong>
+                <ul>
+                    <li>Prevenir y disuadir acciones infractoras.[span_1](start_span)[span_1](end_span)</li>
+                    <li>Proteger a los residentes y sus bienes.[span_2](start_span)[span_2](end_span)</li>
+                    <li>Proteger a los trabajadores y sus pertenencias.[span_3](start_span)[span_3](end_span)</li>
+                    <li>Mantener el orden y la tranquilidad.[span_4](start_span)[span_4](end_span)</li>
+                    <li>Colaborar con autoridades y corporaciones.[span_5](start_span)[span_5](end_span)</li>
+                    <li>Implementar medidas efectivas y actualizadas de seguridad.[span_6](start_span)[span_6](end_span)</li>
+                    <li>Capacitar al personal de seguridad.[span_7](start_span)[span_7](end_span)</li>
+                    <li>Mejorar continuamente las operaciones y procedimientos.[span_8](start_span)[span_8](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Seguimiento a Proveedores de Obra (Código Amarillo)",
+                tags: "proveedor, obra, amarillo, escolta, velocidad, derrames, calzas, material",
+                contenido: `<strong>Protocolo:</strong>
+                <ul>
+                    <li>El Agente de Prevención Patrullaje guía al proveedor al domicilio indicado, tomando el frente y marcando el paso a 20 km/h.[span_9](start_span)[span_9](end_span)</li>
+                    <li>En caso de ser un vehículo pesado, de grandes dimensiones o con riesgo de derrame, el elemento va a la retaguardia asegurándose de que no haya daños (Código Amarillo).[span_10](start_span)[span_10](end_span)</li>
+                    <li>Asegurarse de que el proveedor coloque calzas al vehículo.[span_11](start_span)[span_11](end_span)</li>
+                    <li>Tomar evidencia y subirla a la bitácora digital.[span_12](start_span)[span_12](end_span)</li>
+                    <li>Asegurar que el proveedor salga del proyecto o deje los materiales en los espacios asignados dentro del tapial.[span_13](start_span)[span_13](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Seguimiento a Autoridades (JUMAPAM, CFE, Ayuntamiento, Basura)",
+                tags: "autoridades, jumapam, cfe, basura, escolta, ayuntamiento",
+                contenido: `<strong>Protocolo:</strong>
+                <ul>
+                    <li>El Agente de Prevención Patrullaje se dirige al filtro, donde se le notifica qué actividad realizará la autoridad.[span_14](start_span)[span_14](end_span)</li>
+                    <li>El Agente toma el frente y dirige a la autoridad al domicilio indicado.[span_15](start_span)[span_15](end_span)</li>
+                    <li>Tomar evidencia de la visita para subirla a la bitácora digital.[span_16](start_span)[span_16](end_span)</li>
+                    <li>Reportar la actividad que realizó la autoridad en caso de novedad relevante.[span_17](start_span)[span_17](end_span)</li>
+                    <li>Asegurarse de la salida de la autoridad y reportar novedades al filtro.[span_18](start_span)[span_18](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Alarma Activa",
+                tags: "alarma, sirena, cerco, activacion, perimetral",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Reportar a monitoreo y compañeros en turno de inmediato.[span_19](start_span)[span_19](end_span)</li>
+                    <li>Iniciar recorrido por la barda perimetral según la sección asignada.[span_20](start_span)[span_20](end_span)</li>
+                    <li>Detectar daños o alteraciones en el cerco electrificado.[span_21](start_span)[span_21](end_span)</li>
+                    <li>Confirmar allanamiento o descartarlo.[span_22](start_span)[span_22](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Allanamiento (Intruso)",
+                tags: "allanamiento, intruso, barda, cerco, persona sospechosa, salto, vulnerables",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Mantener una distancia de 21 pies (6.5m).[span_23](start_span)[span_23](end_span)</li>
+                    <li>Alertar a Monitoreo para que llame al 911 y al Jefe de Vigilancia para abrir portones a las autoridades.[span_24](start_span)[span_24](end_span)</li>
+                    <li>En caso de ser detectado, persuadir al intruso a que se retire.[span_25](start_span)[span_25](end_span)</li>
+                    <li>Cerrar puntos designados con patrullaje para evitar el ingreso a casas habitadas.[span_26](start_span)[span_26](end_span)</li>
+                    <li>Si no hay fallas en el cerco, hacer estadía en la zona recorriendo puntos vulnerables y casas para descartar allanamiento.[span_27](start_span)[span_27](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "Emergencias",
+                titulo: "Protocolo en caso de Accidente (Ambulancia)",
+                tags: "accidente, choque, herido, medico, ambulancia, emergencia",
+                contenido: `<strong>Qué hacer:</strong>
+                <ul>
+                    <li>Alertar a Monitoreo (ellos llaman al 911 dando la información correspondiente).[span_28](start_span)[span_28](end_span)</li>
+                    <li>Un Agente de Prevención se posiciona en Avenida Sábalo Cerritos a la espera del vehículo de emergencia.[span_29](start_span)[span_29](end_span)</li>
+                    <li>Un Agente se encarga de hacer lo correspondiente al primer respondiente.[span_30](start_span)[span_30](end_span)</li>
+                    <li>Agente de Monitoreo apertura carril central para el acceso rápido.[span_31](start_span)[span_31](end_span)</li>
+                    <li>El Agente posicionado escolta al vehículo de emergencia hasta el incidente y acompaña en la evacuación rápida del paciente.[span_32](start_span)[span_32](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Patrullaje",
+                titulo: "Rondas, Velocidad y Abordaje de Infractores",
+                tags: "rondas, velocidad, ebrio, infractor, abordaje, presentacion, molestia",
+                contenido: `<strong>Rondas:</strong> Inician a las 18:00 horas enfocándose en residencias habitadas solas, bardas, puntos vulnerables y conductas infractoras.[span_33](start_span)[span_33](end_span)<br><br>
+                <strong>Protocolo de Presentación:</strong><br>
+                <em>"Mi nombre es [Tu Nombre], soy Agente de Prevención y el acto de molestia es por motivo de: [Exceso de velocidad / Conductas inadecuadas / etc.]"</em>[span_34](start_span)[span_34](end_span)
+                <ul>
+                    <li>El acercamiento a la unidad va de acuerdo al comportamiento (abordaje táctico).[span_35](start_span)[span_35](end_span)</li>
+                    <li>Acompañar a la salida o al domicilio donde fue autorizado el acceso.[span_36](start_span)[span_36](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Monitoreo",
+                titulo: "Códigos de Seguridad (Accesos)",
+                tags: "codigos, naranja, gris, verde, amarillo, colores, niveles",
+                contenido: `<ul>
+                    <li>🟠 <strong>CÓDIGO NARANJA (Nivel Bajo):</strong> Ingreso por Stickers (Propietarios). Se brindan atenciones y no se escolta.[span_37](start_span)[span_37](end_span)</li>
+                    <li>⚪ <strong>CÓDIGO GRIS (Nivel Medio-Bajo):</strong> Abre con aplicación, pero no se tiene certeza de que sea el propietario. Se confirma de forma discreta a distancia que el vehículo llegue al domicilio.[span_38](start_span)[span_38](end_span)</li>
+                    <li>🟢 <strong>CÓDIGO VERDE (Nivel Medio-Alto):</strong> Visita por invitación de la aplicación. Se confirma el arribo de forma discreta a distancia y se toma evidencia.[span_39](start_span)[span_39](end_span)</li>
+                    <li>🟡 <strong>CÓDIGO AMARILLO (Nivel Alto):</strong> Visitas o proveedores por interphone. Requiere escolta guiada por Patrullaje a 20 km/h al frente o retaguardia dependiendo del vehículo.[span_40](start_span)[span_40](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Proveedores (Filtro)",
+                titulo: "Revisión e Ingreso de Trabajadores de Obra",
+                tags: "obra, albañiles, revision, filtro, mochila, alcohol, horario, salida",
+                contenido: `<strong>Proceso:</strong>
+                <ul>
+                    <li>Escanear el código QR y verificar que la persona en sitio coincida con la identificación.[span_41](start_span)[span_41](end_span)</li>
+                    <li>Solicitar de manera atenta que el trabajador deje sus pertenencias y el contenido de sus bolsillos en la mesa.[span_42](start_span)[span_42](end_span)</li>
+                    <li>Revisar para encontrar sustancias no permitidas, alcohol, armas, bocinas, y documentar herramientas.[span_43](start_span)[span_43](end_span)</li>
+                    <li><strong>Horarios Libres:</strong> 07:30 a 09:00 o 11:30 a 13:00.[span_44](start_span)[span_44](end_span)</li>
+                    <li><strong>Horario Restringido:</strong> 09:00 a 11:29 o 13:00 a 16:30 (El trabajador deberá esperar al supervisor de su obra).[span_45](start_span)[span_45](end_span)</li>
+                    <li>Después de las 16:30 hrs sólo se autoriza el ingreso para recoger personal a obra.[span_46](start_span)[span_46](end_span)</li>
+                    <li>Al salir, el trabajador debe presentar su guía de salida o folio para revisión en el sistema.[span_47](start_span)[span_47](end_span)</li>
+                </ul>`
+            },
+            {
+                categoria: "División Monitoreo",
+                titulo: "Altas de Trabajadores (Requisitos)",
+                tags: "altas, requisitos, ine, curp, foto, plataforma",
+                contenido: `<strong>El agente revisará en plataforma para aprobar altas con estos requisitos:</strong>[span_48](start_span)[span_48](end_span)
+                <ul>
+                    <li>Foto sin gorra.[span_49](start_span)[span_49](end_span)</li>
+                    <li>INE por ambos lados.[span_50](start_span)[span_50](end_span)</li>
+                    <li>Revisar que hayan digitado el CURP correctamente.[span_51](start_span)[span_51](end_span)</li>
+                    <li>Revisar si está autorizado para supervisor, o confirmar en la plataforma de lista negra.[span_52](start_span)[span_52](end_span)</li>
+                </ul>`
+            }
+        ];
+
+        // Función para limpiar texto (quitar acentos y mayúsculas para buscar mejor)
+        function normalizarTexto(texto) {
+            return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
+        // Función principal de búsqueda
+        function ejecutarBusqueda() {
+            let input = normalizarTexto(document.getElementById('searchInput').value);
+            let areaResultados = document.getElementById('resultsArea');
+            areaResultados.innerHTML = "";
+
+            if (input.trim() === "") {
+                areaResultados.innerHTML = `
+                <div class="no-results">
+                    <h3>Consulta Rápida</h3>
+                    <p>Escribe tu duda en el buscador. Por ejemplo: "velocidad", "alarma", "revisión de mochila".</p>
+                </div>`;
+                return;
+            }
+
+            // Filtrar la base de datos
+            let resultados = manualDB.filter(item => {
+                let textoCompleto = normalizarTexto(item.titulo + " " + item.tags + " " + item.contenido);
+                let palabrasBusqueda = input.split(" ");
+                return palabrasBusqueda.every(palabra => textoCompleto.includes(palabra));
+            });
+
+            // Mostrar resultados
+            if (resultados.length > 0) {
+                resultados.forEach(res => {
+                    let div = document.createElement('div');
+                    div.className = 'result-card';
+                    div.innerHTML = `
+                        <span class="result-category">${res.categoria}</span>
+                        <h2 class="result-title">${res.titulo}</h2>
+                        <div class="result-content">${res.contenido}</div>
+                    `;
+                    areaResultados.appendChild(div);
+                });
+            } else {
+                areaResultados.innerHTML = `
+                <div class="no-results">
+                    <h3>Sin resultados</h3>
+                    <p>No encontré información sobre "${document.getElementById('searchInput').value}". Intenta buscar con otras palabras como "accidente" o "código".</p>
+                </div>`;
+            }
+        }
+
+        // Función para los botones de sugerencia rápida
+        function busquedaRapida(termino) {
+            document.getElementById('searchInput').value = termino;
+            ejecutarBusqueda();
+        }
+    </script>
+</body>
+</html>
