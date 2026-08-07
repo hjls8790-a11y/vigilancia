@@ -34,7 +34,7 @@
             text-align: center;
             position: sticky;
             top: 0;
-            z-index: 90;
+            z-index: 100;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
@@ -56,24 +56,61 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* Buscador */
-        .search-container {
-            padding: 15px;
+        /* Controles de Búsqueda */
+        .search-section {
             background: white;
             border-bottom: 1px solid #e2e8f0;
             position: sticky;
             top: 75px;
-            z-index: 89;
+            z-index: 99;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        /* Carrusel de Calles */
+        .street-scroll {
+            display: flex;
+            overflow-x: auto;
+            padding: 12px 15px;
+            gap: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .street-scroll::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        
+        .street-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .street-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Entradas de Búsqueda */
+        .search-inputs {
+            display: flex;
+            padding: 0 15px 15px 15px;
+            gap: 10px;
         }
         .search-box {
-            width: 100%;
-            padding: 14px;
+            flex: 1;
+            padding: 12px;
             font-size: 1rem;
             border: 2px solid #cbd5e1;
             border-radius: 8px;
-            box-sizing: border-box;
             outline: none;
         }
+        .search-box:focus { border-color: var(--accent); }
+        .input-numero { max-width: 120px; } /* Más pequeño para el número */
 
         /* Contenedor de Resultados */
         .results-grid {
@@ -115,7 +152,7 @@
         .house { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
         .details { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
 
-        /* Modal / Formulario Flotante */
+        /* Modal / Formulario */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -137,11 +174,12 @@
         }
         .modal-header { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
         
-        .form-group { margin-bottom: 15px; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; flex: 1; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: white; }
         
-        /* Estilos de Cámara importados de tu código funcional */
+        /* Cámara */
         .foto-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
         .btn-camara { border: 2px dashed #3498db; background: #ebf5fb; color: #2980b9; padding: 12px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; display: block; }
         .foto-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
@@ -166,9 +204,15 @@
         <button class="btn-add" onclick="abrirModal()">+ Añadir</button>
     </div>
 
-    <div class="search-container">
-        <!-- El evento oninput asegura que busque de inmediato -->
-        <input type="text" id="searchInput" class="search-box" placeholder="Buscar placa (ej. VSR942) o casa" oninput="filtrarVehiculos()">
+    <!-- SECCIÓN DE BÚSQUEDA Y FILTROS TÁCTILES -->
+    <div class="search-section">
+        <div class="street-scroll" id="streetFilters">
+            <!-- Los botones se generan desde JS -->
+        </div>
+        <div class="search-inputs">
+            <input type="text" id="searchNumero" class="search-box input-numero" placeholder="Núm..." oninput="filtrarVehiculos()">
+            <input type="text" id="searchPlaca" class="search-box" placeholder="Buscar placa (ej. VSR942)" oninput="filtrarVehiculos()">
+        </div>
     </div>
 
     <div class="results-grid" id="resultsArea">
@@ -184,28 +228,41 @@
                 <label>Placa</label>
                 <input type="text" id="regPlaca" placeholder="Ej. ABC-123-D" style="text-transform: uppercase;">
             </div>
-            <div class="form-group">
-                <label>Domicilio</label>
-                <input type="text" id="regCasa" placeholder="Ej. Retorno 4, Lote 12">
+            
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label>Calle</label>
+                    <select id="regCalle">
+                        <option value="">Seleccione...</option>
+                        <!-- Opciones generadas desde JS -->
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Número</label>
+                    <input type="text" id="regNumero" placeholder="Ej. 12">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Marca y Modelo</label>
-                <input type="text" id="regMarca" placeholder="Ej. Nissan Sentra">
-            </div>
-            <div class="form-group">
-                <label>Color</label>
-                <input type="text" id="regColor" placeholder="Ej. Blanco">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Marca/Modelo</label>
+                    <input type="text" id="regMarca" placeholder="Ej. Sentra">
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <input type="text" id="regColor" placeholder="Ej. Blanco">
+                </div>
             </div>
             
             <div class="form-group">
                 <label>📸 Fotografía del Vehículo</label>
                 <div class="foto-btn-wrapper">
-                    <div class="btn-camara">📷 TOMAR FOTO O SUBIR IMAGEN</div>
+                    <div class="btn-camara">📷 TOMAR O SUBIR FOTO</div>
                     <input type="file" id="regFotoInput" accept="image/*" capture="environment" onchange="mostrarVistaPrevia(event)">
                 </div>
                 <div id="preview-container">
                     <img id="preview-foto" src="">
-                    <div style="font-size: 11px; color: green; margin-top:5px;">✅ Imagen lista y comprimida</div>
+                    <div style="font-size: 11px; color: green; margin-top:5px;">✅ Imagen optimizada para base de datos</div>
                 </div>
             </div>
 
@@ -216,10 +273,8 @@
         </div>
     </div>
 
-    <!-- IMPORTANTE: type="module" como en tu código funcional -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Importamos onSnapshot para que el directorio se actualice en vivo
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -234,10 +289,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- LISTADO DE CALLES PARA ESCALABILIDAD ---
+        const callesElCielo = [
+            "Zona Comun", "Aurora", "Cirrus", "Estela", "Luna", "Nimbus", 
+            "Paseo de la Nube", "Venus", "Andromeda", "Celeste", "Eos", 
+            "Eros", "Hera", "Hermes", "Orion", "Paloma", "Selene", 
+            "Helios", "Pegasus"
+        ];
+
         let vehiculosDB = [];
         let imagenComprimidaBase64 = null;
+        let filtroCalleActual = "Todas";
 
-        // --- VISTA PREVIA Y COMPRESIÓN (Idéntico a tu código funcional) ---
+        // --- INICIALIZAR INTERFAZ (Botones y Selects) ---
+        function inicializarCalles() {
+            const scrollContainer = document.getElementById('streetFilters');
+            const selectContainer = document.getElementById('regCalle');
+            
+            // Botón por defecto "Todas"
+            scrollContainer.innerHTML = `<button class="street-btn active" onclick="setFiltroCalle('Todas')">🏠 Todas</button>`;
+            
+            callesElCielo.forEach(calle => {
+                // Generar botones táctiles
+                scrollContainer.innerHTML += `<button class="street-btn" onclick="setFiltroCalle('${calle}')">${calle}</button>`;
+                // Generar opciones en el formulario
+                selectContainer.innerHTML += `<option value="${calle}">${calle}</option>`;
+            });
+        }
+        inicializarCalles();
+
+        // --- VISTA PREVIA Y COMPRESIÓN ---
         window.mostrarVistaPrevia = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -264,7 +345,6 @@
                     ctx.drawImage(img, 0, 0, width, height);
                     
                     imagenComprimidaBase64 = canvas.toDataURL('image/jpeg', 0.6); 
-
                     document.getElementById('preview-foto').src = imagenComprimidaBase64;
                     document.getElementById('preview-container').style.display = 'block';
                 }
@@ -282,21 +362,19 @@
         });
 
         window.normalizarTexto = function(texto) {
-            return texto.normalize("NFD").replace(/[\u0300-\u036f\- ]/g, "").toLowerCase();
+            if(!texto) return "";
+            return String(texto).normalize("NFD").replace(/[\u0300-\u036f\- ]/g, "").toLowerCase();
         }
 
         // --- CONTROL DEL MODAL ---
-        window.abrirModal = function() {
-            document.getElementById('modalVehiculo').style.display = 'flex';
-        }
-
+        window.abrirModal = function() { document.getElementById('modalVehiculo').style.display = 'flex'; }
         window.cerrarModal = function() {
             document.getElementById('modalVehiculo').style.display = 'none';
             document.getElementById('regPlaca').value = '';
-            document.getElementById('regCasa').value = '';
+            document.getElementById('regCalle').value = '';
+            document.getElementById('regNumero').value = '';
             document.getElementById('regMarca').value = '';
             document.getElementById('regColor').value = '';
-            
             document.getElementById('regFotoInput').value = '';
             document.getElementById('preview-container').style.display = 'none';
             imagenComprimidaBase64 = null;
@@ -305,22 +383,28 @@
         // --- GUARDAR EN FIRESTORE ---
         window.guardarVehiculo = async function() {
             let placa = document.getElementById('regPlaca').value.toUpperCase();
-            let casa = document.getElementById('regCasa').value;
+            let calle = document.getElementById('regCalle').value;
+            let numero = document.getElementById('regNumero').value;
             let marca = document.getElementById('regMarca').value;
             let color = document.getElementById('regColor').value;
 
-            if(!placa || !casa) {
-                alert("La placa y el domicilio son obligatorios.");
+            if(!placa || !calle) {
+                alert("La placa y la calle son obligatorias.");
                 return;
             }
 
             let btn = document.getElementById('btnGuardar');
-            btn.innerText = "Subiendo foto y datos...";
+            btn.innerText = "Subiendo...";
             btn.disabled = true;
+
+            // Creamos un string 'casa' compuesto por calle y número para mantener retrocompatibilidad o lectura fácil
+            let domicilioCompuesto = numero ? `${calle} #${numero}` : calle;
 
             const data = {
                 placa: placa,
-                casa: casa,
+                calle: calle,
+                numero: numero || "S/N",
+                casa: domicilioCompuesto, // Guardamos la versión junta también
                 marca: marca || "N/A",
                 color: color || "N/A",
                 foto: imagenComprimidaBase64 || "https://via.placeholder.com/150/cbd5e1/64748b?text=Sin+Foto",
@@ -328,46 +412,85 @@
             };
 
             try {
-                // Se guarda en una colección separada llamada 'vehiculos_directorio'
                 await addDoc(collection(db, "vehiculos_directorio"), data);
-                
                 window.cerrarModal();
                 btn.innerText = "Guardar";
                 btn.disabled = false;
                 
-                document.getElementById('searchInput').value = placa;
-                window.filtrarVehiculos();
+                // Limpiar busqueda visual y enfocar en el recien agregado
+                document.getElementById('searchPlaca').value = placa;
+                window.setFiltroCalle("Todas"); 
             } catch (error) {
                 console.error("Error:", error);
-                alert("❌ Error al guardar. Revisa la conexión a Firestore.");
+                alert("❌ Error al guardar. Revisa la conexión.");
                 btn.innerText = "Guardar";
                 btn.disabled = false;
             }
         };
 
-        // --- BUSCADOR VISUAL ---
+        // --- LÓGICA DE FILTROS CRUZADOS ---
+        window.setFiltroCalle = function(calle) {
+            filtroCalleActual = calle;
+            // Actualizar diseño de botones
+            const botones = document.querySelectorAll('.street-btn');
+            botones.forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.includes(calle) || (calle === 'Todas' && btn.innerText.includes('Todas'))) {
+                    btn.classList.add('active');
+                }
+            });
+            window.filtrarVehiculos();
+        }
+
         window.filtrarVehiculos = function() {
-            let inputBruto = document.getElementById('searchInput').value;
-            let inputLimpio = window.normalizarTexto(inputBruto);
+            let inputPlaca = window.normalizarTexto(document.getElementById('searchPlaca').value);
+            let inputNumero = window.normalizarTexto(document.getElementById('searchNumero').value);
             let areaResultados = document.getElementById('resultsArea');
             areaResultados.innerHTML = "";
 
             if (vehiculosDB.length === 0) {
-                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Directorio Vacío</h3><p>Aún no hay vehículos. Presiona "+ Añadir" para comenzar.</p></div>`;
+                areaResultados.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Directorio Vacío</h3><p>Aún no hay vehículos registrados.</p></div>`;
                 return;
             }
 
-            if (inputLimpio === "") {
-                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Directorio Activo</h3><p>Escribe la placa o domicilio para verificar.</p></div>`;
-                return;
-            }
+            // Aplicar filtros: Calle + Numero + Placa
+            let resultados = vehiculosDB.filter(v => {
+                // 1. Filtro de Calle
+                let matchCalle = true;
+                if (filtroCalleActual !== "Todas") {
+                    if (v.calle) {
+                        matchCalle = (v.calle === filtroCalleActual);
+                    } else if (v.casa) {
+                        // Retrocompatibilidad con datos viejos
+                        matchCalle = window.normalizarTexto(v.casa).includes(window.normalizarTexto(filtroCalleActual));
+                    } else { matchCalle = false; }
+                }
 
-            let resultados = vehiculosDB.filter(v => 
-                window.normalizarTexto(v.placa).includes(inputLimpio) || window.normalizarTexto(v.casa).includes(inputLimpio)
-            );
+                // 2. Filtro de Número
+                let matchNumero = true;
+                if (inputNumero !== "") {
+                    if (v.numero) {
+                        matchNumero = window.normalizarTexto(v.numero).includes(inputNumero);
+                    } else if (v.casa) {
+                        matchNumero = window.normalizarTexto(v.casa).includes(inputNumero);
+                    } else { matchNumero = false; }
+                }
 
+                // 3. Filtro de Placa
+                let matchPlaca = true;
+                if (inputPlaca !== "") {
+                    matchPlaca = window.normalizarTexto(v.placa).includes(inputPlaca);
+                }
+
+                return matchCalle && matchNumero && matchPlaca;
+            });
+
+            // Renderizar
             if (resultados.length > 0) {
                 resultados.forEach(vehiculo => {
+                    // Si el vehículo es nuevo, mostrará "Calle #Num", si es viejo mostrará lo que había en "casa"
+                    let displayDomicilio = vehiculo.casa ? vehiculo.casa : (vehiculo.calle + " #" + vehiculo.numero);
+                    
                     areaResultados.innerHTML += `
                         <div class="vehicle-card">
                             <div class="vehicle-img-container">
@@ -375,13 +498,13 @@
                             </div>
                             <div class="vehicle-info">
                                 <div class="plate">${vehiculo.placa}</div>
-                                <div class="house">🏠 ${vehiculo.casa}</div>
+                                <div class="house">🏠 ${displayDomicilio}</div>
                                 <p class="details">${vehiculo.marca} - ${vehiculo.color}</p>
                             </div>
                         </div>`;
                 });
             } else {
-                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Sin coincidencias</h3></div>`;
+                areaResultados.innerHTML = `<div style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Sin coincidencias</h3><p>Verifica los filtros activos.</p></div>`;
             }
         }
     </script>
