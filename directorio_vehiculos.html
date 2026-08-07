@@ -136,6 +136,9 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            /* Permitir scroll si la pantalla es muy pequeña */
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-header { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
         
@@ -143,11 +146,18 @@
         .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
         
+        /* Botón de archivo (Cámara) */
+        input[type="file"] {
+            background: #f8fafc;
+            padding: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-cancel { background: white; color: var(--danger); border: 1px solid var(--danger); padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-save { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        /* Indicador de carga inicial */
         #loadingMsg { text-align: center; padding: 40px; color: var(--accent); font-weight: bold; grid-column: 1 / -1; }
     </style>
 </head>
@@ -190,9 +200,14 @@
                 <label>Color</label>
                 <input type="text" id="regColor" placeholder="Ej. Blanco">
             </div>
+            
+            <!-- Nueva sección de Fotografía -->
             <div class="form-group">
-                <label>URL de la Foto (Miniatura .webp)</label>
-                <input type="text" id="regFoto" placeholder="Enlace de la imagen">
+                <label>Fotografía del Vehículo</label>
+                <!-- capture="environment" abre la cámara trasera en el celular -->
+                <input type="file" id="regFotoInput" accept="image/*" capture="environment">
+                <!-- Vista previa de la foto reducida -->
+                <img id="previewFoto" style="display:none; width: 100%; margin-top: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
             </div>
 
             <div class="modal-actions">
@@ -203,10 +218,11 @@
     </div>
 
     <script>
-        // 1. Configuración de Firebase (Tu API Key)
+        // 1. Configuración de Firebase CORREGIDA (Se añadió el databaseURL)
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com", // SOLUCIÓN AL ERROR DE GUARDADO
             projectId: "sistema-vigilancia-6851e",
             storageBucket: "sistema-vigilancia-6851e.appspot.com",
             messagingSenderId: "714792023462",
@@ -217,17 +233,63 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Variable global para almacenar los datos descargados
         let vehiculosDB = [];
+        let fotoComprimidaBase64 = ""; // Aquí se guardará la foto ya reducida
 
-        // 3. Leer datos en tiempo real desde Firebase
-        // Esto se ejecutará al abrir la página y CADA VEZ que alguien añada un vehículo
+        // 3. Procesar foto al tomarla o seleccionarla
+        document.getElementById('regFotoInput').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let img = new Image();
+                img.onload = function() {
+                    // Crear un canvas invisible para comprimir la imagen
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+
+                    // Definir resolución máxima (300px para que pese muy pocos KB)
+                    let maxW = 300;
+                    let maxH = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxW) {
+                            height *= maxW / width;
+                            width = maxW;
+                        }
+                    } else {
+                        if (height > maxH) {
+                            width *= maxH / height;
+                            height = maxH;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convertir a formato WEBP con calidad del 70%
+                    fotoComprimidaBase64 = canvas.toDataURL('image/webp', 0.7);
+
+                    // Mostrar vista previa en el formulario
+                    let preview = document.getElementById('previewFoto');
+                    preview.src = fotoComprimidaBase64;
+                    preview.style.display = 'block';
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // 4. Leer datos en tiempo real
         db.ref('vehiculos').on('value', (snapshot) => {
-            vehiculosDB = []; // Limpiamos el arreglo
+            vehiculosDB = [];
             snapshot.forEach((childSnapshot) => {
-                vehiculosDB.push(childSnapshot.val()); // Llenamos con los datos de Firebase
+                vehiculosDB.push(childSnapshot.val());
             });
-            // Una vez descargados, refrescamos la pantalla
             filtrarVehiculos();
         });
 
@@ -246,17 +308,22 @@
             document.getElementById('regCasa').value = '';
             document.getElementById('regMarca').value = '';
             document.getElementById('regColor').value = '';
-            document.getElementById('regFoto').value = '';
+            
+            // Limpiar foto
+            document.getElementById('regFotoInput').value = '';
+            document.getElementById('previewFoto').style.display = 'none';
+            fotoComprimidaBase64 = "";
         }
 
-        // 4. Guardar datos en Firebase
+        // 5. Guardar datos en Firebase
         function guardarVehiculo() {
             let nuevoVehiculo = {
                 placa: document.getElementById('regPlaca').value.toUpperCase(),
                 casa: document.getElementById('regCasa').value,
                 marca: document.getElementById('regMarca').value,
                 color: document.getElementById('regColor').value,
-                foto: document.getElementById('regFoto').value || "https://via.placeholder.com/150/cbd5e1/64748b?text=Sin+Foto"
+                // Guardamos la foto reducida; si no tomó foto, mandamos un texto predeterminado
+                foto: fotoComprimidaBase64 || "https://via.placeholder.com/150/cbd5e1/64748b?text=Sin+Foto"
             };
 
             if(!nuevoVehiculo.placa || !nuevoVehiculo.casa) {
@@ -264,25 +331,23 @@
                 return;
             }
 
-            // Cambiar el texto del botón mientras guarda
             let btn = document.getElementById('btnGuardar');
             btn.innerText = "Guardando...";
             btn.disabled = true;
 
-            // Enviar a la base de datos bajo el nodo 'vehiculos'
+            // Enviar a Firebase
             db.ref('vehiculos').push(nuevoVehiculo)
             .then(() => {
                 cerrarModal();
                 btn.innerText = "Guardar";
                 btn.disabled = false;
                 
-                // Mostrar lo que se acaba de registrar en el buscador
                 document.getElementById('searchInput').value = nuevoVehiculo.placa;
                 filtrarVehiculos();
             })
             .catch((error) => {
                 console.error("Error al guardar: ", error);
-                alert("Hubo un error de conexión al intentar guardar.");
+                alert("Hubo un error. Verifica que las reglas de lectura/escritura de tu Realtime Database estén configuradas.");
                 btn.innerText = "Guardar";
                 btn.disabled = false;
             });
@@ -295,9 +360,8 @@
             let areaResultados = document.getElementById('resultsArea');
             areaResultados.innerHTML = "";
 
-            // Si la base de datos está vacía
             if (vehiculosDB.length === 0) {
-                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Base de datos vacía</h3><p>Aún no hay vehículos registrados. Presiona "+ Añadir" para comenzar.</p></div>`;
+                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Base de datos vacía</h3><p>Aún no hay vehículos. Presiona "+ Añadir" para comenzar.</p></div>`;
                 return;
             }
 
