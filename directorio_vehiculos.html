@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Directorio Vehicular - El Cielo</title>
     
-    <!-- Librerías de Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <style>
         :root {
             --bg-dark: #1e293b;
@@ -30,7 +26,7 @@
             padding-bottom: 80px;
         }
 
-        /* Encabezado con Botón de Añadir */
+        /* Encabezado */
         .header {
             background-color: var(--primary);
             color: white;
@@ -136,7 +132,6 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Permitir scroll si la pantalla es muy pequeña */
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -146,17 +141,17 @@
         .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
         
-        /* Botón de archivo (Cámara) */
-        input[type="file"] {
-            background: #f8fafc;
-            padding: 8px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
+        /* Estilos de Cámara importados de tu código funcional */
+        .foto-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+        .btn-camara { border: 2px dashed #3498db; background: #ebf5fb; color: #2980b9; padding: 12px; text-align: center; font-weight: bold; border-radius: 6px; cursor: pointer; display: block; }
+        .foto-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
+        #preview-container { text-align: center; margin-top: 10px; display: none; }
+        #preview-foto { max-width: 100%; height: 150px; border-radius: 5px; object-fit: cover; border: 1px solid #ccc; }
 
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-cancel { background: white; color: var(--danger); border: 1px solid var(--danger); padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-save { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-save:disabled { background: #95a5a6; cursor: not-allowed; }
 
         #loadingMsg { text-align: center; padding: 40px; color: var(--accent); font-weight: bold; grid-column: 1 / -1; }
     </style>
@@ -172,11 +167,12 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-box" placeholder="Buscar placa (ej. VSR942) o casa" onkeyup="filtrarVehiculos()">
+        <!-- El evento oninput asegura que busque de inmediato -->
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar placa (ej. VSR942) o casa" oninput="filtrarVehiculos()">
     </div>
 
     <div class="results-grid" id="resultsArea">
-        <div id="loadingMsg">Sincronizando base de datos...</div>
+        <div id="loadingMsg">Sincronizando Firestore...</div>
     </div>
 
     <!-- Modal para Añadir Vehículo -->
@@ -201,13 +197,16 @@
                 <input type="text" id="regColor" placeholder="Ej. Blanco">
             </div>
             
-            <!-- Nueva sección de Fotografía -->
             <div class="form-group">
-                <label>Fotografía del Vehículo</label>
-                <!-- capture="environment" abre la cámara trasera en el celular -->
-                <input type="file" id="regFotoInput" accept="image/*" capture="environment">
-                <!-- Vista previa de la foto reducida -->
-                <img id="previewFoto" style="display:none; width: 100%; margin-top: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                <label>📸 Fotografía del Vehículo</label>
+                <div class="foto-btn-wrapper">
+                    <div class="btn-camara">📷 TOMAR FOTO O SUBIR IMAGEN</div>
+                    <input type="file" id="regFotoInput" accept="image/*" capture="environment" onchange="mostrarVistaPrevia(event)">
+                </div>
+                <div id="preview-container">
+                    <img id="preview-foto" src="">
+                    <div style="font-size: 11px; color: green; margin-top:5px;">✅ Imagen lista y comprimida</div>
+                </div>
             </div>
 
             <div class="modal-actions">
@@ -217,151 +216,144 @@
         </div>
     </div>
 
-    <script>
-        // 1. Configuración de Firebase CORREGIDA (Se añadió el databaseURL)
+    <!-- IMPORTANTE: type="module" como en tu código funcional -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // Importamos onSnapshot para que el directorio se actualice en vivo
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
             authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            databaseURL: "https://sistema-vigilancia-6851e-default-rtdb.firebaseio.com", // SOLUCIÓN AL ERROR DE GUARDADO
             projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.appspot.com",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
             messagingSenderId: "714792023462",
             appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
         };
 
-        // 2. Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         let vehiculosDB = [];
-        let fotoComprimidaBase64 = ""; // Aquí se guardará la foto ya reducida
+        let imagenComprimidaBase64 = null;
 
-        // 3. Procesar foto al tomarla o seleccionarla
-        document.getElementById('regFotoInput').addEventListener('change', function(e) {
-            let file = e.target.files[0];
+        // --- VISTA PREVIA Y COMPRESIÓN (Idéntico a tu código funcional) ---
+        window.mostrarVistaPrevia = function(event) {
+            const file = event.target.files[0];
             if (!file) return;
 
-            let reader = new FileReader();
-            reader.onload = function(event) {
-                let img = new Image();
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
                 img.onload = function() {
-                    // Crear un canvas invisible para comprimir la imagen
-                    let canvas = document.createElement('canvas');
-                    let ctx = canvas.getContext('2d');
-
-                    // Definir resolución máxima (300px para que pese muy pocos KB)
-                    let maxW = 300;
-                    let maxH = 300;
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; 
                     let width = img.width;
                     let height = img.height;
 
-                    if (width > height) {
-                        if (width > maxW) {
-                            height *= maxW / width;
-                            width = maxW;
-                        }
-                    } else {
-                        if (height > maxH) {
-                            width *= maxH / height;
-                            height = maxH;
-                        }
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
                     }
 
                     canvas.width = width;
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
+                    
+                    imagenComprimidaBase64 = canvas.toDataURL('image/jpeg', 0.6); 
 
-                    // Convertir a formato WEBP con calidad del 70%
-                    fotoComprimidaBase64 = canvas.toDataURL('image/webp', 0.7);
-
-                    // Mostrar vista previa en el formulario
-                    let preview = document.getElementById('previewFoto');
-                    preview.src = fotoComprimidaBase64;
-                    preview.style.display = 'block';
+                    document.getElementById('preview-foto').src = imagenComprimidaBase64;
+                    document.getElementById('preview-container').style.display = 'block';
                 }
-                img.src = event.target.result;
             }
-            reader.readAsDataURL(file);
-        });
+        };
 
-        // 4. Leer datos en tiempo real
-        db.ref('vehiculos').on('value', (snapshot) => {
+        // --- LECTURA EN TIEMPO REAL (FIRESTORE) ---
+        const q = query(collection(db, "vehiculos_directorio"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
             vehiculosDB = [];
-            snapshot.forEach((childSnapshot) => {
-                vehiculosDB.push(childSnapshot.val());
+            snapshot.forEach((doc) => {
+                vehiculosDB.push(doc.data());
             });
-            filtrarVehiculos();
+            window.filtrarVehiculos();
         });
 
-        function normalizarTexto(texto) {
+        window.normalizarTexto = function(texto) {
             return texto.normalize("NFD").replace(/[\u0300-\u036f\- ]/g, "").toLowerCase();
         }
 
-        // --- Funciones del Modal ---
-        function abrirModal() {
+        // --- CONTROL DEL MODAL ---
+        window.abrirModal = function() {
             document.getElementById('modalVehiculo').style.display = 'flex';
         }
 
-        function cerrarModal() {
+        window.cerrarModal = function() {
             document.getElementById('modalVehiculo').style.display = 'none';
             document.getElementById('regPlaca').value = '';
             document.getElementById('regCasa').value = '';
             document.getElementById('regMarca').value = '';
             document.getElementById('regColor').value = '';
             
-            // Limpiar foto
             document.getElementById('regFotoInput').value = '';
-            document.getElementById('previewFoto').style.display = 'none';
-            fotoComprimidaBase64 = "";
+            document.getElementById('preview-container').style.display = 'none';
+            imagenComprimidaBase64 = null;
         }
 
-        // 5. Guardar datos en Firebase
-        function guardarVehiculo() {
-            let nuevoVehiculo = {
-                placa: document.getElementById('regPlaca').value.toUpperCase(),
-                casa: document.getElementById('regCasa').value,
-                marca: document.getElementById('regMarca').value,
-                color: document.getElementById('regColor').value,
-                // Guardamos la foto reducida; si no tomó foto, mandamos un texto predeterminado
-                foto: fotoComprimidaBase64 || "https://via.placeholder.com/150/cbd5e1/64748b?text=Sin+Foto"
-            };
+        // --- GUARDAR EN FIRESTORE ---
+        window.guardarVehiculo = async function() {
+            let placa = document.getElementById('regPlaca').value.toUpperCase();
+            let casa = document.getElementById('regCasa').value;
+            let marca = document.getElementById('regMarca').value;
+            let color = document.getElementById('regColor').value;
 
-            if(!nuevoVehiculo.placa || !nuevoVehiculo.casa) {
+            if(!placa || !casa) {
                 alert("La placa y el domicilio son obligatorios.");
                 return;
             }
 
             let btn = document.getElementById('btnGuardar');
-            btn.innerText = "Guardando...";
+            btn.innerText = "Subiendo foto y datos...";
             btn.disabled = true;
 
-            // Enviar a Firebase
-            db.ref('vehiculos').push(nuevoVehiculo)
-            .then(() => {
-                cerrarModal();
+            const data = {
+                placa: placa,
+                casa: casa,
+                marca: marca || "N/A",
+                color: color || "N/A",
+                foto: imagenComprimidaBase64 || "https://via.placeholder.com/150/cbd5e1/64748b?text=Sin+Foto",
+                timestamp: new Date().getTime()
+            };
+
+            try {
+                // Se guarda en una colección separada llamada 'vehiculos_directorio'
+                await addDoc(collection(db, "vehiculos_directorio"), data);
+                
+                window.cerrarModal();
                 btn.innerText = "Guardar";
                 btn.disabled = false;
                 
-                document.getElementById('searchInput').value = nuevoVehiculo.placa;
-                filtrarVehiculos();
-            })
-            .catch((error) => {
-                console.error("Error al guardar: ", error);
-                alert("Hubo un error. Verifica que las reglas de lectura/escritura de tu Realtime Database estén configuradas.");
+                document.getElementById('searchInput').value = placa;
+                window.filtrarVehiculos();
+            } catch (error) {
+                console.error("Error:", error);
+                alert("❌ Error al guardar. Revisa la conexión a Firestore.");
                 btn.innerText = "Guardar";
                 btn.disabled = false;
-            });
-        }
+            }
+        };
 
-        // --- Función de Filtrado Visual ---
-        function filtrarVehiculos() {
+        // --- BUSCADOR VISUAL ---
+        window.filtrarVehiculos = function() {
             let inputBruto = document.getElementById('searchInput').value;
-            let inputLimpio = normalizarTexto(inputBruto);
+            let inputLimpio = window.normalizarTexto(inputBruto);
             let areaResultados = document.getElementById('resultsArea');
             areaResultados.innerHTML = "";
 
             if (vehiculosDB.length === 0) {
-                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Base de datos vacía</h3><p>Aún no hay vehículos. Presiona "+ Añadir" para comenzar.</p></div>`;
+                areaResultados.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px 20px; color: #64748b; grid-column: 1 / -1;"><h3>Directorio Vacío</h3><p>Aún no hay vehículos. Presiona "+ Añadir" para comenzar.</p></div>`;
                 return;
             }
 
@@ -371,7 +363,7 @@
             }
 
             let resultados = vehiculosDB.filter(v => 
-                normalizarTexto(v.placa).includes(inputLimpio) || normalizarTexto(v.casa).includes(inputLimpio)
+                window.normalizarTexto(v.placa).includes(inputLimpio) || window.normalizarTexto(v.casa).includes(inputLimpio)
             );
 
             if (resultados.length > 0) {
