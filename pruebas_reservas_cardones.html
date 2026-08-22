@@ -48,7 +48,19 @@
         .btn-submit:hover { background-color: #1a365d; }
         .btn-submit:disabled { background-color: #a0aec0; cursor: not-allowed; }
         
-        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
         .filters button { 
             flex: 1; 
             background-color: #4a5568; 
@@ -60,6 +72,12 @@
             font-weight: bold;
         }
         .filters button.active { background-color: #2b6cb0; }
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
@@ -76,8 +94,27 @@
         }
         .status-pending { background-color: #ecc94b; color: #744210; }
         .status-entered { background-color: #48bb78; color: white; }
+        .folio-badge { font-family: monospace; background: #edf2f7; padding: 3px 6px; border-radius: 4px; font-size: 13px; color: #2d3748; }
+
+        /* Estilos del Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 { color: #2b6cb0; margin-top: 0; }
+        .folio-box { background: #f7fafc; border: 1px dashed #cbd5e0; padding: 15px; margin: 15px 0; border-radius: 6px; }
+        .folio-box p { margin: 8px 0; font-size: 16px; }
+        .folio-box strong { color: #1a365d; }
+        .btn-close {
+            background-color: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+        }
+        .btn-close:hover { background-color: #c53030; }
     </style>
-    <!-- Firebase SDK (Versión Compat para integración sencilla en un solo archivo) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
@@ -119,16 +156,23 @@
         </div>
     </form>
 
-    <h2>Directorio de Accesos del Día</h2>
-    <div class="filters" id="filtrosContenedor">
-        <button class="active" onclick="filtrarActividad('Todas', event)">Todas las áreas</button>
-        <button onclick="filtrarActividad('Bon (Restaurante)', event)">Restaurante Bon</button>
-        <button onclick="filtrarActividad('Deportes', event)">Deportes y Clases</button>
+    <h2>Historial y Directorio de Accesos</h2>
+    <div class="filters-container">
+        <div class="filters" id="filtrosContenedor">
+            <button class="active" onclick="filtrarActividad('Todas', event)">Todas las áreas</button>
+            <button onclick="filtrarActividad('Bon (Restaurante)', event)">Restaurante Bon</button>
+            <button onclick="filtrarActividad('Deportes', event)">Deportes y Clases</button>
+        </div>
+        <div class="date-filter">
+            <label for="fechaHistorial">Ver fecha:</label>
+            <input type="date" id="fechaHistorial" onchange="cargarDatos()">
+        </div>
     </div>
 
     <table>
         <thead>
             <tr>
+                <th>Folio</th>
                 <th>Nombre</th>
                 <th>Destino</th>
                 <th>Hora</th>
@@ -141,8 +185,21 @@
     </table>
 </div>
 
+<!-- Ventana Emergente (Modal) para Folios -->
+<div class="modal-overlay" id="modalFolio">
+    <div class="modal-content">
+        <h3>✅ Reserva Confirmada</h3>
+        <p>Proporcione la siguiente información:</p>
+        <div class="folio-box">
+            <p>Folio Cliente: <strong id="txtFolioCliente">---</strong></p>
+            <p>Folio Caseta: <strong id="txtFolioCaseta">---</strong></p>
+        </div>
+        <button class="btn-close" onclick="cerrarModal()">Entendido</button>
+    </div>
+</div>
+
 <script>
-    // 1. CONFIGURACIÓN DE FIREBASE (Con tus credenciales exactas)
+    // 1. CONFIGURACIÓN DE FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyCeiIBgmX4KKhdQlwyyXCoI-zGZdFc0aso",
         authDomain: "evaluacion-cielo.firebaseapp.com",
@@ -152,12 +209,14 @@
         appId: "1:1071771625909:web:d939265ad6a8e063b3d1fc"
     };
 
-    // Inicializar la aplicación
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
-    // Colección en la base de datos
     const reservasRef = db.collection('reservas_accesos');
+
+    // Función para generar un código alfanumérico aleatorio
+    function generarFolioBase() {
+        return Math.random().toString(36).substring(2, 7).toUpperCase();
+    }
 
     // 2. LÓGICA PARA GUARDAR DATOS
     document.getElementById('reservaForm').addEventListener('submit', async (e) => {
@@ -167,7 +226,12 @@
         btnGuardar.textContent = 'Guardando registro...';
         btnGuardar.disabled = true;
 
+        const codigoBase = generarFolioBase();
+        const folioCliente = "CLI-" + codigoBase;
+        const folioCaseta = "CAS-" + codigoBase;
+
         const nuevaReserva = {
+            folioBase: codigoBase,
             nombre: document.getElementById('nombre').value.toUpperCase(),
             actividad: document.getElementById('actividad').value,
             fecha: document.getElementById('fecha').value,
@@ -178,43 +242,60 @@
 
         try {
             await reservasRef.add(nuevaReserva);
+            
+            // Mostrar Modal con los folios
+            document.getElementById('txtFolioCliente').textContent = folioCliente;
+            document.getElementById('txtFolioCaseta').textContent = folioCaseta;
+            document.getElementById('modalFolio').style.display = 'flex';
+
             document.getElementById('reservaForm').reset();
-            document.getElementById('fecha').value = new Date().toISOString().split('T')[0]; // Restaurar fecha de hoy
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
         } catch (error) {
             console.error("Error al guardar: ", error);
-            alert("Ocurrió un error al intentar guardar. Revisa tu conexión o las reglas de tu base de datos en Firebase.");
+            alert("Ocurrió un error al intentar guardar.");
         } finally {
             btnGuardar.textContent = 'Guardar Reserva';
             btnGuardar.disabled = false;
         }
     });
 
-    // 3. LÓGICA PARA LEER Y FILTRAR DATOS EN TIEMPO REAL
+    function cerrarModal() {
+        document.getElementById('modalFolio').style.display = 'none';
+    }
+
+    // 3. LÓGICA PARA LEER Y FILTRAR DATOS (CON HISTORIAL)
     let filtroActual = 'Todas';
+    let unsuscribe = null;
 
     function filtrarActividad(actividad, event) {
         filtroActual = actividad;
-        
-        // Estilos visuales de los botones de filtro
         const botones = document.querySelectorAll('.filters button');
         botones.forEach(btn => btn.classList.remove('active'));
         if(event) event.target.classList.add('active');
-        
         cargarDatos();
     }
 
     function cargarDatos() {
-        const fechaHoy = new Date().toISOString().split('T')[0];
+        const fechaSeleccionada = document.getElementById('fechaHistorial').value;
         
-        // Escucha en tiempo real solo las reservas del día de hoy, ordenadas por hora
-        reservasRef.where("fecha", "==", fechaHoy).orderBy("hora", "asc").onSnapshot((snapshot) => {
+        // Detener la escucha anterior si existe para no duplicar datos
+        if (unsuscribe) {
+            unsuscribe();
+        }
+        
+        // Escucha en tiempo real basada en la fecha del calendario de historial
+        unsuscribe = reservasRef.where("fecha", "==", fechaSeleccionada).orderBy("hora", "asc").onSnapshot((snapshot) => {
             const tbody = document.getElementById('tablaReservas');
             tbody.innerHTML = '';
+
+            if(snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#718096;">No hay registros para esta fecha.</td></tr>';
+                return;
+            }
 
             snapshot.forEach((doc) => {
                 const reserva = doc.data();
                 
-                // Aplicar filtros
                 let mostrar = false;
                 if (filtroActual === 'Todas') mostrar = true;
                 if (filtroActual === 'Bon (Restaurante)' && reserva.actividad === 'Bon (Restaurante)') mostrar = true;
@@ -225,11 +306,13 @@
                     
                     const estadoClass = reserva.estado === 'Ingresó' ? 'status-entered' : 'status-pending';
                     const textoEstado = reserva.estado === 'Ingresó' ? '✔ Ingresó' : 'Pendiente';
-                    
-                    // Botón dinámico que el guardia presiona al llegar la persona
                     const botonEstado = `<button class="status-btn ${estadoClass}" onclick="cambiarEstado('${doc.id}', '${reserva.estado}')">${textoEstado}</button>`;
+                    
+                    // Asegurar compatibilidad por si hay registros viejos sin folio
+                    const displayFolio = reserva.folioBase ? `CAS-${reserva.folioBase}` : 'N/A';
 
                     tr.innerHTML = `
+                        <td><span class="folio-badge">${displayFolio}</span></td>
                         <td><strong>${reserva.nombre}</strong></td>
                         <td>${reserva.actividad}</td>
                         <td>${reserva.hora}</td>
@@ -241,20 +324,22 @@
         });
     }
 
-    // 4. LÓGICA PARA ACTUALIZAR EL ESTADO (INGRESO RÁPIDO)
+    // 4. LÓGICA PARA ACTUALIZAR ESTADO
     async function cambiarEstado(idDocumento, estadoActual) {
         const nuevoEstado = estadoActual === 'Pendiente' ? 'Ingresó' : 'Pendiente';
         try {
-            await reservasRef.doc(idDocumento).update({
-                estado: nuevoEstado
-            });
+            await reservasRef.doc(idDocumento).update({ estado: nuevoEstado });
         } catch (error) {
-            console.error("Error al actualizar el estado de ingreso:", error);
+            console.error("Error al actualizar el estado:", error);
         }
     }
 
-    // Iniciar con la fecha de hoy por defecto
-    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+    // Inicializar fechas (Formulario y Filtro Historial) con el día de hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha').value = hoy;
+    document.getElementById('fechaHistorial').value = hoy;
+    
+    // Cargar datos por primera vez
     cargarDatos();
 
 </script>
