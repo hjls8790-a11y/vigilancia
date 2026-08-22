@@ -1,0 +1,201 @@
+import os
+from weasyprint import HTML
+
+html_content = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        *, *::before, *::after { 
+            box-sizing: border-box; 
+        }
+        @page {
+            size: A4;
+            margin: 20mm 18mm;
+            background-color: #f7f9fa;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #2c3e50;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            border-bottom: 4px solid #1a365d;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: #1a365d;
+            margin: 0;
+            font-size: 22pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .meta-info {
+            margin-top: 12px;
+            font-size: 11pt;
+            color: #4a5568;
+        }
+        .meta-info p {
+            margin: 3px 0;
+        }
+        h2 {
+            color: #2b6cb0;
+            font-size: 14pt;
+            border-left: 5px solid #2b6cb0;
+            padding-left: 10px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            page-break-after: avoid;
+        }
+        p, li {
+            font-size: 11pt;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        ul {
+            margin-top: 5px;
+            padding-left: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #ffffff;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            font-size: 10.5pt;
+        }
+        th {
+            background-color: #2b6cb0;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .sign-off {
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+        .sign-off p {
+            margin: 2px 0;
+        }
+        .name {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        .motto {
+            font-style: italic;
+            color: #718096;
+            margin-top: 8px;
+            font-size: 10.5pt;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Reporte Ejecutivo de Seguridad Operativa</h1>
+        <div class="meta-info">
+            <p><strong>Fecha:</strong> 22 de Agosto de 2026</p>
+            <p><strong>De:</strong> Hugo Lizárraga, Jefe de Vigilancia</p>
+            <p><strong>Para:</strong> Gerencia y Dirección Administrativa</p>
+            <p><strong>Asunto:</strong> Propuesta de Reforzamiento de Protocolos de Acceso y Métricas de Evaluación</p>
+        </div>
+    </div>
+
+    <p>Con el objetivo de garantizar la exclusividad, proteger las instalaciones del club y elevar los estándares de servicio, se presenta la siguiente propuesta estructurada para la optimización de los controles de acceso y esquemas de vigilancia.</p>
+
+    <h2>1. Reforzamiento en Controles de Acceso Generales</h2>
+    <ul>
+        <li><strong>Identificación Obligatoria:</strong> Solicitar identificación oficial (INE, Pasaporte o Licencia) a todos los invitados de socios sin excepción.</li>
+        <li><strong>Presencia del Socio:</strong> El socio titular debe encontrarse físicamente en las instalaciones para autorizar el ingreso de su invitado.</li>
+        <li><strong>Protocolo de Discrepancias (Listas Administrativas):</strong> Si un invitado no figura en el Drive de control enviado por Administración, el acceso quedará en espera. Será responsabilidad del invitado contactar al socio para validar la entrada.</li>
+        <li><strong>Cumplimiento Interno Estricto:</strong> Unificar criterios operativos en todos los departamentos. Los encargados no deben solicitar excepciones para sus acompañantes; los protocolos de seguridad se aplicarán de manera universal.</li>
+    </ul>
+
+    <h2>2. Solución de Acceso para el Restaurante (Bon)</h2>
+    <p>Para evitar fricciones con el público general que visita el restaurante sin vulnerar la seguridad del área privada del club, se implementará un <strong>Filtro de Hospitalidad</strong>:</p>
+    <ul>
+        <li><strong>Sincronización de Reservas:</strong> El restaurante proveerá a la caseta de vigilancia una lista actualizada de las reservas del día.</li>
+        <li><strong>Gafetes Restrictivos:</strong> Seguridad cotejará el nombre de la reserva y entregará un pase temporal exclusivo de "Restaurante", limitando el tránsito únicamente a dicha área.</li>
+        <li><strong>Comprobante Digital (Fast-Track):</strong> Fomentar que el restaurante envíe una confirmación digital (WhatsApp/Correo) al cliente, para ser mostrada en caseta y agilizar el ingreso sin necesidad de retener identificaciones oficiales.</li>
+    </ul>
+
+    <h2>3. Control en Eventos Especiales y Clases</h2>
+    <ul>
+        <li><strong>Listas Anticipadas:</strong> Los organizadores de actividades (yoga, meditación, etc.) deberán entregar a seguridad el listado completo de asistentes con anticipación.</li>
+        <li><strong>Validación de Identidad:</strong> Todos los asistentes a estas clases deberán mostrar identificación oficial para corroborar su inscripción en las listas de ingreso.</li>
+    </ul>
+
+    <h2>4. Seguridad Física y Estado de Fuerza</h2>
+    <ul>
+        <li><strong>Ampliación de Rondines:</strong> Extender de manera permanente los recorridos de vigilancia preventiva hacia el estacionamiento general para incrementar la disuasión.</li>
+        <li><strong>Incremento de Plantilla:</strong> Se requiere la contratación de al menos 1 elemento de seguridad adicional para cubrir adecuadamente la carga operativa de las nuevas rutas de vigilancia y el blindaje en caseta.</li>
+    </ul>
+
+    <h2>5. Métricas de Evaluación de Resultados (KPIs)</h2>
+    <p>Para medir el impacto de estos nuevos protocolos, el Departamento de Vigilancia monitoreará los siguientes indicadores:</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Indicador (Métrica)</th>
+                <th>Objetivo</th>
+                <th>Frecuencia de Revisión</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Control de Excepciones Internas</strong><br>Accesos permitidos a acompañantes de departamentos sin registro previo.</td>
+                <td>0% (Eliminación total de excepciones)</td>
+                <td>Semanal</td>
+            </tr>
+            <tr>
+                <td><strong>Efectividad del Filtro Restaurante</strong><br>Reportes de clientes del restaurante deambulando en áreas exclusivas de socios.</td>
+                <td>0 incidencias reportadas</td>
+                <td>Quincenal</td>
+            </tr>
+            <tr>
+                <td><strong>Cumplimiento de Listas de Eventos</strong><br>Porcentaje de listas de clases especiales entregadas con al menos 24 hrs de anticipación.</td>
+                <td>100% de cumplimiento</td>
+                <td>Mensual</td>
+            </tr>
+            <tr>
+                <td><strong>Cobertura de Estacionamiento</strong><br>Rondines ejecutados en el estacionamiento general vs. rondines programados.</td>
+                <td>&gt; 95% de cumplimiento de rutas</td>
+                <td>Semanal</td>
+            </tr>
+            <tr>
+                <td><strong>Tiempo Promedio de Validación (Restaurante)</strong><br>Tiempo en caseta validando la reserva con el pase digital.</td>
+                <td>Menor a 2 minutos por vehículo</td>
+                <td>Mensual</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="sign-off">
+        <p>Quedo a su disposición para la revisión y autorización de estas directrices.</p>
+        <br><br>
+        <p>Atentamente,</p>
+        <p class="name">Hugo Lizárraga</p>
+        <p>Jefe de Vigilancia</p>
+        <p class="motto">"Con todo menos miedo."</p>
+    </div>
+
+</body>
+</html>
+"""
+
+with open('Propuesta_Seguridad_Club.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+HTML('Propuesta_Seguridad_Club.html').write_pdf('Propuesta_Seguridad_Club.pdf')
+print("PDF generated successfully.")
