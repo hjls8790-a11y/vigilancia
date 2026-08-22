@@ -106,13 +106,21 @@
             box-shadow: 0 10px 15px rgba(0,0,0,0.2);
         }
         .modal-content h3 { color: #2b6cb0; margin-top: 0; }
-        .folio-box { background: #f7fafc; border: 1px dashed #cbd5e0; padding: 15px; margin: 15px 0; border-radius: 6px; }
-        .folio-box p { margin: 8px 0; font-size: 16px; }
+        .folio-box { background: #f7fafc; border: 1px dashed #cbd5e0; padding: 15px; margin: 15px 0; border-radius: 6px; text-align: left; }
+        .folio-box p { margin: 8px 0; font-size: 15px; }
         .folio-box strong { color: #1a365d; }
-        .btn-close {
-            background-color: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+        
+        .modal-actions {
+            display: flex; gap: 10px; margin-top: 15px; flex-direction: column;
         }
-        .btn-close:hover { background-color: #c53030; }
+        .btn-whatsapp {
+            background-color: #25D366; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px;
+        }
+        .btn-whatsapp:hover { background-color: #128C7E; }
+        .btn-close {
+            background-color: #e2e8f0; color: #4a5568; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+        }
+        .btn-close:hover { background-color: #cbd5e0; }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -127,7 +135,7 @@
     <form id="reservaForm">
         <div class="form-grid">
             <div class="form-group">
-                <label for="nombre">Nombre del Visitante / Cliente</label>
+                <label for="nombre">Nombre del Visitante / Comensal</label>
                 <input type="text" id="nombre" required placeholder="Ej. Juan Pérez">
             </div>
             <div class="form-group">
@@ -172,7 +180,7 @@
     <table>
         <thead>
             <tr>
-                <th>Folio</th>
+                <th>Folio Caseta</th>
                 <th>Nombre</th>
                 <th>Destino</th>
                 <th>Hora</th>
@@ -185,16 +193,24 @@
     </table>
 </div>
 
-<!-- Ventana Emergente (Modal) para Folios -->
+<!-- Ventana Emergente (Modal) para Folios y WhatsApp -->
 <div class="modal-overlay" id="modalFolio">
     <div class="modal-content">
         <h3>✅ Reserva Confirmada</h3>
-        <p>Proporcione la siguiente información:</p>
+        <p>Folios generados con éxito.</p>
         <div class="folio-box">
-            <p>Folio Cliente: <strong id="txtFolioCliente">---</strong></p>
-            <p>Folio Caseta: <strong id="txtFolioCaseta">---</strong></p>
+            <p><strong>Folio Cliente:</strong> <span id="txtFolioCliente">---</span></p>
+            <p><strong>Folio Caseta:</strong> <span id="txtFolioCaseta">---</span></p>
+            <hr style="border: 0; border-top: 1px solid #cbd5e0; margin: 10px 0;">
+            <p><strong>Visitante:</strong> <span id="txtModalNombre"></span></p>
+            <p><strong>Área:</strong> <span id="txtModalArea"></span></p>
+            <p><strong>Hora:</strong> <span id="txtModalHora"></span></p>
         </div>
-        <button class="btn-close" onclick="cerrarModal()">Entendido</button>
+        
+        <div class="modal-actions">
+            <button class="btn-whatsapp" id="btnWhatsapp">📲 Enviar Accesos por WhatsApp</button>
+            <button class="btn-close" onclick="cerrarModal()">Cerrar</button>
+        </div>
     </div>
 </div>
 
@@ -229,13 +245,18 @@
         const codigoBase = generarFolioBase();
         const folioCliente = "CLI-" + codigoBase;
         const folioCaseta = "CAS-" + codigoBase;
+        
+        const nombreVal = document.getElementById('nombre').value.toUpperCase();
+        const actividadVal = document.getElementById('actividad').value;
+        const fechaVal = document.getElementById('fecha').value;
+        const horaVal = document.getElementById('hora').value;
 
         const nuevaReserva = {
             folioBase: codigoBase,
-            nombre: document.getElementById('nombre').value.toUpperCase(),
-            actividad: document.getElementById('actividad').value,
-            fecha: document.getElementById('fecha').value,
-            hora: document.getElementById('hora').value,
+            nombre: nombreVal,
+            actividad: actividadVal,
+            fecha: fechaVal,
+            hora: horaVal,
             estado: 'Pendiente', 
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
@@ -243,9 +264,31 @@
         try {
             await reservasRef.add(nuevaReserva);
             
-            // Mostrar Modal con los folios
+            // Llenar datos en el Modal
             document.getElementById('txtFolioCliente').textContent = folioCliente;
             document.getElementById('txtFolioCaseta').textContent = folioCaseta;
+            document.getElementById('txtModalNombre').textContent = nombreVal;
+            document.getElementById('txtModalArea').textContent = actividadVal;
+            document.getElementById('txtModalHora').textContent = horaVal;
+            
+            // Configurar mensaje de WhatsApp
+            const mensajeWapp = `*Confirmación de Accesos - Cielo Park*\n\n` +
+                                `*Visitante/Comensal:* ${nombreVal}\n` +
+                                `*Área/Actividad:* ${actividadVal}\n` +
+                                `*Fecha:* ${fechaVal}\n` +
+                                `*Hora:* ${horaVal}\n\n` +
+                                `*Folio Cliente:* ${folioCliente}\n` +
+                                `*Folio Caseta:* ${folioCaseta}\n\n` +
+                                `Por favor, muestre estos folios en la caseta de vigilancia para agilizar su ingreso.`;
+            
+            const numeroDestino = "526695931812";
+            const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensajeWapp)}`;
+            
+            document.getElementById('btnWhatsapp').onclick = () => {
+                window.open(urlWhatsApp, '_blank');
+            };
+
+            // Mostrar Modal
             document.getElementById('modalFolio').style.display = 'flex';
 
             document.getElementById('reservaForm').reset();
@@ -263,7 +306,7 @@
         document.getElementById('modalFolio').style.display = 'none';
     }
 
-    // 3. LÓGICA PARA LEER Y FILTRAR DATOS (CON HISTORIAL)
+    // 3. LÓGICA PARA LEER Y FILTRAR DATOS (CON HISTORIAL REPARADO)
     let filtroActual = 'Todas';
     let unsuscribe = null;
 
@@ -278,13 +321,12 @@
     function cargarDatos() {
         const fechaSeleccionada = document.getElementById('fechaHistorial').value;
         
-        // Detener la escucha anterior si existe para no duplicar datos
         if (unsuscribe) {
             unsuscribe();
         }
         
-        // Escucha en tiempo real basada en la fecha del calendario de historial
-        unsuscribe = reservasRef.where("fecha", "==", fechaSeleccionada).orderBy("hora", "asc").onSnapshot((snapshot) => {
+        // Se quitó el orderBy("hora") de la consulta para evitar errores de índices en Firebase
+        unsuscribe = reservasRef.where("fecha", "==", fechaSeleccionada).onSnapshot((snapshot) => {
             const tbody = document.getElementById('tablaReservas');
             tbody.innerHTML = '';
 
@@ -293,9 +335,16 @@
                 return;
             }
 
+            // Guardar datos en un arreglo para ordenarlos manualmente por JavaScript
+            let registros = [];
             snapshot.forEach((doc) => {
-                const reserva = doc.data();
-                
+                registros.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Ordenar por hora de menor a mayor
+            registros.sort((a, b) => a.hora.localeCompare(b.hora));
+
+            registros.forEach((reserva) => {
                 let mostrar = false;
                 if (filtroActual === 'Todas') mostrar = true;
                 if (filtroActual === 'Bon (Restaurante)' && reserva.actividad === 'Bon (Restaurante)') mostrar = true;
@@ -306,9 +355,8 @@
                     
                     const estadoClass = reserva.estado === 'Ingresó' ? 'status-entered' : 'status-pending';
                     const textoEstado = reserva.estado === 'Ingresó' ? '✔ Ingresó' : 'Pendiente';
-                    const botonEstado = `<button class="status-btn ${estadoClass}" onclick="cambiarEstado('${doc.id}', '${reserva.estado}')">${textoEstado}</button>`;
+                    const botonEstado = `<button class="status-btn ${estadoClass}" onclick="cambiarEstado('${reserva.id}', '${reserva.estado}')">${textoEstado}</button>`;
                     
-                    // Asegurar compatibilidad por si hay registros viejos sin folio
                     const displayFolio = reserva.folioBase ? `CAS-${reserva.folioBase}` : 'N/A';
 
                     tr.innerHTML = `
