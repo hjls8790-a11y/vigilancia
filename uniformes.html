@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requisición de Uniformes - Seguridad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .btn-auditar {
+            background-color: #27ae60;
+            margin-top: 10px;
+        }
+        .btn-auditar:hover {
+            background-color: #2ecc71;
+        }
+        /* Sección de Auditoría oculta por defecto */
+        #seccion-auditoria {
+            display: none;
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        #buscador {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Requisición de Uniformes</h1>
+    
+    <!-- Formulario de Registro -->
+    <form id="formRequisicion">
+        <div>
+            <label for="nombre">Nombre del Elemento:</label>
+            <input type="text" id="nombre" placeholder="Ingresa el nombre completo" required>
+        </div>
+        
+        <div>
+            <label for="tallaCamisa">Talla de Camisa:</label>
+            <select id="tallaCamisa" required>
+                <option value="">Selecciona una talla...</option>
+                <option value="CH">CH</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="XXXL">XXXL</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="tallaPantalon">Talla de Pantalón:</label>
+            <select id="tallaPantalon" required>
+                <option value="">Selecciona una talla...</option>
+                <option value="32">32</option>
+                <option value="34">34</option>
+                <option value="36">36</option>
+                <option value="38">38</option>
+                <option value="40">40</option>
+                <option value="42">42</option>
+                <option value="44">44</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="cabeza">Accesorio para cabeza:</label>
+            <select id="cabeza" required>
+                <option value="">Selecciona una opción...</option>
+                <option value="Gorra">Gorra</option>
+                <option value="Sombrero">Sombrero</option>
+            </select>
+        </div>
+        
+        <button type="submit" id="btnSubmit">Enviar Requisición</button>
+    </form>
+
+    <!-- Botón para mostrar la auditoría -->
+    <button class="btn-auditar" id="btnAuditar">Auditar Información de Compañeros</button>
+
+    <!-- Sección de Auditoría y Búsqueda -->
+    <div id="seccion-auditoria">
+        <h2>Auditoría de Requisiciones</h2>
+        
+        <input type="text" id="buscador" placeholder="Buscar por nombre, talla, accesorio o fecha...">
+        
+        <table id="tablaAuditoria">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Camisa</th>
+                    <th>Pantalón</th>
+                    <th>Accesorio</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+                <!-- Los registros aparecerán aquí desde Firebase -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- SDKs de Firebase en versión Modular (ES Modules) -->
+<script type="module">
+    // Importar las funciones de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Tu configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+        authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+        projectId: "sistema-vigilancia-6851e",
+        storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+        messagingSenderId: "714792023462",
+        appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+    };
+
+    // Inicializar Firebase y la base de datos (Firestore)
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ==========================================
+    // 1. LÓGICA PARA GUARDAR EN LA BASE DE DATOS
+    // ==========================================
+    document.getElementById('formRequisicion').addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+        
+        const btnSubmit = document.getElementById('btnSubmit');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Guardando en la nube...";
+
+        const hoy = new Date();
+        const fechaStr = hoy.toLocaleDateString('es-MX');
+
+        try {
+            // Guardar documento en la colección "requisiciones_uniformes"
+            await addDoc(collection(db, "requisiciones_uniformes"), {
+                fecha: fechaStr,
+                timestamp: hoy, // Útil para ordenar desde el más nuevo al más viejo
+                nombre: document.getElementById('nombre').value,
+                camisa: document.getElementById('tallaCamisa').value,
+                pantalon: document.getElementById('tallaPantalon').value,
+                cabeza: document.getElementById('cabeza').value
+            });
+            
+            alert('Requisición guardada exitosamente en la base de datos.');
+            this.reset(); // Limpiar el formulario
+        } catch (error) {
+            console.error("Error al guardar: ", error);
+            alert("Error al conectarse a Firebase. Revisa los permisos de tu base de datos.");
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = "Enviar Requisición";
+        }
+    });
+
+    // ==========================================
+    // 2. LÓGICA DE AUDITORÍA Y LECTURA EN TIEMPO REAL
+    // ==========================================
+    const btnAuditar = document.getElementById('btnAuditar');
+    const seccionAuditoria = document.getElementById('seccion-auditoria');
+    let escuchaFirebase = null; // Variable para controlar la lectura de datos
+
+    btnAuditar.addEventListener('click', function() {
+        if (seccionAuditoria.style.display === 'none' || seccionAuditoria.style.display === '') {
+            seccionAuditoria.style.display = 'block';
+            cargarTablaFirebase();
+        } else {
+            seccionAuditoria.style.display = 'none';
+            if (escuchaFirebase) escuchaFirebase(); // Detiene la lectura si se oculta la sección
+        }
+    });
+
+    function cargarTablaFirebase() {
+        const tbody = document.getElementById('cuerpoTabla');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando datos de Firebase...</td></tr>';
+        
+        // Crear una consulta ordenada por fecha (del más reciente al más antiguo)
+        const consulta = query(collection(db, "requisiciones_uniformes"), orderBy("timestamp", "desc"));
+        
+        // onSnapshot lee los datos y se actualiza EN TIEMPO REAL si alguien agrega algo
+        escuchaFirebase = onSnapshot(consulta, (snapshot) => {
+            tbody.innerHTML = ''; // Limpiar la tabla
+            
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay requisiciones aún.</td></tr>';
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const req = doc.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${req.fecha || ''}</td>
+                    <td>${req.nombre || ''}</td>
+                    <td>${req.camisa || ''}</td>
+                    <td>${req.pantalon || ''}</td>
+                    <td>${req.cabeza || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }, (error) => {
+            console.error("Error leyendo datos: ", error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Faltan permisos en Firestore. Configura las reglas de tu base de datos.</td></tr>';
+        });
+    }
+
+    // ==========================================
+    // 3. LÓGICA DEL BUSCADOR (FILTRO LOCAL)
+    // ==========================================
+    document.getElementById('buscador').addEventListener('keyup', function() {
+        const input = this.value.toLowerCase();
+        const tabla = document.getElementById('tablaAuditoria');
+        const filas = tabla.getElementsByTagName('tr');
+
+        // Empezamos desde 1 para saltar el encabezado
+        for (let i = 1; i < filas.length; i++) {
+            let fila = filas[i];
+            let celdas = fila.getElementsByTagName('td');
+            let coincidencia = false;
+
+            for (let j = 0; j < celdas.length; j++) {
+                if (celdas[j]) {
+                    let textoCelda = celdas[j].textContent || celdas[j].innerText;
+                    if (textoCelda.toLowerCase().indexOf(input) > -1) {
+                        coincidencia = true;
+                        break;
+                    }
+                }
+            }
+            
+            fila.style.display = coincidencia ? "" : "none";
+        }
+    });
+</script>
+
+</body>
+</html>
