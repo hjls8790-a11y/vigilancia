@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Ubicación de Seguridad</title>
+</head>
+<body>
+    <h2>Reporte de Ubicación del Elemento</h2>
+    <button onclick="obtenerUbicacion()">Enviar mi ubicación actual</button>
+    <p id="resultado"></p>
+
+    <script>
+        function obtenerUbicacion() {
+            const resultado = document.getElementById("resultado");
+
+            if (!navigator.geolocation) {
+                resultado.textContent = "La geolocalización no es compatible con este navegador.";
+                return;
+            }
+
+            resultado.textContent = "Solicitando permisos y obteniendo ubicación...";
+
+            // Solicita la ubicación actual del usuario
+            navigator.geolocation.getCurrentPosition(exito, error);
+
+            function exito(posicion) {
+                const latitud = posicion.coords.latitude;
+                const longitud = posicion.coords.longitude;
+                resultado.textContent = `Ubicación registrada exitosamente: Latitud ${latitud}, Longitud ${longitud}`;
+                
+                // Aquí puedes agregar el código para enviar 'latitud' y 'longitud' a tu base de datos
+            }
+
+            function error(err) {
+                resultado.textContent = `Error al obtener la ubicación: ${err.message}. Asegúrate de otorgar los permisos.`;
+            }
+        }
+    </script>
+</body>
+</html>
