@@ -3,283 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación de Seguridad - El Cielo</title>
+    <title>Plataforma de Encuesta y Auditoría</title>
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --secondary: #f3f4f6;
-            --accent: #10b981;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #e5e7eb;
-            color: var(--text-main);
+        /* Estilos generales y reset */
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            padding: 40px 20px;
             min-height: 100vh;
         }
+
+        /* Contenedores principales */
         .container {
-            background: white;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-        }
-        .header h1 { margin: 0; color: var(--primary); font-size: 1.6rem; text-transform: uppercase; }
-        .header p { color: var(--text-muted); margin-top: 8px; font-size: 0.95rem; line-height: 1.4; }
-
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem; }
-        .input-group input, .input-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            font-family: inherit;
-        }
-        .input-group textarea { resize: vertical; min-height: 100px; }
-
-        /* Estilos para las calificaciones del 1 al 5 */
-        .rating-group {
-            background: var(--secondary);
-            padding: 15px;
-            border-radius: 8px;
             margin-bottom: 20px;
         }
-        .rating-title { font-weight: bold; margin-bottom: 10px; display: block; font-size: 0.95rem; }
-        .rating-options {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        .rating-options label {
-            flex: 1;
+
+        .header-msg {
             text-align: center;
-            background: white;
-            border: 1px solid #d1d5db;
-            padding: 10px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-            color: var(--text-muted);
-        }
-        .rating-options input[type="radio"] { display: none; }
-        .rating-options input[type="radio"]:checked + label {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            transform: scale(1.05);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .rating-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 5px;
-            padding: 0 5px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
         }
 
-        .btn-enviar {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+        .header-msg h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header-msg p {
+            color: #555;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        /* Formulario de encuesta */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
             width: 100%;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-top: 10px;
-            transition: 0.3s;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
         }
-        .btn-enviar:hover { background-color: #152c69; }
-        .btn-enviar:disabled { background-color: #9ca3af; cursor: not-allowed; }
 
-        /* Pantalla de agradecimiento */
-        #pantalla-exito {
-            display: none;
-            text-align: center;
-            padding: 40px 20px;
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
         }
-        #pantalla-exito h2 { color: var(--accent); font-size: 2rem; margin-bottom: 10px; }
-        #pantalla-exito p { color: var(--text-muted); font-size: 1.1rem; line-height: 1.5; }
+
+        /* Botones */
+        .btn-submit {
+            background-color: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: #219150;
+        }
+
+        .btn-auditoria {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-auditoria:hover {
+            background-color: #1a252f;
+        }
+        
+        .btn-salir {
+            background-color: #e74c3c;
+            margin-top: 20px;
+        }
+        
+        .btn-salir:hover {
+            background-color: #c0392b;
+        }
+
+        /* Panel de auditoría (Oculto por defecto) */
+        #panelAuditoria {
+            display: none;
+            border-top: 4px solid #2c3e50;
+        }
+
+        .auditoria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .registro-dummy {
+            background: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container" id="panel-encuesta">
-        <div class="header">
-            <h1>Evaluación de Seguridad</h1>
-            <p>El Cielo Parque Residencial<br>Ayúdenos a mejorar nuestro servicio calificando los siguientes aspectos (1 = Deficiente, 5 = Excelente).</p>
+    <!-- PANEL PRINCIPAL: ENCUESTA PARA RESIDENTES -->
+    <div class="container" id="panelPrincipal">
+        
+        <div class="header-msg">
+            <h2>Encuesta de Servicio y Seguridad</h2>
+            <p>"Agradecemos su tiempo y participación. Nuestro mayor compromiso es la mejora continua para garantizar la tranquilidad y excelencia en El Cielo Parque Residencial y Club Cardones."</p>
         </div>
 
         <form id="formEncuesta">
-            <div class="input-group">
-                <label>Nombre del Residente (Opcional):</label>
-                <input type="text" id="nombre" placeholder="Ej. Familia Pérez">
+            <div class="form-group">
+                <label for="nombre">Nombre del Residente</label>
+                <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
             </div>
-            <div class="input-group">
-                <label>Dirección / Lote (Requerido):</label>
-                <input type="text" id="direccion" placeholder="Ej. Lote 45, Manzana 3" required>
-            </div>
-
-            <!-- Pregunta 1: Procesos -->
-            <div class="rating-group">
-                <span class="rating-title">1. Procesos de acceso y control de visitantes/proveedores</span>
-                <div class="rating-options" id="rate-procesos">
-                    <input type="radio" name="procesos" id="p1" value="1"><label for="p1">1</label>
-                    <input type="radio" name="procesos" id="p2" value="2"><label for="p2">2</label>
-                    <input type="radio" name="procesos" id="p3" value="3"><label for="p3">3</label>
-                    <input type="radio" name="procesos" id="p4" value="4"><label for="p4">4</label>
-                    <input type="radio" name="procesos" id="p5" value="5"><label for="p5">5</label>
-                </div>
-                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            
+            <div class="form-group">
+                <label for="ubicacion">Lote / Residencia</label>
+                <input type="text" id="ubicacion" placeholder="Número de lote o domicilio" required>
             </div>
 
-            <!-- Pregunta 2: Seguimiento -->
-            <div class="rating-group">
-                <span class="rating-title">2. Seguimiento y tiempos de respuesta a reportes o incidencias</span>
-                <div class="rating-options" id="rate-seguimiento">
-                    <input type="radio" name="seguimiento" id="s1" value="1"><label for="s1">1</label>
-                    <input type="radio" name="seguimiento" id="s2" value="2"><label for="s2">2</label>
-                    <input type="radio" name="seguimiento" id="s3" value="3"><label for="s3">3</label>
-                    <input type="radio" name="seguimiento" id="s4" value="4"><label for="s4">4</label>
-                    <input type="radio" name="seguimiento" id="s5" value="5"><label for="s5">5</label>
-                </div>
-                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            <div class="form-group">
+                <label for="calificacion">Calificación del Servicio</label>
+                <select id="calificacion" required>
+                    <option value="" disabled selected>Seleccione una opción...</option>
+                    <option value="Excelente">Excelente</option>
+                    <option value="Bueno">Bueno</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Deficiente">Deficiente</option>
+                </select>
             </div>
 
-            <!-- Pregunta 3: Patrullaje -->
-            <div class="rating-group">
-                <span class="rating-title">3. Presencia y patrullaje preventivo en el residencial</span>
-                <div class="rating-options" id="rate-patrullaje">
-                    <input type="radio" name="patrullaje" id="pt1" value="1"><label for="pt1">1</label>
-                    <input type="radio" name="patrullaje" id="pt2" value="2"><label for="pt2">2</label>
-                    <input type="radio" name="patrullaje" id="pt3" value="3"><label for="pt3">3</label>
-                    <input type="radio" name="patrullaje" id="pt4" value="4"><label for="pt4">4</label>
-                    <input type="radio" name="patrullaje" id="pt5" value="5"><label for="pt5">5</label>
-                </div>
-                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            <div class="form-group">
+                <label for="comentarios">Comentarios u Observaciones</label>
+                <textarea id="comentarios" placeholder="Déjenos saber cómo podemos mejorar..."></textarea>
             </div>
 
-            <!-- Pregunta 4: Jefatura -->
-            <div class="rating-group">
-                <span class="rating-title">4. Atención, trato y gestión por parte de la Jefatura de Seguridad</span>
-                <div class="rating-options" id="rate-jefatura">
-                    <input type="radio" name="jefatura" id="j1" value="1"><label for="j1">1</label>
-                    <input type="radio" name="jefatura" id="j2" value="2"><label for="j2">2</label>
-                    <input type="radio" name="jefatura" id="j3" value="3"><label for="j3">3</label>
-                    <input type="radio" name="jefatura" id="j4" value="4"><label for="j4">4</label>
-                    <input type="radio" name="jefatura" id="j5" value="5"><label for="j5">5</label>
-                </div>
-                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
-            </div>
-
-            <!-- Recomendaciones -->
-            <div class="input-group">
-                <label>Recomendaciones o áreas de mejora:</label>
-                <textarea id="recomendaciones" placeholder="Sus comentarios son muy importantes para nosotros..."></textarea>
-            </div>
-
-            <button type="button" class="btn-enviar" id="btnEnviar" onclick="guardarEncuesta()">
-                Enviar Evaluación
-            </button>
+            <button type="submit" class="btn-submit">Enviar Respuestas</button>
         </form>
+
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+        <!-- Botón para acceso interno -->
+        <button id="btnAuditarRespuestas" class="btn-auditoria">🔒 Acceso Jefatura (Auditar Respuestas)</button>
     </div>
 
-    <!-- Pantalla de éxito -->
-    <div class="container" id="pantalla-exito">
-        <h2>¡Gracias por su tiempo!</h2>
-        <p>Su evaluación ha sido enviada directamente a la Jefatura de Seguridad.<br><br>Trabajamos diariamente para garantizar la tranquilidad de su familia en El Cielo Parque Residencial.</p>
-        <button class="btn-enviar" onclick="location.reload()" style="margin-top: 30px;">Hacer otra evaluación</button>
+    <!-- PANEL DE AUDITORÍA: SOLO VISIBLE CON CONTRASEÑA -->
+    <div class="container" id="panelAuditoria">
+        <div class="auditoria-header">
+            <h2>Módulo de Auditoría</h2>
+            <span style="background: #27ae60; color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">ACTIVO</span>
+        </div>
+        
+        <p style="margin-bottom: 20px; color: #555;">Historial de respuestas registradas por los residentes.</p>
+        
+        <!-- Contenedor donde Firebase inyectará los datos -->
+        <div id="contenedorRespuestasFirebase">
+            <!-- Ejemplo visual de cómo se verán los datos -->
+            <div class="registro-dummy">
+                <strong>Lote 42 - Carlos M.</strong><br>
+                Calificación: Excelente<br>
+                <em>"Todo muy bien con los controles de acceso."</em>
+            </div>
+            <div class="registro-dummy">
+                <strong>Lote 15 - Ana Gómez</strong><br>
+                Calificación: Bueno<br>
+                <em>"Agilizar el registro de visitas los fines de semana."</em>
+            </div>
+        </div>
+
+        <button id="btnSalirAuditoria" class="btn-auditoria btn-salir">Cerrar Sesión de Auditoría</button>
     </div>
 
-    <!-- SCRIPT DE FIREBASE -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    <script>
+        // 1. Lógica para enviar la encuesta (Residentes)
+        document.getElementById('formEncuesta').addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita que la página se recargue
+            
+            // --- AQUÍ VA TU CÓDIGO PARA GUARDAR EN FIREBASE ---
+            // const nombre = document.getElementById('nombre').value;
+            // const ubicacion = document.getElementById('ubicacion').value;
+            // const calificacion = document.getElementById('calificacion').value;
+            // const comentarios = document.getElementById('comentarios').value;
+            // guardarEnFirebase(nombre, ubicacion, calificacion, comentarios);
+            
+            alert("Gracias. Sus respuestas han sido registradas para nuestra mejora continua.");
+            this.reset(); // Limpia el formulario
+        });
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
-            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
-            projectId: "sistema-vigilancia-6851e",
-            storageBucket: "sistema-vigilancia-6851e.appspot.com",
-            messagingSenderId: "714792023462",
-            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
-        };
+        // 2. Lógica para acceder a la auditoría (Jefatura de Seguridad)
+        document.getElementById('btnAuditarRespuestas').addEventListener('click', function() {
+            let password = prompt("Control de acceso Jefatura: Ingresa la contraseña operativa:");
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        function obtenerValorRadio(name) {
-            const radios = document.getElementsByName(name);
-            for (let i = 0; i < radios.length; i++) {
-                if (radios[i].checked) return radios[i].value;
-            }
-            return null;
-        }
-
-        window.guardarEncuesta = async function() {
-            const direccion = document.getElementById('direccion').value.trim();
-            const califProcesos = obtenerValorRadio('procesos');
-            const califSeguimiento = obtenerValorRadio('seguimiento');
-            const califPatrullaje = obtenerValorRadio('patrullaje');
-            const califJefatura = obtenerValorRadio('jefatura');
-
-            if (!direccion) {
-                alert("Por favor, ingrese su Dirección o Lote.");
-                return;
-            }
-            if (!califProcesos || !califSeguimiento || !califPatrullaje || !califJefatura) {
-                alert("Por favor, califique los 4 rubros seleccionando un número del 1 al 5.");
-                return;
-            }
-
-            const btn = document.getElementById('btnEnviar');
-            btn.innerText = "Enviando...";
-            btn.disabled = true;
-
-            const datosEncuesta = {
-                nombre_residente: document.getElementById('nombre').value.trim() || "Anónimo",
-                direccion: direccion,
-                calificacion_procesos: parseInt(califProcesos),
-                calificacion_seguimiento: parseInt(califSeguimiento),
-                calificacion_patrullaje: parseInt(califPatrullaje),
-                calificacion_jefatura: parseInt(califJefatura),
-                recomendaciones: document.getElementById('recomendaciones').value.trim(),
-                timestamp: serverTimestamp()
-            };
-
-            try {
-                await addDoc(collection(db, "encuestas_seguridad"), datosEncuesta);
+            if (password === "030819") {
+                // Ocultar encuesta, mostrar panel de auditoría
+                document.getElementById('panelPrincipal').style.display = 'none';
+                document.getElementById('panelAuditoria').style.display = 'block';
                 
-                // Ocultar formulario y mostrar éxito
-                document.getElementById('panel-encuesta').style.display = 'none';
-                document.getElementById('pantalla-exito').style.display = 'block';
+                // --- AQUÍ VA TU CÓDIGO PARA LEER DE FIREBASE ---
+                // leerDatosFirebase();
                 
-            } catch (error) {
-                console.error("Error guardando encuesta: ", error);
-                alert("Hubo un error al enviar la evaluación. Intente de nuevo.");
-                btn.innerText = "Enviar Evaluación";
-                btn.disabled = false;
+            } else if (password !== null) {
+                alert("Contraseña incorrecta. Acceso denegado.");
             }
-        };
+        });
+
+        // 3. Lógica para salir de la auditoría y volver a la vista principal
+        document.getElementById('btnSalirAuditoria').addEventListener('click', function() {
+            document.getElementById('panelAuditoria').style.display = 'none';
+            document.getElementById('panelPrincipal').style.display = 'block';
+        });
     </script>
+
 </body>
 </html>
