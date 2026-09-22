@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Encuesta y Auditoría</title>
+    <title>Plataforma de Encuesta y Auditoría - Seguridad</title>
     <style>
         /* Estilos generales y reset */
         * {
@@ -29,7 +29,7 @@
             padding: 40px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             margin-bottom: 20px;
         }
@@ -62,6 +62,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             color: #2c3e50;
+            font-size: 14px;
         }
 
         .form-group input, 
@@ -137,12 +138,18 @@
             margin-bottom: 20px;
         }
 
-        .registro-dummy {
+        .registro-guardado {
             background: #f9f9f9;
             padding: 15px;
             border-left: 4px solid #3498db;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .registro-guardado span {
+            color: #2c3e50;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -153,7 +160,7 @@
         
         <div class="header-msg">
             <h2>Encuesta de Servicio y Seguridad</h2>
-            <p>"Agradecemos su tiempo y participación. Nuestro mayor compromiso es la mejora continua para garantizar la tranquilidad y excelencia en El Cielo Parque Residencial y Club Cardones."</p>
+            <p>"Agradecemos su tiempo y participación. Nuestro mayor compromiso es la mejora continua para garantizar la tranquilidad y excelencia en nuestras instalaciones."</p>
         </div>
 
         <form id="formEncuesta">
@@ -167,92 +174,142 @@
                 <input type="text" id="ubicacion" placeholder="Número de lote o domicilio" required>
             </div>
 
+            <!-- Nuevas preguntas operativas -->
             <div class="form-group">
-                <label for="calificacion">Calificación del Servicio</label>
-                <select id="calificacion" required>
-                    <option value="" disabled selected>Seleccione una opción...</option>
-                    <option value="Excelente">Excelente</option>
-                    <option value="Bueno">Bueno</option>
-                    <option value="Regular">Regular</option>
-                    <option value="Deficiente">Deficiente</option>
+                <label for="evalTiempos">1. Tiempos de Respuesta (Atención en caseta y reportes)</label>
+                <select id="evalTiempos" required>
+                    <option value="" disabled selected>Evalúe los tiempos...</option>
+                    <option value="Excelente">Excelente (Rápido y eficiente)</option>
+                    <option value="Bueno">Bueno (Aceptable)</option>
+                    <option value="Regular">Regular (Demorado)</option>
+                    <option value="Deficiente">Deficiente (Muy lento)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="comentarios">Comentarios u Observaciones</label>
-                <textarea id="comentarios" placeholder="Déjenos saber cómo podemos mejorar..."></textarea>
+                <label for="evalProcesos">2. Procesos de Seguridad (Registro de visitas, control de acceso)</label>
+                <select id="evalProcesos" required>
+                    <option value="" disabled selected>Evalúe los procesos...</option>
+                    <option value="Excelente">Excelente (Claros y seguros)</option>
+                    <option value="Bueno">Bueno (Adecuados)</option>
+                    <option value="Regular">Regular (Confusos o engorrosos)</option>
+                    <option value="Deficiente">Deficiente (Vulnerables o ineficientes)</option>
+                </select>
             </div>
 
-            <button type="submit" class="btn-submit">Enviar Respuestas</button>
+            <div class="form-group">
+                <label for="evalServicio">3. Calidad del Servicio (Actitud y trato del personal de guardias)</label>
+                <select id="evalServicio" required>
+                    <option value="" disabled selected>Evalúe el servicio...</option>
+                    <option value="Excelente">Excelente (Amables y profesionales)</option>
+                    <option value="Bueno">Bueno (Trato respetuoso)</option>
+                    <option value="Regular">Regular (Falta de empatía)</option>
+                    <option value="Deficiente">Deficiente (Mala actitud)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="comentarios">Comentarios y áreas de mejora</label>
+                <textarea id="comentarios" placeholder="Por favor, detalle qué podemos mejorar en tiempos, procesos o actitud del personal..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">Enviar Evaluación</button>
         </form>
 
         <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
 
-        <!-- Botón para acceso interno -->
         <button id="btnAuditarRespuestas" class="btn-auditoria">🔒 Acceso Jefatura (Auditar Respuestas)</button>
     </div>
 
     <!-- PANEL DE AUDITORÍA: SOLO VISIBLE CON CONTRASEÑA -->
     <div class="container" id="panelAuditoria">
         <div class="auditoria-header">
-            <h2>Módulo de Auditoría</h2>
+            <h2>Módulo de Auditoría de Jefatura</h2>
             <span style="background: #27ae60; color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">ACTIVO</span>
         </div>
         
-        <p style="margin-bottom: 20px; color: #555;">Historial de respuestas registradas por los residentes.</p>
+        <p style="margin-bottom: 20px; color: #555;">Historial de evaluaciones de los residentes.</p>
         
-        <!-- Contenedor donde Firebase inyectará los datos -->
-        <div id="contenedorRespuestasFirebase">
-            <!-- Ejemplo visual de cómo se verán los datos -->
-            <div class="registro-dummy">
-                <strong>Lote 42 - Carlos M.</strong><br>
-                Calificación: Excelente<br>
-                <em>"Todo muy bien con los controles de acceso."</em>
-            </div>
-            <div class="registro-dummy">
-                <strong>Lote 15 - Ana Gómez</strong><br>
-                Calificación: Bueno<br>
-                <em>"Agilizar el registro de visitas los fines de semana."</em>
-            </div>
+        <!-- Aquí se cargarán las encuestas guardadas -->
+        <div id="contenedorRespuestas">
+            <!-- Los registros aparecerán aquí mediante JavaScript -->
         </div>
 
         <button id="btnSalirAuditoria" class="btn-auditoria btn-salir">Cerrar Sesión de Auditoría</button>
     </div>
 
     <script>
-        // 1. Lógica para enviar la encuesta (Residentes)
+        // 1. Lógica para guardar la encuesta
         document.getElementById('formEncuesta').addEventListener('submit', function(e) {
-            e.preventDefault(); // Evita que la página se recargue
+            e.preventDefault(); 
             
-            // --- AQUÍ VA TU CÓDIGO PARA GUARDAR EN FIREBASE ---
-            // const nombre = document.getElementById('nombre').value;
-            // const ubicacion = document.getElementById('ubicacion').value;
-            // const calificacion = document.getElementById('calificacion').value;
-            // const comentarios = document.getElementById('comentarios').value;
-            // guardarEnFirebase(nombre, ubicacion, calificacion, comentarios);
+            // Recopilar los datos del formulario
+            const nuevaEncuesta = {
+                fecha: new Date().toLocaleString(),
+                nombre: document.getElementById('nombre').value,
+                ubicacion: document.getElementById('ubicacion').value,
+                tiempos: document.getElementById('evalTiempos').value,
+                procesos: document.getElementById('evalProcesos').value,
+                servicio: document.getElementById('evalServicio').value,
+                comentarios: document.getElementById('comentarios').value || 'Sin comentarios adicionales.'
+            };
+
+            // Guardar localmente en el navegador (Para pruebas inmediatas antes de Firebase)
+            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasResidentes')) || [];
+            historialEncuestas.push(nuevaEncuesta);
+            localStorage.setItem('encuestasResidentes', JSON.stringify(historialEncuestas));
+            
+            // Más adelante, aquí pones tu código de Firebase:
+            // guardarEnFirebase(nuevaEncuesta);
             
             alert("Gracias. Sus respuestas han sido registradas para nuestra mejora continua.");
-            this.reset(); // Limpia el formulario
+            this.reset(); 
         });
 
-        // 2. Lógica para acceder a la auditoría (Jefatura de Seguridad)
+        // 2. Lógica para acceder a la auditoría y MOSTRAR los datos guardados
         document.getElementById('btnAuditarRespuestas').addEventListener('click', function() {
             let password = prompt("Control de acceso Jefatura: Ingresa la contraseña operativa:");
 
             if (password === "030819") {
-                // Ocultar encuesta, mostrar panel de auditoría
                 document.getElementById('panelPrincipal').style.display = 'none';
                 document.getElementById('panelAuditoria').style.display = 'block';
                 
-                // --- AQUÍ VA TU CÓDIGO PARA LEER DE FIREBASE ---
-                // leerDatosFirebase();
+                // Cargar las respuestas guardadas
+                cargarAuditoria();
                 
             } else if (password !== null) {
                 alert("Contraseña incorrecta. Acceso denegado.");
             }
         });
 
-        // 3. Lógica para salir de la auditoría y volver a la vista principal
+        // 3. Función que inyecta las respuestas guardadas en el panel
+        function cargarAuditoria() {
+            const contenedor = document.getElementById('contenedorRespuestas');
+            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasResidentes')) || [];
+
+            contenedor.innerHTML = ''; // Limpiar panel antes de cargar
+
+            if (historialEncuestas.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No hay encuestas registradas todavía.</p>';
+                return;
+            }
+
+            // Invertir el array para mostrar los más recientes arriba
+            historialEncuestas.reverse().forEach(function(encuesta) {
+                contenedor.innerHTML += `
+                    <div class="registro-guardado">
+                        <div style="font-size:12px; color:#7f8c8d; margin-bottom:5px;">Fecha de registro: ${encuesta.fecha}</div>
+                        <span>Residente:</span> ${encuesta.nombre} (Lote: ${encuesta.ubicacion})<br><br>
+                        <span>Tiempos de Respuesta:</span> ${encuesta.tiempos}<br>
+                        <span>Procesos de Seguridad:</span> ${encuesta.procesos}<br>
+                        <span>Calidad del Servicio:</span> ${encuesta.servicio}<br><br>
+                        <em style="color:#555;">" ${encuesta.comentarios} "</em>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. Lógica para salir de la auditoría
         document.getElementById('btnSalirAuditoria').addEventListener('click', function() {
             document.getElementById('panelAuditoria').style.display = 'none';
             document.getElementById('panelPrincipal').style.display = 'block';
