@@ -5,162 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Encuesta y Auditoría - Seguridad</title>
     <style>
-        /* Estilos generales y reset */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            min-height: 100vh;
-        }
-
-        /* Contenedores principales */
-        .container {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 650px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .header-msg {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .header-msg h2 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .header-msg p {
-            color: #555;
-            font-style: italic;
-            line-height: 1.5;
-        }
-
-        /* Formulario de encuesta */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 14px;
-        }
-
-        .form-group input, 
-        .form-group select, 
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* Botones */
-        .btn-submit {
-            background-color: #27ae60;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-submit:hover {
-            background-color: #219150;
-        }
-
-        .btn-auditoria {
-            background-color: #2c3e50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 20px;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-auditoria:hover {
-            background-color: #1a252f;
-        }
-        
-        .btn-salir {
-            background-color: #e74c3c;
-            margin-top: 20px;
-        }
-        
-        .btn-salir:hover {
-            background-color: #c0392b;
-        }
-
-        /* Panel de auditoría (Oculto por defecto) */
-        #panelAuditoria {
-            display: none;
-            border-top: 4px solid #2c3e50;
-        }
-
-        .auditoria-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .registro-guardado {
-            background: #f9f9f9;
-            padding: 15px;
-            border-left: 4px solid #3498db;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .registro-guardado span {
-            color: #2c3e50;
-            font-weight: bold;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 100vh; }
+        .container { background: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); max-width: 650px; width: 100%; margin-bottom: 20px; }
+        .header-msg { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .header-msg h2 { color: #2c3e50; margin-bottom: 10px; }
+        .header-msg p { color: #555; font-style: italic; line-height: 1.5; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { background-color: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; transition: background-color 0.3s ease; }
+        .btn-submit:hover { background-color: #219150; }
+        .btn-auditoria { background-color: #2c3e50; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; transition: background-color 0.3s ease; }
+        .btn-auditoria:hover { background-color: #1a252f; }
+        .btn-salir { background-color: #e74c3c; margin-top: 20px; }
+        .btn-salir:hover { background-color: #c0392b; }
+        #panelAuditoria { display: none; border-top: 4px solid #2c3e50; }
+        .auditoria-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .registro-guardado { background: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 15px; border-radius: 4px; font-size: 14px; }
+        .registro-guardado span { color: #2c3e50; font-weight: bold; }
+        .loading { text-align: center; color: #7f8c8d; font-style: italic; }
     </style>
 </head>
 <body>
 
     <!-- PANEL PRINCIPAL: ENCUESTA PARA RESIDENTES -->
     <div class="container" id="panelPrincipal">
-        
         <div class="header-msg">
             <h2>Encuesta de Servicio y Seguridad</h2>
-            <p>"Agradecemos su tiempo y participación. Nuestro mayor compromiso es la mejora continua para garantizar la tranquilidad y excelencia en nuestras instalaciones."</p>
+            <p>"Agradecemos su tiempo y participación. Nuestro mayor compromiso es la mejora continua para garantizar la tranquilidad y excelencia en El Cielo Parque Residencial y Club Cardones."</p>
         </div>
 
         <form id="formEncuesta">
@@ -168,13 +42,10 @@
                 <label for="nombre">Nombre del Residente</label>
                 <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
             </div>
-            
             <div class="form-group">
                 <label for="ubicacion">Lote / Residencia</label>
                 <input type="text" id="ubicacion" placeholder="Número de lote o domicilio" required>
             </div>
-
-            <!-- Nuevas preguntas operativas -->
             <div class="form-group">
                 <label for="evalTiempos">1. Tiempos de Respuesta (Atención en caseta y reportes)</label>
                 <select id="evalTiempos" required>
@@ -185,7 +56,6 @@
                     <option value="Deficiente">Deficiente (Muy lento)</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="evalProcesos">2. Procesos de Seguridad (Registro de visitas, control de acceso)</label>
                 <select id="evalProcesos" required>
@@ -196,7 +66,6 @@
                     <option value="Deficiente">Deficiente (Vulnerables o ineficientes)</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="evalServicio">3. Calidad del Servicio (Actitud y trato del personal de guardias)</label>
                 <select id="evalServicio" required>
@@ -207,17 +76,14 @@
                     <option value="Deficiente">Deficiente (Mala actitud)</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="comentarios">Comentarios y áreas de mejora</label>
-                <textarea id="comentarios" placeholder="Por favor, detalle qué podemos mejorar en tiempos, procesos o actitud del personal..."></textarea>
+                <textarea id="comentarios" placeholder="Por favor, detalle qué podemos mejorar..."></textarea>
             </div>
-
-            <button type="submit" class="btn-submit">Enviar Evaluación</button>
+            <button type="submit" id="btnSubmit" class="btn-submit">Enviar Evaluación</button>
         </form>
 
         <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-
         <button id="btnAuditarRespuestas" class="btn-auditoria">🔒 Acceso Jefatura (Auditar Respuestas)</button>
     </div>
 
@@ -227,94 +93,119 @@
             <h2>Módulo de Auditoría de Jefatura</h2>
             <span style="background: #27ae60; color: white; padding: 5px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">ACTIVO</span>
         </div>
+        <p style="margin-bottom: 20px; color: #555;">Historial de evaluaciones conectadas desde Firebase.</p>
         
-        <p style="margin-bottom: 20px; color: #555;">Historial de evaluaciones de los residentes.</p>
-        
-        <!-- Aquí se cargarán las encuestas guardadas -->
-        <div id="contenedorRespuestas">
-            <!-- Los registros aparecerán aquí mediante JavaScript -->
-        </div>
-
+        <div id="contenedorRespuestas"></div>
         <button id="btnSalirAuditoria" class="btn-auditoria btn-salir">Cerrar Sesión de Auditoría</button>
     </div>
 
-    <script>
-        // 1. Lógica para guardar la encuesta
-        document.getElementById('formEncuesta').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            
-            // Recopilar los datos del formulario
-            const nuevaEncuesta = {
-                fecha: new Date().toLocaleString(),
-                nombre: document.getElementById('nombre').value,
-                ubicacion: document.getElementById('ubicacion').value,
-                tiempos: document.getElementById('evalTiempos').value,
-                procesos: document.getElementById('evalProcesos').value,
-                servicio: document.getElementById('evalServicio').value,
-                comentarios: document.getElementById('comentarios').value || 'Sin comentarios adicionales.'
-            };
+    <!-- SCRIPTS DE FIREBASE (Módulos) -->
+    <script type="module">
+        // Importar las funciones necesarias de Firebase v10
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-            // Guardar localmente en el navegador (Para pruebas inmediatas antes de Firebase)
-            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasResidentes')) || [];
-            historialEncuestas.push(nuevaEncuesta);
-            localStorage.setItem('encuestasResidentes', JSON.stringify(historialEncuestas));
-            
-            // Más adelante, aquí pones tu código de Firebase:
-            // guardarEnFirebase(nuevaEncuesta);
-            
-            alert("Gracias. Sus respuestas han sido registradas para nuestra mejora continua.");
-            this.reset(); 
+        // 1. REEMPLAZA ESTO CON LOS DATOS DE TU PROYECTO FIREBASE
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+
+        // 2. Inicializar Firebase y la Base de Datos (Firestore)
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // LÓGICA PARA ENVIAR ENCUESTA
+        document.getElementById('formEncuesta').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.textContent = "Guardando...";
+            btnSubmit.disabled = true;
+
+            try {
+                // Guardar documento en la colección "encuestas_residentes"
+                await addDoc(collection(db, "encuestas_residentes"), {
+                    nombre: document.getElementById('nombre').value,
+                    ubicacion: document.getElementById('ubicacion').value,
+                    tiempos: document.getElementById('evalTiempos').value,
+                    procesos: document.getElementById('evalProcesos').value,
+                    servicio: document.getElementById('evalServicio').value,
+                    comentarios: document.getElementById('comentarios').value || 'Sin comentarios.',
+                    fechaRegistro: new Date().toISOString() // Marca de tiempo para ordenar
+                });
+
+                alert("Gracias. Sus respuestas han sido registradas para nuestra mejora continua.");
+                this.reset();
+            } catch (error) {
+                console.error("Error al guardar: ", error);
+                alert("Hubo un error de conexión al enviar. Intente nuevamente.");
+            } finally {
+                btnSubmit.textContent = "Enviar Evaluación";
+                btnSubmit.disabled = false;
+            }
         });
 
-        // 2. Lógica para acceder a la auditoría y MOSTRAR los datos guardados
-        document.getElementById('btnAuditarRespuestas').addEventListener('click', function() {
+        // LÓGICA PARA ENTRAR A LA AUDITORÍA
+        document.getElementById('btnAuditarRespuestas').addEventListener('click', async function() {
             let password = prompt("Control de acceso Jefatura: Ingresa la contraseña operativa:");
 
             if (password === "030819") {
                 document.getElementById('panelPrincipal').style.display = 'none';
                 document.getElementById('panelAuditoria').style.display = 'block';
-                
-                // Cargar las respuestas guardadas
                 cargarAuditoria();
-                
             } else if (password !== null) {
                 alert("Contraseña incorrecta. Acceso denegado.");
             }
         });
 
-        // 3. Función que inyecta las respuestas guardadas en el panel
-        function cargarAuditoria() {
+        // LÓGICA PARA LEER DE FIREBASE Y MOSTRAR DATOS
+        async function cargarAuditoria() {
             const contenedor = document.getElementById('contenedorRespuestas');
-            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasResidentes')) || [];
+            contenedor.innerHTML = '<p class="loading">Conectando a Firebase y descargando registros...</p>';
 
-            contenedor.innerHTML = ''; // Limpiar panel antes de cargar
+            try {
+                // Consultar la colección ordenada por fecha (más recientes primero)
+                const q = query(collection(db, "encuestas_residentes"), orderBy("fechaRegistro", "desc"));
+                const querySnapshot = await getDocs(q);
 
-            if (historialEncuestas.length === 0) {
-                contenedor.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No hay encuestas registradas todavía.</p>';
-                return;
+                contenedor.innerHTML = ''; // Limpiar el mensaje de carga
+
+                if (querySnapshot.empty) {
+                    contenedor.innerHTML = '<p class="loading">No hay encuestas registradas en la base de datos.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    // Formatear la fecha para que sea legible
+                    const fechaFormateada = new Date(data.fechaRegistro).toLocaleString();
+
+                    contenedor.innerHTML += `
+                        <div class="registro-guardado">
+                            <div style="font-size:12px; color:#7f8c8d; margin-bottom:5px;">Fecha de registro: ${fechaFormateada}</div>
+                            <span>Residente:</span> ${data.nombre} (Lote: ${data.ubicacion})<br><br>
+                            <span>Tiempos de Respuesta:</span> ${data.tiempos}<br>
+                            <span>Procesos de Seguridad:</span> ${data.procesos}<br>
+                            <span>Calidad del Servicio:</span> ${data.servicio}<br><br>
+                            <em style="color:#555;">" ${data.comentarios} "</em>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Error al cargar auditoría: ", error);
+                contenedor.innerHTML = '<p style="color:red; text-align:center;">Error al cargar datos. Verifica la conexión o las reglas de seguridad de Firestore.</p>';
             }
-
-            // Invertir el array para mostrar los más recientes arriba
-            historialEncuestas.reverse().forEach(function(encuesta) {
-                contenedor.innerHTML += `
-                    <div class="registro-guardado">
-                        <div style="font-size:12px; color:#7f8c8d; margin-bottom:5px;">Fecha de registro: ${encuesta.fecha}</div>
-                        <span>Residente:</span> ${encuesta.nombre} (Lote: ${encuesta.ubicacion})<br><br>
-                        <span>Tiempos de Respuesta:</span> ${encuesta.tiempos}<br>
-                        <span>Procesos de Seguridad:</span> ${encuesta.procesos}<br>
-                        <span>Calidad del Servicio:</span> ${encuesta.servicio}<br><br>
-                        <em style="color:#555;">" ${encuesta.comentarios} "</em>
-                    </div>
-                `;
-            });
         }
 
-        // 4. Lógica para salir de la auditoría
+        // SALIR DE LA AUDITORÍA
         document.getElementById('btnSalirAuditoria').addEventListener('click', function() {
             document.getElementById('panelAuditoria').style.display = 'none';
             document.getElementById('panelPrincipal').style.display = 'block';
         });
     </script>
-
 </body>
 </html>
