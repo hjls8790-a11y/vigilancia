@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Seguridad - El Cielo</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #f3f4f6;
+            --accent: #10b981;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #e5e7eb;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.6rem; text-transform: uppercase; }
+        .header p { color: var(--text-muted); margin-top: 8px; font-size: 0.95rem; line-height: 1.4; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem; }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .input-group textarea { resize: vertical; min-height: 100px; }
+
+        /* Estilos para las calificaciones del 1 al 5 */
+        .rating-group {
+            background: var(--secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .rating-title { font-weight: bold; margin-bottom: 10px; display: block; font-size: 0.95rem; }
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .rating-options label {
+            flex: 1;
+            text-align: center;
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            color: var(--text-muted);
+        }
+        .rating-options input[type="radio"] { display: none; }
+        .rating-options input[type="radio"]:checked + label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            padding: 0 5px;
+        }
+
+        .btn-enviar {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .btn-enviar:hover { background-color: #152c69; }
+        .btn-enviar:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+        /* Pantalla de agradecimiento */
+        #pantalla-exito {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        #pantalla-exito h2 { color: var(--accent); font-size: 2rem; margin-bottom: 10px; }
+        #pantalla-exito p { color: var(--text-muted); font-size: 1.1rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="panel-encuesta">
+        <div class="header">
+            <h1>Evaluación de Seguridad</h1>
+            <p>El Cielo Parque Residencial<br>Ayúdenos a mejorar nuestro servicio calificando los siguientes aspectos (1 = Deficiente, 5 = Excelente).</p>
+        </div>
+
+        <form id="formEncuesta">
+            <div class="input-group">
+                <label>Nombre del Residente (Opcional):</label>
+                <input type="text" id="nombre" placeholder="Ej. Familia Pérez">
+            </div>
+            <div class="input-group">
+                <label>Dirección / Lote (Requerido):</label>
+                <input type="text" id="direccion" placeholder="Ej. Lote 45, Manzana 3" required>
+            </div>
+
+            <!-- Pregunta 1: Procesos -->
+            <div class="rating-group">
+                <span class="rating-title">1. Procesos de acceso y control de visitantes/proveedores</span>
+                <div class="rating-options" id="rate-procesos">
+                    <input type="radio" name="procesos" id="p1" value="1"><label for="p1">1</label>
+                    <input type="radio" name="procesos" id="p2" value="2"><label for="p2">2</label>
+                    <input type="radio" name="procesos" id="p3" value="3"><label for="p3">3</label>
+                    <input type="radio" name="procesos" id="p4" value="4"><label for="p4">4</label>
+                    <input type="radio" name="procesos" id="p5" value="5"><label for="p5">5</label>
+                </div>
+                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            </div>
+
+            <!-- Pregunta 2: Seguimiento -->
+            <div class="rating-group">
+                <span class="rating-title">2. Seguimiento y tiempos de respuesta a reportes o incidencias</span>
+                <div class="rating-options" id="rate-seguimiento">
+                    <input type="radio" name="seguimiento" id="s1" value="1"><label for="s1">1</label>
+                    <input type="radio" name="seguimiento" id="s2" value="2"><label for="s2">2</label>
+                    <input type="radio" name="seguimiento" id="s3" value="3"><label for="s3">3</label>
+                    <input type="radio" name="seguimiento" id="s4" value="4"><label for="s4">4</label>
+                    <input type="radio" name="seguimiento" id="s5" value="5"><label for="s5">5</label>
+                </div>
+                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            </div>
+
+            <!-- Pregunta 3: Patrullaje -->
+            <div class="rating-group">
+                <span class="rating-title">3. Presencia y patrullaje preventivo en el residencial</span>
+                <div class="rating-options" id="rate-patrullaje">
+                    <input type="radio" name="patrullaje" id="pt1" value="1"><label for="pt1">1</label>
+                    <input type="radio" name="patrullaje" id="pt2" value="2"><label for="pt2">2</label>
+                    <input type="radio" name="patrullaje" id="pt3" value="3"><label for="pt3">3</label>
+                    <input type="radio" name="patrullaje" id="pt4" value="4"><label for="pt4">4</label>
+                    <input type="radio" name="patrullaje" id="pt5" value="5"><label for="pt5">5</label>
+                </div>
+                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            </div>
+
+            <!-- Pregunta 4: Jefatura -->
+            <div class="rating-group">
+                <span class="rating-title">4. Atención, trato y gestión por parte de la Jefatura de Seguridad</span>
+                <div class="rating-options" id="rate-jefatura">
+                    <input type="radio" name="jefatura" id="j1" value="1"><label for="j1">1</label>
+                    <input type="radio" name="jefatura" id="j2" value="2"><label for="j2">2</label>
+                    <input type="radio" name="jefatura" id="j3" value="3"><label for="j3">3</label>
+                    <input type="radio" name="jefatura" id="j4" value="4"><label for="j4">4</label>
+                    <input type="radio" name="jefatura" id="j5" value="5"><label for="j5">5</label>
+                </div>
+                <div class="rating-labels"><span>Deficiente</span><span>Excelente</span></div>
+            </div>
+
+            <!-- Recomendaciones -->
+            <div class="input-group">
+                <label>Recomendaciones o áreas de mejora:</label>
+                <textarea id="recomendaciones" placeholder="Sus comentarios son muy importantes para nosotros..."></textarea>
+            </div>
+
+            <button type="button" class="btn-enviar" id="btnEnviar" onclick="guardarEncuesta()">
+                Enviar Evaluación
+            </button>
+        </form>
+    </div>
+
+    <!-- Pantalla de éxito -->
+    <div class="container" id="pantalla-exito">
+        <h2>¡Gracias por su tiempo!</h2>
+        <p>Su evaluación ha sido enviada directamente a la Jefatura de Seguridad.<br><br>Trabajamos diariamente para garantizar la tranquilidad de su familia en El Cielo Parque Residencial.</p>
+        <button class="btn-enviar" onclick="location.reload()" style="margin-top: 30px;">Hacer otra evaluación</button>
+    </div>
+
+    <!-- SCRIPT DE FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.appspot.com",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function obtenerValorRadio(name) {
+            const radios = document.getElementsByName(name);
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked) return radios[i].value;
+            }
+            return null;
+        }
+
+        window.guardarEncuesta = async function() {
+            const direccion = document.getElementById('direccion').value.trim();
+            const califProcesos = obtenerValorRadio('procesos');
+            const califSeguimiento = obtenerValorRadio('seguimiento');
+            const califPatrullaje = obtenerValorRadio('patrullaje');
+            const califJefatura = obtenerValorRadio('jefatura');
+
+            if (!direccion) {
+                alert("Por favor, ingrese su Dirección o Lote.");
+                return;
+            }
+            if (!califProcesos || !califSeguimiento || !califPatrullaje || !califJefatura) {
+                alert("Por favor, califique los 4 rubros seleccionando un número del 1 al 5.");
+                return;
+            }
+
+            const btn = document.getElementById('btnEnviar');
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            const datosEncuesta = {
+                nombre_residente: document.getElementById('nombre').value.trim() || "Anónimo",
+                direccion: direccion,
+                calificacion_procesos: parseInt(califProcesos),
+                calificacion_seguimiento: parseInt(califSeguimiento),
+                calificacion_patrullaje: parseInt(califPatrullaje),
+                calificacion_jefatura: parseInt(califJefatura),
+                recomendaciones: document.getElementById('recomendaciones').value.trim(),
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "encuestas_seguridad"), datosEncuesta);
+                
+                // Ocultar formulario y mostrar éxito
+                document.getElementById('panel-encuesta').style.display = 'none';
+                document.getElementById('pantalla-exito').style.display = 'block';
+                
+            } catch (error) {
+                console.error("Error guardando encuesta: ", error);
+                alert("Hubo un error al enviar la evaluación. Intente de nuevo.");
+                btn.innerText = "Enviar Evaluación";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
