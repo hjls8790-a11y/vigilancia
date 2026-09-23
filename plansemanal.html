@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Seguimiento Operativo - El Cielo</title>
+    
+    <!-- SDK Firebase V8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #2980b9;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 15px;
+            color: #333;
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 { margin: 0; font-size: 22px; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: #e0e0e0;
+            color: #555;
+            font-weight: bold;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Tarjetas de Tareas */
+        .task-card {
+            background: var(--card-bg);
+            border-left: 6px solid var(--primary);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-card.completed {
+            border-left-color: var(--success);
+            background-color: #f0fff4;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-time {
+            background: var(--secondary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .task-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--primary);
+        }
+
+        .task-desc {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+
+        .task-meta {
+            font-size: 11px;
+            color: #888;
+            background: #eee;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .btn-action {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-check { background-color: var(--success); }
+        .btn-disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .btn-manager { background-color: #25D366; font-size: 16px; padding: 16px; margin-top: 20px; }
+
+        /* Recursos de Briefing */
+        .briefing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .resource-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--info);
+        }
+
+        .resource-card h4 { margin: 0 0 8px 0; color: var(--primary); }
+        .resource-card p { font-size: 12px; color: #666; margin-bottom: 12px; }
+        .resource-link {
+            display: inline-block;
+            background: var(--info);
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Modal para resumen */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        textarea.summary-box {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📊 Control y Seguimiento Operativo</h1>
+        <p>El Cielo Parque Residencial - Coordinación de Seguridad</p>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="cambiarTab('plan')">📋 Plan del Día</button>
+        <button class="tab-btn" onclick="cambiarTab('briefing')">💡 Briefings</button>
+    </div>
+
+    <!-- PANEL 1: PLAN DE TRABAJO -->
+    <div id="panel-plan" class="panel active">
+        <div id="fecha-actual" style="font-weight: bold; margin-bottom: 15px; color: var(--primary);"></div>
+        <div id="contenedor-tareas"></div>
+
+        <button class="btn-action btn-manager" onclick="generarResumenGerente()">
+            📲 Compartir Resumen con Gerencia (WhatsApp)
+        </button>
+    </div>
+
+    <!-- PANEL 2: FUENTES PARA BRIEFING -->
+    <div id="panel-briefing" class="panel">
+        <h3>Fuentes de Inspiración para Briefing Diario</h3>
+        <p style="font-size: 13px; color: #666;">Selecciona un portal para extraer temas de disciplina, liderazgo y trabajo en equipo para el personal de guardia:</p>
+        
+        <div class="briefing-grid">
+            <div class="resource-card">
+                <h4>🏛️ Daily Stoic</h4>
+                <p>Enfoque en estoicismo práctico, disciplina, control emocional y responsabilidad bajo presión.</p>
+                <a href="https://dailystoic.com" target="_blank" class="resource-link">Abrir Daily Stoic ↗</a>
+            </div>
+
+            <div class="resource-card">
+                <h4>💼 HBR en Español</h4>
+                <p>Artículos sobre liderazgo de equipos, resolución de conflictos y cultura de servicio.</p>
+                <a href="https://hbr.es" target="_blank" class="resource-link">Abrir HBR Español ↗</a>
+            </div>
+
+            <div class="resource-card">
+                <h4>🎯 Liderazgo Hoy</h4>
+                <p>Reflexiones cortas sobre liderazgo servicial, motivación diaria y trabajo en equipo.</p>
+                <a href="https://www.liderazgohoy.com" target="_blank" class="resource-link">Abrir Liderazgo Hoy ↗</a>
+            </div>
+
+            <div class="resource-card">
+                <h4>🎤 TED Talks Liderazgo</h4>
+                <p>Charlas breves e inspiradoras sobre cómo inspirar confianza y guiar a tu equipo.</p>
+                <a href="https://www.ted.com/talks" target="_blank" class="resource-link">Abrir TED Talks ↗</a>
+            </div>
+
+            <div class="resource-card">
+                <h4>🧠 Psicología y Mente</h4>
+                <p>Frases motivacionales, manejo del estrés y herramientas de comunicación asertiva.</p>
+                <a href="https://psicologiaymente.com" target="_blank" class="resource-link">Abrir Psicología y Mente ↗</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RESUMEN GERENCIA -->
+    <div id="modal-resumen" class="modal">
+        <div class="modal-content">
+            <h3>📑 Resumen Diario de Supervisión</h3>
+            <p style="font-size: 12px; color: #555;">Vista previa del reporte listo para enviar a Gerencia:</p>
+            <textarea id="texto-resumen" class="summary-box" readonly></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-action" style="background: var(--info);" onclick="copiarResumen()">📋 Copiar Texto</button>
+                <button class="btn-action" style="background: #25D366;" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
+                <button class="btn-action" style="background: var(--danger);" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU3oWLwBkIc_5riruLGc3dFS5wHo2RV0s",
+            authDomain: "sistema-vigilancia-6851e.firebaseapp.com",
+            projectId: "sistema-vigilancia-6851e",
+            storageBucket: "sistema-vigilancia-6851e.firebasestorage.app",
+            messagingSenderId: "714792023462",
+            appId: "1:714792023462:web:4f560ecf2a16e6a041cb67"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Estructura Base de Tareas
+        const planTareasBase = [
+            { id: "t1", hora: "07:30 - 08:00", titulo: "Relevo y Briefing Motivacional", desc: "Entrega de turno y briefing de 5-8 min con guardias.", dias: [1,2,3,4,5,6] },
+            { id: "t2", hora: "08:00 - 09:15", titulo: "Auditoría Plataformas y Cerco Electrificado", desc: "Revisar Recorridos, Patrullaje, Auditor Táctico, Cámaras y Cerco.", dias: [1,2,3,4,5,6] },
+            { id: "t3", hora: "09:15 - 10:30", titulo: "Filtro de Proveedores y Recorrido Residencial", desc: "Inspección presencial en filtro y primera ronda de campo.", dias: [1,2,3,4,5,6] },
+            { id: "t4", hora: "10:30 - 12:00", titulo: "Revisión de Avances con Alfredo", desc: "Pendientes del sistema de control de acceso.", dias: [1,2,3,4,5,6] },
+            { id: "t5", hora: "11:00 - 12:00", titulo: "Pase de Nómina con LIZ y Rol de Turnos", desc: "Pase de nómina y estructuración del rol semanal.", dias: [4] }, // Solo Jueves
+            { id: "t6", hora: "10:30 - 11:30", titulo: "Revisión de Unidades (Motocicletas)", desc: "Inspección técnica, frenos, luces y equipo de protección.", dias: [5] }, // Solo Viernes
+            { id: "t7", hora: "13:30 - 14:40", titulo: "Llamadas a Residentes (Altas)", desc: "Actualización de altas en domicilios habitados.", dias: [2,3,4], quincenal: true }, 
+            { id: "t8", hora: "16:00 - 17:15", titulo: "Segundo Recorrido de Campo", desc: "Verificación de cierre de obras y proveedores.", dias: [1,2,4,5] },
+            { id: "t9", hora: "17:15 - 18:00", titulo: "Cierre de Novedades y Consignas Nocturnas", desc: "Documentación de incidencias y cierre del día.", dias: [1,2,4,5] }
+        ];
+
+        let tareasEstado = {};
+        const fechaHoyKey = new Date().toISOString().split('T')[0];
+        const diaSemana = new Date().getDay(); // 0: Dom, 1: Lun, 2: Mar, 3: Mier, 4: Jue, 5: Vier, 6: Sab
+
+        document.getElementById('fecha-actual').innerText = `📅 Fecha: ${new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            if(tab === 'plan') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('panel-plan').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('panel-briefing').classList.add('active');
+            }
+        }
+
+        function cargarTareasDia() {
+            db.collection("plan_diario_registros").doc(fechaHoyKey).get().then((doc) => {
+                if (doc.exists) {
+                    tareasEstado = doc.data().tareas || {};
+                }
+                renderizarTareas();
+            }).catch(err => {
+                console.error("Error al cargar estado:", err);
+                renderizarTareas();
+            });
+        }
+
+        function renderizarTareas() {
+            const contenedor = document.getElementById('contenedor-tareas');
+            contenedor.innerHTML = '';
+
+            planTareasBase.forEach(tarea => {
+                // Filtrar por día de la semana
+                if (!tarea.dias.includes(diaSemana)) return;
+
+                const completada = tareasEstado[tarea.id] && tareasEstado[tarea.id].completada;
+                const meta = tareasEstado[tarea.id] ? tareasEstado[tarea.id].meta : null;
+
+                const card = document.createElement('div');
+                card.className = `task-card ${completada ? 'completed' : ''}`;
+
+                let metaHTML = completada && meta ? 
+                    `<div class="task-meta">✅ Cumplida: ${meta.hora} | GPS: ${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}</div>` : '';
+
+                let botonHTML = completada ? 
+                    `<button class="btn-action btn-disabled" disabled>✓ Tarea Marcada con GPS</button>` :
+                    `<button class="btn-action btn-check" onclick="marcarTarea('${tarea.id}')">📍 Marcar como Cumplida (GPS)</button>`;
+
+                card.innerHTML = `
+                    <div class="task-header">
+                        <span class="task-title">${tarea.titulo}</span>
+                        <span class="task-time">${tarea.hora}</span>
+                    </div>
+                    <p class="task-desc">${tarea.desc}</p>
+                    ${metaHTML}
+                    ${botonHTML}
+                `;
+
+                contenedor.appendChild(card);
+            });
+        }
+
+        function marcarTarea(idTarea) {
+            if (!navigator.geolocation) {
+                alert("El navegador no soporta geolocalización.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const metaData = {
+                    hora: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    timestamp: Date.now()
+                };
+
+                tareasEstado[idTarea] = {
+                    completada: true,
+                    meta: metaData
+                };
+
+                db.collection("plan_diario_registros").doc(fechaHoyKey).set({
+                    fecha: fechaHoyKey,
+                    tareas: tareasEstado
+                }, { merge: true }).then(() => {
+                    renderizarTareas();
+                }).catch(err => {
+                    alert("Error al guardar en servidor: " + err.message);
+                });
+
+            }, () => {
+                alert("⚠️ Error: Activa el GPS de tu dispositivo para validar el cumplimiento de la tarea.");
+            }, { enableHighAccuracy: true });
+        }
+
+        function generarResumenGerente() {
+            let resumen = `*REPORTE DE SUPERVISIÓN - EL CIELO*\n`;
+            resumen += `📅 Fecha: ${fechaHoyKey}\n`;
+            resumen += `-----------------------------------\n\n`;
+
+            planTareasBase.forEach(tarea => {
+                if (!tarea.dias.includes(diaSemana)) return;
+
+                const est = tareasEstado[tarea.id];
+                if (est && est.completada) {
+                    resumen += `✅ *${tarea.titulo}* (${tarea.hora})\n   └ Cumplida: ${est.meta.hora} hrs [GPS OK]\n\n`;
+                } else {
+                    resumen += `⏳ *${tarea.titulo}* (${tarea.hora})\n   └ Pendiente / En proceso\n\n`;
+                }
+            });
+
+            resumen += `-----------------------------------\n`;
+            resumen += `Coordinación de Seguridad - El Cielo Parque Residencial`;
+
+            document.getElementById('texto-resumen').value = resumen;
+            document.getElementById('modal-resumen').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-resumen').style.display = 'none';
+        }
+
+        function copiarResumen() {
+            const txt = document.getElementById('texto-resumen');
+            txt.select();
+            document.execCommand('copy');
+            alert("Resumen copiado al portapapeles.");
+        }
+
+        function enviarWhatsApp() {
+            const txt = encodeURIComponent(document.getElementById('texto-resumen').value);
+            window.open(`https://api.whatsapp.com/send?text=${txt}`, '_blank');
+        }
+
+        // Carga Inicial
+        cargarTareasDia();
+    </script>
+</body>
+</html>
