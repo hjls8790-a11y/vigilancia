@@ -75,10 +75,10 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
-            background: white;
+            background: #f8f9fa;
             padding: 10px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #ddd;
         }
 
         .date-picker {
@@ -105,6 +105,14 @@
         .task-card.completed {
             border-left-color: var(--success);
             background-color: #f0fff4;
+        }
+        
+        .task-card.audit-mode {
+            background-color: #fcfcfc;
+            border-left-color: #7f8c8d;
+        }
+        .task-card.audit-mode.completed {
+            border-left-color: var(--success);
         }
 
         .task-header {
@@ -140,6 +148,16 @@
             background: #eee;
             padding: 6px;
             border-radius: 4px;
+        }
+        
+        .obs-text-audit {
+            font-size: 13px;
+            background: #fff3cd;
+            padding: 8px;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            color: #856404;
+            margin-top: 5px;
         }
 
         .btn-action {
@@ -201,7 +219,7 @@
             font-weight: bold;
         }
 
-        /* Modal para resumen */
+        /* Modales */
         .modal {
             display: none;
             position: fixed;
@@ -218,7 +236,7 @@
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
@@ -241,24 +259,23 @@
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="cambiarTab('plan')">📋 Plan del Día</button>
+        <button class="tab-btn active" onclick="cambiarTab('plan')">📋 Plan de Hoy</button>
         <button class="tab-btn" onclick="cambiarTab('briefing')">💡 Briefings</button>
     </div>
 
-    <!-- PANEL 1: PLAN DE TRABAJO -->
+    <!-- PANEL 1: PLAN DE TRABAJO (HOY) -->
     <div id="panel-plan" class="panel active">
         
-        <!-- Buscador por Fechas -->
-        <div class="audit-controls">
-            <input type="date" id="selector-fecha" class="date-picker">
-            <button class="btn-action btn-audit" onclick="auditarFecha()">🔍 Consultar</button>
-        </div>
+        <!-- Botón para abrir auditoría en lugar del calendario en línea -->
+        <button class="btn-action" style="background: var(--secondary); margin-bottom: 15px;" onclick="abrirModalAuditoria()">
+            🔍 Auditar Historial de Días Anteriores
+        </button>
 
         <div id="fecha-actual" style="font-weight: bold; margin-bottom: 15px; color: var(--primary);"></div>
         <div id="contenedor-tareas"></div>
 
         <button class="btn-action btn-manager" onclick="generarResumenGerente()">
-            📲 Compartir Resumen con Gerencia
+            📲 Compartir Resumen de Hoy
         </button>
     </div>
 
@@ -273,7 +290,6 @@
                 <p>Enfoque en estoicismo práctico, disciplina, control emocional y responsabilidad bajo presión.</p>
                 <a href="https://dailystoic.com" target="_blank" class="resource-link">Abrir Daily Stoic ↗</a>
             </div>
-            <!-- Resto de recursos intactos -->
             <div class="resource-card">
                 <h4>💼 HBR en Español</h4>
                 <p>Artículos sobre liderazgo de equipos, resolución de conflictos y cultura de servicio.</p>
@@ -289,11 +305,27 @@
                 <p>Charlas breves e inspiradoras sobre cómo inspirar confianza y guiar a tu equipo.</p>
                 <a href="https://www.ted.com/talks" target="_blank" class="resource-link">Abrir TED Talks ↗</a>
             </div>
-            <div class="resource-card">
-                <h4>🧠 Psicología y Mente</h4>
-                <p>Frases motivacionales, manejo del estrés y herramientas de comunicación asertiva.</p>
-                <a href="https://psicologiaymente.com" target="_blank" class="resource-link">Abrir Psicología y Mente ↗</a>
+        </div>
+    </div>
+
+    <!-- MODAL DE AUDITORÍA -->
+    <div id="modal-auditoria" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="margin-top: 0; color: var(--primary);">🔍 Auditoría de Historial</h3>
+            <p style="font-size: 12px; color: #666;">Selecciona una fecha para ver las tareas completadas y verificar las ubicaciones en el mapa (modo solo lectura).</p>
+            
+            <div class="audit-controls">
+                <input type="date" id="selector-fecha-auditoria" class="date-picker">
+                <button class="btn-action btn-audit" onclick="consultarAuditoria()">Consultar</button>
             </div>
+            
+            <div id="fecha-auditoria-titulo" style="font-weight: bold; margin: 15px 0; color: var(--primary);"></div>
+            
+            <div id="contenedor-tareas-auditoria">
+                <!-- Tareas auditadas aparecerán aquí -->
+            </div>
+            
+            <button class="btn-action" style="background: var(--danger); margin-top: 20px;" onclick="cerrarModalAuditoria()">Cerrar Auditoría</button>
         </div>
     </div>
 
@@ -306,7 +338,7 @@
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button class="btn-action" style="background: var(--info);" onclick="copiarResumen()">📋 Copiar Texto</button>
                 <button class="btn-action" style="background: #25D366;" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
-                <button class="btn-action" style="background: var(--danger);" onclick="cerrarModal()">Cerrar</button>
+                <button class="btn-action" style="background: var(--danger);" onclick="cerrarModalResumen()">Cerrar</button>
             </div>
         </div>
     </div>
@@ -347,12 +379,8 @@
         const day = String(tzDate.getDate()).padStart(2, '0');
         
         const fechaHoyLocal = `${year}-${month}-${day}`;
-        let fechaSeleccionada = fechaHoyLocal;
-        let diaSemanaSeleccionado = tzDate.getDay(); 
-        let tareasEstado = {};
-
-        // Inicializar el selector con la fecha de hoy
-        document.getElementById('selector-fecha').value = fechaSeleccionada;
+        const diaSemanaHoy = tzDate.getDay(); 
+        let tareasEstadoHoy = {};
 
         function cambiarTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -367,46 +395,35 @@
             }
         }
 
-        function auditarFecha() {
-            const dateVal = document.getElementById('selector-fecha').value;
-            if(dateVal) {
-                cargarTareasDia(dateVal);
-            }
-        }
-
-        function cargarTareasDia(fecha = fechaHoyLocal) {
-            fechaSeleccionada = fecha;
-            
-            // Calcular día de la semana para la fecha seleccionada
-            const partes = fecha.split('-');
-            const d = new Date(partes[0], partes[1] - 1, partes[2]);
-            diaSemanaSeleccionado = d.getDay();
-
+        // ==========================================
+        // LÓGICA DE HOY (PANEL PRINCIPAL)
+        // ==========================================
+        function cargarTareasHoy() {
+            const d = new Date();
             const textoFecha = d.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('fecha-actual').innerText = `📅 Registro del: ${textoFecha.toUpperCase()}`;
+            document.getElementById('fecha-actual').innerText = `📅 Registro de Hoy: ${textoFecha.toUpperCase()}`;
 
-            db.collection("plan_diario_registros").doc(fechaSeleccionada).get().then((doc) => {
+            db.collection("plan_diario_registros").doc(fechaHoyLocal).get().then((doc) => {
                 if (doc.exists) {
-                    tareasEstado = doc.data().tareas || {};
+                    tareasEstadoHoy = doc.data().tareas || {};
                 } else {
-                    tareasEstado = {};
+                    tareasEstadoHoy = {};
                 }
-                renderizarTareas();
+                renderizarTareasHoy();
             }).catch(err => {
                 console.error("Error al cargar estado:", err);
-                renderizarTareas();
+                renderizarTareasHoy();
             });
         }
 
-        function renderizarTareas() {
+        function renderizarTareasHoy() {
             const contenedor = document.getElementById('contenedor-tareas');
             contenedor.innerHTML = '';
 
             planTareasBase.forEach(tarea => {
-                // Mostrar solo las tareas que corresponden al día de la semana consultado
-                if (!tarea.dias.includes(diaSemanaSeleccionado)) return;
+                if (!tarea.dias.includes(diaSemanaHoy)) return;
 
-                const estadoTarea = tareasEstado[tarea.id] || {};
+                const estadoTarea = tareasEstadoHoy[tarea.id] || {};
                 const completada = estadoTarea.completada || false;
                 const meta = estadoTarea.meta || null;
                 const observacion = estadoTarea.observacion || '';
@@ -417,16 +434,14 @@
                 let metaHTML = completada && meta ? 
                     `<div class="task-meta">✅ Check-in: ${meta.hora} | GPS: ${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}</div>` : '';
 
-                // Botón principal (Marcar o Ver Mapa)
                 let botonHTML = completada ? 
                     `<a href="https://maps.google.com/?q=${meta.lat},${meta.lng}" target="_blank" class="btn-action btn-map">🗺️ Ver ubicación en Mapa</a>` :
-                    `<button class="btn-action btn-check" onclick="marcarTarea('${tarea.id}')">📍 Marcar como Cumplida (GPS)</button>`;
+                    `<button class="btn-action btn-check" onclick="marcarTareaHoy('${tarea.id}')">📍 Marcar como Cumplida (GPS)</button>`;
 
-                // Sección de Observaciones
                 let obsHTML = `
                     <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
                         <textarea id="obs-${tarea.id}" class="obs-box" placeholder="Escribe pendientes, notas u observaciones de esta tarea...">${observacion}</textarea>
-                        <button class="btn-action" style="background: var(--secondary); padding: 8px; font-size: 13px; margin-top: 5px;" onclick="guardarObservacion('${tarea.id}')">💾 Guardar Nota</button>
+                        <button class="btn-action" style="background: var(--secondary); padding: 8px; font-size: 13px; margin-top: 5px;" onclick="guardarObservacionHoy('${tarea.id}')">💾 Guardar Nota</button>
                     </div>
                 `;
 
@@ -440,28 +455,18 @@
                     ${botonHTML}
                     ${obsHTML}
                 `;
-
                 contenedor.appendChild(card);
             });
 
             if (contenedor.innerHTML === '') {
-                contenedor.innerHTML = '<p style="text-align:center; color:#888;">No hay tareas programadas para este día.</p>';
+                contenedor.innerHTML = '<p style="text-align:center; color:#888;">No hay tareas programadas para hoy.</p>';
             }
         }
 
-        function marcarTarea(idTarea) {
+        function marcarTareaHoy(idTarea) {
             if (!navigator.geolocation) {
-                alert("El navegador no soporta geolocalización.");
-                return;
+                alert("El navegador no soporta geolocalización."); return;
             }
-
-            // Validar que solo se marque el día actual (opcional, pero recomendado)
-            if (fechaSeleccionada !== fechaHoyLocal) {
-                if(!confirm("Estás viendo una fecha pasada o futura. ¿Seguro que quieres marcar la tarea hoy en este registro?")) {
-                    return;
-                }
-            }
-
             navigator.geolocation.getCurrentPosition(pos => {
                 const metaData = {
                     hora: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
@@ -470,53 +475,129 @@
                     timestamp: Date.now()
                 };
 
-                if (!tareasEstado[idTarea]) tareasEstado[idTarea] = {};
-                tareasEstado[idTarea].completada = true;
-                tareasEstado[idTarea].meta = metaData;
+                if (!tareasEstadoHoy[idTarea]) tareasEstadoHoy[idTarea] = {};
+                tareasEstadoHoy[idTarea].completada = true;
+                tareasEstadoHoy[idTarea].meta = metaData;
 
-                guardarEnFirebase();
+                db.collection("plan_diario_registros").doc(fechaHoyLocal).set({
+                    fecha: fechaHoyLocal,
+                    tareas: tareasEstadoHoy
+                }, { merge: true }).then(() => renderizarTareasHoy())
+                .catch(err => alert("Error: " + err.message));
 
             }, () => {
-                alert("⚠️ Error: Activa el GPS de tu dispositivo para validar el cumplimiento de la tarea.");
+                alert("⚠️ Error: Activa el GPS de tu dispositivo para validar el cumplimiento.");
             }, { enableHighAccuracy: true });
         }
 
-        function guardarObservacion(idTarea) {
+        function guardarObservacionHoy(idTarea) {
             const texto = document.getElementById(`obs-${idTarea}`).value;
-            if (!tareasEstado[idTarea]) tareasEstado[idTarea] = {};
-            tareasEstado[idTarea].observacion = texto;
+            if (!tareasEstadoHoy[idTarea]) tareasEstadoHoy[idTarea] = {};
+            tareasEstadoHoy[idTarea].observacion = texto;
             
-            guardarEnFirebase("Nota guardada correctamente.");
+            db.collection("plan_diario_registros").doc(fechaHoyLocal).set({
+                fecha: fechaHoyLocal,
+                tareas: tareasEstadoHoy
+            }, { merge: true }).then(() => alert("Nota guardada correctamente."))
+            .catch(err => alert("Error: " + err.message));
         }
 
-        function guardarEnFirebase(mensajeExito = null) {
-            db.collection("plan_diario_registros").doc(fechaSeleccionada).set({
-                fecha: fechaSeleccionada,
-                tareas: tareasEstado
-            }, { merge: true }).then(() => {
-                if (mensajeExito) alert(mensajeExito);
-                renderizarTareas();
+        // ==========================================
+        // LÓGICA DE AUDITORÍA (MODAL)
+        // ==========================================
+        function abrirModalAuditoria() {
+            document.getElementById('modal-auditoria').style.display = 'flex';
+        }
+
+        function cerrarModalAuditoria() {
+            document.getElementById('modal-auditoria').style.display = 'none';
+            document.getElementById('contenedor-tareas-auditoria').innerHTML = '';
+            document.getElementById('fecha-auditoria-titulo').innerText = '';
+        }
+
+        function consultarAuditoria() {
+            const fechaAudit = document.getElementById('selector-fecha-auditoria').value;
+            if (!fechaAudit) { alert("Selecciona una fecha primero."); return; }
+
+            const partes = fechaAudit.split('-');
+            const d = new Date(partes[0], partes[1] - 1, partes[2]);
+            const diaSemanaAudit = d.getDay();
+
+            const textoFecha = d.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('fecha-auditoria-titulo').innerText = `📅 Historial del: ${textoFecha.toUpperCase()}`;
+            document.getElementById('contenedor-tareas-auditoria').innerHTML = '<p>Buscando registros...</p>';
+
+            db.collection("plan_diario_registros").doc(fechaAudit).get().then((doc) => {
+                let tareasEstadoAudit = {};
+                if (doc.exists) {
+                    tareasEstadoAudit = doc.data().tareas || {};
+                }
+                renderizarTareasAuditoria(tareasEstadoAudit, diaSemanaAudit);
             }).catch(err => {
-                alert("Error al guardar en el servidor: " + err.message);
+                document.getElementById('contenedor-tareas-auditoria').innerHTML = `<p style="color:red;">Error al cargar: ${err.message}</p>`;
             });
         }
 
+        function renderizarTareasAuditoria(tareasEstadoAudit, diaSemanaAudit) {
+            const contenedor = document.getElementById('contenedor-tareas-auditoria');
+            contenedor.innerHTML = '';
+
+            planTareasBase.forEach(tarea => {
+                if (!tarea.dias.includes(diaSemanaAudit)) return;
+
+                const estadoTarea = tareasEstadoAudit[tarea.id] || {};
+                const completada = estadoTarea.completada || false;
+                const meta = estadoTarea.meta || null;
+                const observacion = estadoTarea.observacion || '';
+
+                const card = document.createElement('div');
+                card.className = `task-card audit-mode ${completada ? 'completed' : ''}`;
+
+                let metaHTML = completada && meta ? 
+                    `<div class="task-meta">✅ Check-in: ${meta.hora} | GPS: ${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}</div>` : 
+                    `<div class="task-meta">❌ Tarea no completada este día</div>`;
+
+                let botonHTML = completada ? 
+                    `<a href="https://maps.google.com/?q=${meta.lat},${meta.lng}" target="_blank" class="btn-action btn-map" style="margin-top: 10px;">🗺️ Revisar ubicación en Mapa</a>` : '';
+
+                let obsHTML = observacion.trim() !== '' ? 
+                    `<div class="obs-text-audit"><strong>📝 Nota de ese día:</strong><br>${observacion}</div>` : '';
+
+                card.innerHTML = `
+                    <div class="task-header">
+                        <span class="task-title">${tarea.titulo}</span>
+                        <span class="task-time">${tarea.hora}</span>
+                    </div>
+                    <p class="task-desc">${tarea.desc}</p>
+                    ${metaHTML}
+                    ${obsHTML}
+                    ${botonHTML}
+                `;
+                contenedor.appendChild(card);
+            });
+
+            if (contenedor.innerHTML === '') {
+                contenedor.innerHTML = '<p style="text-align:center; color:#888;">No hay tareas programadas o registradas para ese día.</p>';
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE WHATSAPP (RESUMEN)
+        // ==========================================
         function generarResumenGerente() {
             let resumen = `*REPORTE DE SUPERVISIÓN - EL CIELO*\n`;
-            resumen += `📅 Fecha de Registro: ${fechaSeleccionada}\n`;
+            resumen += `📅 Fecha: ${fechaHoyLocal}\n`;
             resumen += `-----------------------------------\n\n`;
 
             planTareasBase.forEach(tarea => {
-                if (!tarea.dias.includes(diaSemanaSeleccionado)) return;
-
-                const est = tareasEstado[tarea.id] || {};
+                if (!tarea.dias.includes(diaSemanaHoy)) return;
+                const est = tareasEstadoHoy[tarea.id] || {};
                 
                 if (est.completada) {
                     resumen += `✅ *${tarea.titulo}* (${tarea.hora})\n   └ GPS Check: ${est.meta.hora} hrs\n`;
                 } else {
                     resumen += `⏳ *${tarea.titulo}* (${tarea.hora})\n   └ Pendiente\n`;
                 }
-
                 if (est.observacion && est.observacion.trim() !== '') {
                     resumen += `   📝 *Nota:* ${est.observacion.trim()}\n`;
                 }
@@ -530,24 +611,18 @@
             document.getElementById('modal-resumen').style.display = 'flex';
         }
 
-        function cerrarModal() {
-            document.getElementById('modal-resumen').style.display = 'none';
-        }
-
+        function cerrarModalResumen() { document.getElementById('modal-resumen').style.display = 'none'; }
         function copiarResumen() {
             const txt = document.getElementById('texto-resumen');
-            txt.select();
-            document.execCommand('copy');
-            alert("Resumen copiado al portapapeles.");
+            txt.select(); document.execCommand('copy'); alert("Resumen copiado al portapapeles.");
         }
-
         function enviarWhatsApp() {
             const txt = encodeURIComponent(document.getElementById('texto-resumen').value);
             window.open(`https://api.whatsapp.com/send?text=${txt}`, '_blank');
         }
 
-        // Carga Inicial
-        cargarTareasDia();
+        // Iniciar
+        cargarTareasHoy();
     </script>
 </body>
 </html>
